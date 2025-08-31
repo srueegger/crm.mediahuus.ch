@@ -7,6 +7,7 @@ use App\Models\User;
 use App\Repositories\DocumentRepository;
 use App\Repositories\BranchRepository;
 use App\Repositories\EstimateRepository;
+use Twig\Environment;
 use Psr\Http\Message\ResponseInterface as Response;
 use Psr\Http\Message\ServerRequestInterface as Request;
 
@@ -17,10 +18,12 @@ class DashboardController extends BaseController
     private EstimateRepository $estimateRepository;
 
     public function __construct(
+        Environment $twig,
         DocumentRepository $documentRepository,
         BranchRepository $branchRepository,
         EstimateRepository $estimateRepository
     ) {
+        parent::__construct($twig);
         $this->documentRepository = $documentRepository;
         $this->branchRepository = $branchRepository;
         $this->estimateRepository = $estimateRepository;

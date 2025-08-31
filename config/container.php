@@ -118,7 +118,7 @@ return [
     },
 
     // Dashboard Controller
-    DashboardController::class => function (DocumentRepository $documentRepository, BranchRepository $branchRepository, EstimateRepository $estimateRepository) {
-        return new DashboardController($documentRepository, $branchRepository, $estimateRepository);
+    DashboardController::class => function (Environment $twig, DocumentRepository $documentRepository, BranchRepository $branchRepository, EstimateRepository $estimateRepository) {
+        return new DashboardController($twig, $documentRepository, $branchRepository, $estimateRepository);
     },
 ];
