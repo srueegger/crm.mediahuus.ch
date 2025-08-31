@@ -19,9 +19,6 @@ composer_version: "2"
 # Performance optimizations
 performance_mode: mutagen
 
-# PHP configuration
-php_version: "8.2"
-
 # Additional services
 services: []
 
