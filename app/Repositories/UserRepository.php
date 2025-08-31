@@ -68,6 +68,65 @@ class UserRepository
         return $affectedRows > 0;
     }
 
+    public function findAll(bool $includeInactive = false): array
+    {
+        $sql = 'SELECT * FROM users';
+        $params = [];
+        
+        if (!$includeInactive) {
+            $sql .= ' WHERE is_active = 1';
+        }
+        
+        $sql .= ' ORDER BY name ASC';
+        
+        $rows = $this->connection->fetchAllAssociative($sql, $params);
+        
+        return array_map([$this, 'hydrateUser'], $rows);
+    }
+
+    public function delete(int $id): bool
+    {
+        $affectedRows = $this->connection->delete('users', ['id' => $id]);
+        return $affectedRows > 0;
+    }
+
+    public function deactivate(int $id): bool
+    {
+        $affectedRows = $this->connection->update('users', [
+            'is_active' => 0,
+            'updated_at' => (new \DateTime())->format('Y-m-d H:i:s'),
+        ], [
+            'id' => $id
+        ]);
+
+        return $affectedRows > 0;
+    }
+
+    public function activate(int $id): bool
+    {
+        $affectedRows = $this->connection->update('users', [
+            'is_active' => 1,
+            'updated_at' => (new \DateTime())->format('Y-m-d H:i:s'),
+        ], [
+            'id' => $id
+        ]);
+
+        return $affectedRows > 0;
+    }
+
+    public function emailExists(string $email, ?int $excludeId = null): bool
+    {
+        $sql = 'SELECT COUNT(*) FROM users WHERE email = ?';
+        $params = [$email];
+        
+        if ($excludeId) {
+            $sql .= ' AND id != ?';
+            $params[] = $excludeId;
+        }
+        
+        return $this->connection->fetchOne($sql, $params) > 0;
+    }
+
     private function hydrateUser(array $row): User
     {
         return new User(

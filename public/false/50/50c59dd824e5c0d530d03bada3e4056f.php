@@ -76,7 +76,7 @@ class __TwigTemplate_0f4f6e09fdd54733c93dfe7aea24a2ba extends Template
         </div>
 
         <!-- Action Cards -->
-        <div class=\"grid grid-cols-1 md:grid-cols-3 gap-6 mb-8\">
+        <div class=\"grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8\">
             <!-- Kostenvoranschlag Card -->
             <div class=\"bg-white overflow-hidden shadow rounded-lg hover:shadow-lg transition-shadow\">
                 <div class=\"p-6\">
@@ -139,6 +139,29 @@ class __TwigTemplate_0f4f6e09fdd54733c93dfe7aea24a2ba extends Template
                     </div>
                 </div>
             </div>
+
+            <!-- Benutzerverwaltung Card -->
+            <div class=\"bg-white overflow-hidden shadow rounded-lg hover:shadow-lg transition-shadow\">
+                <div class=\"p-6\">
+                    <div class=\"flex items-center\">
+                        <div class=\"flex-shrink-0\">
+                            <svg class=\"h-8 w-8 text-indigo-600\" fill=\"none\" stroke=\"currentColor\" viewBox=\"0 0 24 24\">
+                                <path stroke-linecap=\"round\" stroke-linejoin=\"round\" stroke-width=\"2\" d=\"M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197m13.5-9a2.5 2.5 0 11-5 0 2.5 2.5 0 015 0z\" />
+                            </svg>
+                        </div>
+                        <div class=\"ml-4 flex-1\">
+                            <h3 class=\"text-lg font-medium text-gray-900\">Benutzerverwaltung</h3>
+                            <p class=\"text-sm text-gray-500 mb-4\">Benutzer verwalten</p>
+                            <a href=\"";
+        // line 87
+        yield $this->env->getRuntime('Twig\Runtime\EscaperRuntime')->escape($this->env->getFunction('url_for')->getCallable()("users.index"), "html", null, true);
+        yield "\" class=\"bg-indigo-600 text-white px-4 py-2 rounded-md text-sm hover:bg-indigo-700 transition-colors\">
+                                Verwalten
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
         </div>
 
         <!-- Recent Documents Section -->
@@ -183,7 +206,7 @@ class __TwigTemplate_0f4f6e09fdd54733c93dfe7aea24a2ba extends Template
      */
     public function getDebugInfo(): array
     {
-        return array (  94 => 27,  71 => 6,  64 => 5,  52 => 3,  41 => 1,);
+        return array (  157 => 87,  94 => 27,  71 => 6,  64 => 5,  52 => 3,  41 => 1,);
     }
 
     public function getSourceContext(): Source
@@ -201,7 +224,7 @@ class __TwigTemplate_0f4f6e09fdd54733c93dfe7aea24a2ba extends Template
         </div>
 
         <!-- Action Cards -->
-        <div class=\"grid grid-cols-1 md:grid-cols-3 gap-6 mb-8\">
+        <div class=\"grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8\">
             <!-- Kostenvoranschlag Card -->
             <div class=\"bg-white overflow-hidden shadow rounded-lg hover:shadow-lg transition-shadow\">
                 <div class=\"p-6\">
@@ -257,6 +280,26 @@ class __TwigTemplate_0f4f6e09fdd54733c93dfe7aea24a2ba extends Template
                             <span class=\"bg-gray-300 text-gray-500 px-4 py-2 rounded-md text-sm cursor-not-allowed\">
                                 Bald verfügbar
                             </span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Benutzerverwaltung Card -->
+            <div class=\"bg-white overflow-hidden shadow rounded-lg hover:shadow-lg transition-shadow\">
+                <div class=\"p-6\">
+                    <div class=\"flex items-center\">
+                        <div class=\"flex-shrink-0\">
+                            <svg class=\"h-8 w-8 text-indigo-600\" fill=\"none\" stroke=\"currentColor\" viewBox=\"0 0 24 24\">
+                                <path stroke-linecap=\"round\" stroke-linejoin=\"round\" stroke-width=\"2\" d=\"M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197m13.5-9a2.5 2.5 0 11-5 0 2.5 2.5 0 015 0z\" />
+                            </svg>
+                        </div>
+                        <div class=\"ml-4 flex-1\">
+                            <h3 class=\"text-lg font-medium text-gray-900\">Benutzerverwaltung</h3>
+                            <p class=\"text-sm text-gray-500 mb-4\">Benutzer verwalten</p>
+                            <a href=\"{{ url_for('users.index') }}\" class=\"bg-indigo-600 text-white px-4 py-2 rounded-md text-sm hover:bg-indigo-700 transition-colors\">
+                                Verwalten
+                            </a>
                         </div>
                     </div>
                 </div>

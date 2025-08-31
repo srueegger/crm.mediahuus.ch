@@ -10,6 +10,7 @@ use Monolog\Handler\StreamHandler;
 use Psr\Log\LoggerInterface;
 use App\Repositories\UserRepository;
 use App\Services\AuthService;
+use App\Controllers\UserController;
 
 return [
     // Twig Template Engine
@@ -24,12 +25,17 @@ return [
         $twig->addGlobal('app_name', $_ENV['APP_NAME'] ?? 'Mediahuus CRM');
         
         // Add simple url_for function
-        $twig->addFunction(new \Twig\TwigFunction('url_for', function ($routeName) {
+        $twig->addFunction(new \Twig\TwigFunction('url_for', function ($routeName, $params = []) {
             // Simple hardcoded URLs for now
             $urls = [
                 'estimate.new' => '/estimate/new',
                 'purchase.new' => '/purchase/new',
                 'insurance.new' => '/insurance/new',
+                'users.index' => '/users',
+                'users.create' => '/users/create',
+                'users.edit' => '/users/' . ($params['id'] ?? '{id}') . '/edit',
+                'users.update' => '/users/' . ($params['id'] ?? '{id}'),
+                'users.toggle' => '/users/' . ($params['id'] ?? '{id}') . '/toggle-status',
             ];
             return $urls[$routeName] ?? '/';
         }));
@@ -69,5 +75,10 @@ return [
     // Auth Service
     AuthService::class => function (UserRepository $userRepository, LoggerInterface $logger) {
         return new AuthService($userRepository, $logger);
+    },
+
+    // User Controller  
+    UserController::class => function (Environment $twig, UserRepository $userRepository, LoggerInterface $logger) {
+        return new UserController($twig, $userRepository, $logger);
     },
 ];
