@@ -61,4 +61,43 @@ class DashboardController extends BaseController
             'recent_documents' => $recentDocuments,
         ]);
     }
+
+    public function clearCache(Request $request, Response $response): Response
+    {
+        try {
+            // Clear Twig cache directory
+            $cacheDir = __DIR__ . '/../../var/cache/twig';
+            if (is_dir($cacheDir)) {
+                $this->deleteDirectory($cacheDir);
+            }
+            
+            // Also clear any false/ cache directories in public
+            $publicCacheDir = __DIR__ . '/../../public/false';
+            if (is_dir($publicCacheDir)) {
+                $this->deleteDirectory($publicCacheDir);
+            }
+            
+            $response->getBody()->write(json_encode(['success' => true, 'message' => 'Cache erfolgreich geleert']));
+            return $response->withHeader('Content-Type', 'application/json');
+            
+        } catch (\Exception $e) {
+            $response->getBody()->write(json_encode(['success' => false, 'message' => 'Fehler beim Leeren des Caches: ' . $e->getMessage()]));
+            return $response->withHeader('Content-Type', 'application/json')->withStatus(500);
+        }
+    }
+
+    private function deleteDirectory(string $dir): bool
+    {
+        if (!is_dir($dir)) {
+            return false;
+        }
+        
+        $files = array_diff(scandir($dir), ['.', '..']);
+        foreach ($files as $file) {
+            $path = $dir . DIRECTORY_SEPARATOR . $file;
+            is_dir($path) ? $this->deleteDirectory($path) : unlink($path);
+        }
+        
+        return rmdir($dir);
+    }
 }

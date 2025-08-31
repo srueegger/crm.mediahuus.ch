@@ -16,6 +16,7 @@ $app->post('/login', [AuthController::class, 'login']);
 $app->group('', function () use ($app) {
     $app->get('/', [DashboardController::class, 'index'])->setName('dashboard');
     $app->post('/logout', [AuthController::class, 'logout'])->setName('logout');
+    $app->post('/clear-cache', [DashboardController::class, 'clearCache'])->setName('clear-cache');
     
     // User Management
     $app->get('/users', [UserController::class, 'index'])->setName('users.index');

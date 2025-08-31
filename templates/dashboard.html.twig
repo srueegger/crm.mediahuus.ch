@@ -5,9 +5,17 @@
 {% block content %}
 <div class="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
     <div class="px-4 py-6 sm:px-0">
-        <div class="mb-8">
-            <h2 class="text-2xl font-bold text-gray-900 mb-2">Dashboard</h2>
-            <p class="text-gray-600">Willkommen im Mediahuus CRM-System</p>
+        <div class="mb-8 flex justify-between items-center">
+            <div>
+                <h2 class="text-2xl font-bold text-gray-900 mb-2">Dashboard</h2>
+                <p class="text-gray-600">Willkommen im Mediahuus CRM-System</p>
+            </div>
+            <div>
+                <button id="clearCacheBtn" 
+                        class="bg-yellow-100 text-yellow-800 px-4 py-2 rounded-md text-sm hover:bg-yellow-200 transition-colors">
+                    🧹 Cache leeren
+                </button>
+            </div>
         </div>
 
         <!-- Action Cards -->
@@ -187,4 +195,72 @@
         </div>
     </div>
 </div>
+
+<script>
+document.getElementById('clearCacheBtn').addEventListener('click', function() {
+    const btn = this;
+    const originalText = btn.textContent;
+    
+    // Disable button and show loading state
+    btn.disabled = true;
+    btn.textContent = '🔄 Lädt...';
+    btn.classList.add('opacity-50', 'cursor-not-allowed');
+    
+    fetch('/clear-cache', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            btn.textContent = '✅ Geleert!';
+            btn.classList.remove('bg-yellow-100', 'text-yellow-800', 'hover:bg-yellow-200');
+            btn.classList.add('bg-green-100', 'text-green-800');
+            
+            // Reset after 2 seconds
+            setTimeout(() => {
+                btn.textContent = originalText;
+                btn.classList.remove('bg-green-100', 'text-green-800');
+                btn.classList.add('bg-yellow-100', 'text-yellow-800', 'hover:bg-yellow-200');
+                btn.disabled = false;
+                btn.classList.remove('opacity-50', 'cursor-not-allowed');
+                
+                // Reload page to see changes
+                window.location.reload();
+            }, 2000);
+        } else {
+            btn.textContent = '❌ Fehler';
+            btn.classList.remove('bg-yellow-100', 'text-yellow-800');
+            btn.classList.add('bg-red-100', 'text-red-800');
+            console.error('Cache clear failed:', data.message);
+            
+            // Reset after 3 seconds
+            setTimeout(() => {
+                btn.textContent = originalText;
+                btn.classList.remove('bg-red-100', 'text-red-800');
+                btn.classList.add('bg-yellow-100', 'text-yellow-800', 'hover:bg-yellow-200');
+                btn.disabled = false;
+                btn.classList.remove('opacity-50', 'cursor-not-allowed');
+            }, 3000);
+        }
+    })
+    .catch(error => {
+        console.error('Cache clear error:', error);
+        btn.textContent = '❌ Fehler';
+        btn.classList.remove('bg-yellow-100', 'text-yellow-800');
+        btn.classList.add('bg-red-100', 'text-red-800');
+        
+        // Reset after 3 seconds
+        setTimeout(() => {
+            btn.textContent = originalText;
+            btn.classList.remove('bg-red-100', 'text-red-800');
+            btn.classList.add('bg-yellow-100', 'text-yellow-800', 'hover:bg-yellow-200');
+            btn.disabled = false;
+            btn.classList.remove('opacity-50', 'cursor-not-allowed');
+        }, 3000);
+    });
+});
+</script>
 {% endblock %}
