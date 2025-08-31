@@ -1,0 +1,31 @@
+# Dependencies
+/vendor/
+composer.lock
+
+# Environment
+.env
+
+# Logs
+logs/
+*.log
+
+# Cache
+cache/
+tmp/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# System
+.DS_Store
+Thumbs.db
+
+# DDEV
+.ddev/.homeadditions
+.ddev/.gitignore
+
+# PHP
+*.tmp
