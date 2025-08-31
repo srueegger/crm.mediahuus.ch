@@ -3,16 +3,25 @@ declare(strict_types=1);
 
 namespace App\Controllers;
 
+use App\Services\AuthService;
 use Psr\Http\Message\ResponseInterface as Response;
 use Psr\Http\Message\ServerRequestInterface as Request;
-use Slim\Routing\RouteContext;
+use Twig\Environment;
 
 class AuthController extends BaseController
 {
+    private AuthService $authService;
+
+    public function __construct(Environment $twig, AuthService $authService)
+    {
+        parent::__construct($twig);
+        $this->authService = $authService;
+    }
+
     public function showLogin(Request $request, Response $response): Response
     {
         // If already logged in, redirect to dashboard
-        if (!empty($_SESSION['user_id'])) {
+        if ($this->authService->isLoggedIn()) {
             return $response->withHeader('Location', '/')->withStatus(302);
         }
         
@@ -22,23 +31,26 @@ class AuthController extends BaseController
     public function login(Request $request, Response $response): Response
     {
         $data = $request->getParsedBody();
-        $email = $data['email'] ?? '';
+        $email = trim($data['email'] ?? '');
         $password = $data['password'] ?? '';
 
-        // TODO: Implement proper authentication
-        // For now, simple hardcoded check for demo
-        if ($email === 'admin@mediahuus.ch' && $password === 'admin123') {
-            session_start();
-            $_SESSION['user_id'] = 1;
-            $_SESSION['user'] = [
-                'id' => 1,
-                'name' => 'Admin User',
-                'email' => $email
-            ];
-            
+        // Validate input
+        if (empty($email) || empty($password)) {
+            return $this->render($response, 'auth/login.html.twig', [
+                'error' => 'Bitte geben Sie E-Mail und Passwort ein',
+                'email' => $email,
+            ]);
+        }
+
+        // Attempt authentication
+        $user = $this->authService->authenticate($email, $password);
+        
+        if ($user) {
+            $this->authService->startSession($user);
             return $response->withHeader('Location', '/')->withStatus(302);
         }
 
+        // Authentication failed
         return $this->render($response, 'auth/login.html.twig', [
             'error' => 'Ungültige Anmeldedaten',
             'email' => $email,
@@ -47,9 +59,7 @@ class AuthController extends BaseController
 
     public function logout(Request $request, Response $response): Response
     {
-        session_start();
-        session_destroy();
-        
+        $this->authService->endSession();
         return $response->withHeader('Location', '/login')->withStatus(302);
     }
 }

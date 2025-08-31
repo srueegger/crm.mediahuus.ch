@@ -8,6 +8,8 @@ use Doctrine\DBAL\DriverManager;
 use Monolog\Logger;
 use Monolog\Handler\StreamHandler;
 use Psr\Log\LoggerInterface;
+use App\Repositories\UserRepository;
+use App\Services\AuthService;
 
 return [
     // Twig Template Engine
@@ -57,5 +59,15 @@ return [
         $logger->pushHandler($handler);
         
         return $logger;
+    },
+
+    // User Repository
+    UserRepository::class => function (Connection $connection) {
+        return new UserRepository($connection);
+    },
+
+    // Auth Service
+    AuthService::class => function (UserRepository $userRepository, LoggerInterface $logger) {
+        return new AuthService($userRepository, $logger);
     },
 ];

@@ -4,6 +4,10 @@
 up: ## Start DDEV containers and install dependencies
 	ddev start
 	ddev composer install
+	@echo "🔄 Setting up database..."
+	@ddev exec mysql -e "CREATE DATABASE IF NOT EXISTS crm_mediahuus CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;" || true
+	@make migrate
+	@make seed
 	@echo "✅ Project started! Run 'make launch' to open in browser"
 
 down: ## Stop DDEV containers
@@ -15,12 +19,12 @@ install: ## Install dependencies
 launch: ## Open project in browser
 	ddev launch
 
-# Database (future)
+# Database
 migrate: ## Run database migrations
-	ddev composer migrate
+	ddev exec php bin/migrate.php
 
 seed: ## Seed database with test data
-	ddev composer seed
+	ddev exec php bin/seed.php
 
 # Code quality (future)
 test: ## Run tests
