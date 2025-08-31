@@ -186,7 +186,7 @@ class PdfService
         // Section title
         $pdf->SetFont('helvetica', 'B', 12);
         $pdf->SetXY(20, $currentY);
-        $pdf->Cell(0, 6, 'Kostenvoranschlag für Handy-Reparatur', 0, 1, 'L');
+        $pdf->Cell(0, 6, 'Kostenvoranschlag für Geräte-Reparatur', 0, 1, 'L');
         
         $currentY += 10;
 
