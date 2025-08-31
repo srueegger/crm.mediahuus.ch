@@ -201,6 +201,29 @@ class PdfService
         
         $currentY = $pdf->GetY() + 10;
 
+        // Device information section
+        $pdf->SetFont('helvetica', 'B', 11);
+        $pdf->SetXY(20, $currentY);
+        $pdf->Cell(0, 6, 'Geräteinformationen:', 0, 1, 'L');
+        
+        $currentY += 8;
+        
+        $pdf->SetFont('helvetica', '', 10);
+        $pdf->SetXY(20, $currentY);
+        $pdf->Cell(60, 6, 'Gerät:', 0, 0, 'L');
+        $pdf->SetFont('helvetica', 'B', 10);
+        $pdf->Cell(0, 6, $estimate->getDeviceName(), 0, 1, 'L');
+        
+        $currentY += 6;
+        
+        $pdf->SetFont('helvetica', '', 10);
+        $pdf->SetXY(20, $currentY);
+        $pdf->Cell(60, 6, 'Seriennummer:', 0, 0, 'L');
+        $pdf->SetFont('helvetica', 'B', 10);
+        $pdf->Cell(0, 6, $estimate->getSerialNumber(), 0, 1, 'L');
+
+        $currentY += 15;
+
         // Issue description section
         $pdf->SetFont('helvetica', 'B', 11);
         $pdf->SetXY(20, $currentY);

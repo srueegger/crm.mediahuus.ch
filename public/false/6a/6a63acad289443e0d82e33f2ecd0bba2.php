@@ -165,24 +165,29 @@ class __TwigTemplate_2e5b87360ba6c96ec861ec1c1dd24fa3 extends Template
                                        class=\"bg-gray-100 text-gray-700 px-3 py-1 rounded text-sm hover:bg-gray-200 transition-colors\">
                                         Anzeigen
                                     </a>
-                                    <!-- PDF Button (placeholder) -->
-                                    <button class=\"bg-red-100 text-red-700 px-3 py-1 rounded text-sm hover:bg-red-200 transition-colors opacity-50 cursor-not-allowed\">
+                                    <!-- PDF Button -->
+                                    <a href=\"";
+                // line 68
+                yield $this->env->getRuntime('Twig\Runtime\EscaperRuntime')->escape($this->env->getFunction('url_for')->getCallable()("estimates.pdf", ["id" => CoreExtension::getAttribute($this->env, $this->source, CoreExtension::getAttribute($this->env, $this->source, $context["item"], "document", [], "any", false, false, false, 68), "id", [], "any", false, false, false, 68)]), "html", null, true);
+                yield "\" 
+                                       class=\"bg-red-100 text-red-700 px-3 py-1 rounded text-sm hover:bg-red-200 transition-colors\"
+                                       title=\"PDF herunterladen\">
                                         PDF
-                                    </button>
+                                    </a>
                                 </div>
                             </div>
                             
                             <!-- Issue Preview -->
                             ";
-                // line 75
-                if ((($tmp = CoreExtension::getAttribute($this->env, $this->source, CoreExtension::getAttribute($this->env, $this->source, $context["item"], "estimate", [], "any", false, false, false, 75), "issue_text", [], "any", false, false, false, 75)) && $tmp instanceof Markup ? (string) $tmp : $tmp)) {
-                    // line 76
+                // line 77
+                if ((($tmp = CoreExtension::getAttribute($this->env, $this->source, CoreExtension::getAttribute($this->env, $this->source, $context["item"], "estimate", [], "any", false, false, false, 77), "issue_text", [], "any", false, false, false, 77)) && $tmp instanceof Markup ? (string) $tmp : $tmp)) {
+                    // line 78
                     yield "                                <div class=\"mt-3 pl-14\">
                                     <p class=\"text-sm text-gray-600 italic\">
                                         \"";
-                    // line 78
-                    yield $this->env->getRuntime('Twig\Runtime\EscaperRuntime')->escape(Twig\Extension\CoreExtension::slice($this->env->getCharset(), CoreExtension::getAttribute($this->env, $this->source, CoreExtension::getAttribute($this->env, $this->source, $context["item"], "estimate", [], "any", false, false, false, 78), "issue_text", [], "any", false, false, false, 78), 0, 150), "html", null, true);
-                    if ((Twig\Extension\CoreExtension::length($this->env->getCharset(), CoreExtension::getAttribute($this->env, $this->source, CoreExtension::getAttribute($this->env, $this->source, $context["item"], "estimate", [], "any", false, false, false, 78), "issue_text", [], "any", false, false, false, 78)) > 150)) {
+                    // line 80
+                    yield $this->env->getRuntime('Twig\Runtime\EscaperRuntime')->escape(Twig\Extension\CoreExtension::slice($this->env->getCharset(), CoreExtension::getAttribute($this->env, $this->source, CoreExtension::getAttribute($this->env, $this->source, $context["item"], "estimate", [], "any", false, false, false, 80), "issue_text", [], "any", false, false, false, 80), 0, 150), "html", null, true);
+                    if ((Twig\Extension\CoreExtension::length($this->env->getCharset(), CoreExtension::getAttribute($this->env, $this->source, CoreExtension::getAttribute($this->env, $this->source, $context["item"], "estimate", [], "any", false, false, false, 80), "issue_text", [], "any", false, false, false, 80)) > 150)) {
                         yield "...";
                     }
                     yield "\"
@@ -190,18 +195,18 @@ class __TwigTemplate_2e5b87360ba6c96ec861ec1c1dd24fa3 extends Template
                                 </div>
                             ";
                 }
-                // line 82
+                // line 84
                 yield "                        </li>
                     ";
             }
             $_parent = $context['_parent'];
             unset($context['_seq'], $context['_key'], $context['item'], $context['_parent']);
             $context = array_intersect_key($context, $_parent) + $_parent;
-            // line 84
+            // line 86
             yield "                </ul>
             ";
         } else {
-            // line 86
+            // line 88
             yield "                <div class=\"text-center py-12\">
                     <svg class=\"mx-auto h-12 w-12 text-gray-400\" fill=\"none\" stroke=\"currentColor\" viewBox=\"0 0 24 24\">
                         <path stroke-linecap=\"round\" stroke-linejoin=\"round\" stroke-width=\"2\" d=\"M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z\" />
@@ -210,7 +215,7 @@ class __TwigTemplate_2e5b87360ba6c96ec861ec1c1dd24fa3 extends Template
                     <p class=\"mt-1 text-sm text-gray-500\">Erstellen Sie Ihren ersten Kostenvoranschlag.</p>
                     <div class=\"mt-6\">
                         <a href=\"";
-            // line 93
+            // line 95
             yield $this->env->getRuntime('Twig\Runtime\EscaperRuntime')->escape($this->env->getFunction('url_for')->getCallable()("estimates.create"), "html", null, true);
             yield "\" 
                            class=\"inline-flex items-center px-4 py-2 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700\">
@@ -220,7 +225,7 @@ class __TwigTemplate_2e5b87360ba6c96ec861ec1c1dd24fa3 extends Template
                 </div>
             ";
         }
-        // line 100
+        // line 102
         yield "        </div>
     </div>
 </div>
@@ -249,7 +254,7 @@ class __TwigTemplate_2e5b87360ba6c96ec861ec1c1dd24fa3 extends Template
      */
     public function getDebugInfo(): array
     {
-        return array (  224 => 100,  214 => 93,  205 => 86,  201 => 84,  194 => 82,  184 => 78,  180 => 76,  178 => 75,  163 => 63,  153 => 56,  147 => 55,  141 => 52,  131 => 45,  116 => 32,  112 => 31,  109 => 30,  107 => 29,  102 => 26,  96 => 23,  93 => 22,  91 => 21,  81 => 14,  71 => 6,  64 => 5,  52 => 3,  41 => 1,);
+        return array (  229 => 102,  219 => 95,  210 => 88,  206 => 86,  199 => 84,  189 => 80,  185 => 78,  183 => 77,  171 => 68,  163 => 63,  153 => 56,  147 => 55,  141 => 52,  131 => 45,  116 => 32,  112 => 31,  109 => 30,  107 => 29,  102 => 26,  96 => 23,  93 => 22,  91 => 21,  81 => 14,  71 => 6,  64 => 5,  52 => 3,  41 => 1,);
     }
 
     public function getSourceContext(): Source
@@ -320,10 +325,12 @@ class __TwigTemplate_2e5b87360ba6c96ec861ec1c1dd24fa3 extends Template
                                        class=\"bg-gray-100 text-gray-700 px-3 py-1 rounded text-sm hover:bg-gray-200 transition-colors\">
                                         Anzeigen
                                     </a>
-                                    <!-- PDF Button (placeholder) -->
-                                    <button class=\"bg-red-100 text-red-700 px-3 py-1 rounded text-sm hover:bg-red-200 transition-colors opacity-50 cursor-not-allowed\">
+                                    <!-- PDF Button -->
+                                    <a href=\"{{ url_for('estimates.pdf', {id: item.document.id}) }}\" 
+                                       class=\"bg-red-100 text-red-700 px-3 py-1 rounded text-sm hover:bg-red-200 transition-colors\"
+                                       title=\"PDF herunterladen\">
                                         PDF
-                                    </button>
+                                    </a>
                                 </div>
                             </div>
                             

@@ -51,6 +51,9 @@
                                         <p class="text-sm text-gray-900 font-medium">
                                             {{ item.document.customer_name }}
                                         </p>
+                                        <p class="text-sm text-gray-600 font-medium">
+                                            {{ item.estimate.device_name }}
+                                        </p>
                                         <div class="text-sm text-gray-500 space-y-1">
                                             <p>{{ item.branch.name }} • {{ item.estimate.formatted_price }}</p>
                                             <p>Erstellt: {{ item.document.created_at|date('d.m.Y H:i') }}</p>

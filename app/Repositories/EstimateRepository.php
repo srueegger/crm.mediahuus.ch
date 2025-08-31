@@ -19,6 +19,8 @@ class EstimateRepository
     {
         $this->connection->insert('estimates', [
             'document_id' => $estimate->getDocumentId(),
+            'device_name' => $estimate->getDeviceName(),
+            'serial_number' => $estimate->getSerialNumber(),
             'issue_text' => $estimate->getIssueText(),
             'price_chf' => $estimate->getPriceChf(),
         ]);
@@ -61,6 +63,8 @@ class EstimateRepository
         }
 
         $affectedRows = $this->connection->update('estimates', [
+            'device_name' => $estimate->getDeviceName(),
+            'serial_number' => $estimate->getSerialNumber(),
             'issue_text' => $estimate->getIssueText(),
             'price_chf' => $estimate->getPriceChf(),
         ], [
@@ -80,6 +84,8 @@ class EstimateRepository
     {
         return new Estimate(
             documentId: (int) $row['document_id'],
+            deviceName: $row['device_name'],
+            serialNumber: $row['serial_number'],
             issueText: $row['issue_text'],
             priceChf: (float) $row['price_chf'],
             id: (int) $row['id']

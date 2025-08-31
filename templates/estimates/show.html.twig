@@ -62,8 +62,19 @@
                         </dd>
                     </div>
                     
-                    <!-- Issue Description -->
+                    <!-- Device Information -->
                     <div class="bg-white px-4 py-5 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
+                        <dt class="text-sm font-medium text-gray-500">Geräteinformationen</dt>
+                        <dd class="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2">
+                            <div>
+                                <p class="font-medium">{{ estimate.device_name }}</p>
+                                <p class="text-gray-600">Seriennummer: {{ estimate.serial_number }}</p>
+                            </div>
+                        </dd>
+                    </div>
+                    
+                    <!-- Issue Description -->
+                    <div class="bg-gray-50 px-4 py-5 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
                         <dt class="text-sm font-medium text-gray-500">Schadens-/Fehlerbeschreibung</dt>
                         <dd class="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2">
                             <div class="bg-gray-50 p-4 rounded-md">

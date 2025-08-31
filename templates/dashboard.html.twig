@@ -126,6 +126,11 @@
                                         <p class="text-sm text-gray-900 font-medium">
                                             {{ item.document.customer_name }}
                                         </p>
+                                        {% if item.estimate %}
+                                            <p class="text-sm text-gray-600 font-medium">
+                                                {{ item.estimate.device_name }}
+                                            </p>
+                                        {% endif %}
                                         <div class="text-xs text-gray-500 space-y-1">
                                             <p>{{ item.branch.name }}{% if item.estimate %} • {{ item.estimate.formatted_price }}{% endif %}</p>
                                             <p>{{ item.document.created_at|date('d.m.Y H:i') }}</p>

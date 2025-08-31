@@ -145,6 +145,8 @@ class EstimateController extends BaseController
             // Create estimate details
             $estimate = new Estimate(
                 documentId: $documentId,
+                deviceName: trim($data['device_name']),
+                serialNumber: trim($data['serial_number']),
                 issueText: trim($data['issue_text']),
                 priceChf: (float) $data['price_chf']
             );
@@ -276,6 +278,16 @@ class EstimateController extends BaseController
         $email = trim($data['customer_email'] ?? '');
         if (!empty($email) && !filter_var($email, FILTER_VALIDATE_EMAIL)) {
             $errors['customer_email'] = 'Ungültige E-Mail-Adresse';
+        }
+        
+        // Device name
+        if (empty(trim($data['device_name'] ?? ''))) {
+            $errors['device_name'] = 'Gerätename ist erforderlich';
+        }
+        
+        // Serial number
+        if (empty(trim($data['serial_number'] ?? ''))) {
+            $errors['serial_number'] = 'Seriennummer ist erforderlich';
         }
         
         // Issue text

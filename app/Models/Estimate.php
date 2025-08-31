@@ -7,17 +7,23 @@ class Estimate
 {
     private ?int $id;
     private int $documentId;
+    private string $deviceName;
+    private string $serialNumber;
     private string $issueText;
     private float $priceChf;
 
     public function __construct(
         int $documentId,
+        string $deviceName,
+        string $serialNumber,
         string $issueText,
         float $priceChf,
         ?int $id = null
     ) {
         $this->id = $id;
         $this->documentId = $documentId;
+        $this->deviceName = $deviceName;
+        $this->serialNumber = $serialNumber;
         $this->issueText = $issueText;
         $this->priceChf = $priceChf;
     }
@@ -30,6 +36,16 @@ class Estimate
     public function getDocumentId(): int
     {
         return $this->documentId;
+    }
+
+    public function getDeviceName(): string
+    {
+        return $this->deviceName;
+    }
+
+    public function getSerialNumber(): string
+    {
+        return $this->serialNumber;
     }
 
     public function getIssueText(): string
@@ -52,6 +68,8 @@ class Estimate
         return [
             'id' => $this->id,
             'document_id' => $this->documentId,
+            'device_name' => $this->deviceName,
+            'serial_number' => $this->serialNumber,
             'issue_text' => $this->issueText,
             'price_chf' => $this->priceChf,
             'formatted_price' => $this->getFormattedPrice(),
