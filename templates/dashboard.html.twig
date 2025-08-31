@@ -106,8 +106,8 @@
                             <div class="flex items-center justify-between">
                                 <div class="flex items-center space-x-4">
                                     <div class="flex-shrink-0">
-                                        <div class="h-8 w-8 rounded-full bg-blue-100 flex items-center justify-center">
-                                            <svg class="h-4 w-4 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <div class="h-10 w-10 rounded-full bg-blue-100 flex items-center justify-center">
+                                            <svg class="h-5 w-5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
                                             </svg>
                                         </div>
@@ -131,26 +131,38 @@
                                                 {{ item.estimate.device_name }}
                                             </p>
                                         {% endif %}
-                                        <div class="text-xs text-gray-500 space-y-1">
+                                        <div class="text-sm text-gray-500 space-y-1">
                                             <p>{{ item.branch.name }}{% if item.estimate %} • {{ item.estimate.formatted_price }}{% endif %}</p>
-                                            <p>{{ item.document.created_at|date('d.m.Y H:i') }}</p>
+                                            <p>Erstellt: {{ item.document.created_at|date('d.m.Y H:i') }}</p>
                                         </div>
                                     </div>
                                 </div>
                                 
                                 <div class="flex items-center space-x-2">
                                     {% if item.document.doc_type == 'estimate' %}
+                                        <!-- View Button -->
                                         <a href="{{ url_for('estimates.show', {id: item.document.id}) }}" 
-                                           class="bg-gray-100 text-gray-700 px-2 py-1 rounded text-xs hover:bg-gray-200 transition-colors">
+                                           class="bg-gray-100 text-gray-700 px-3 py-1 rounded text-sm hover:bg-gray-200 transition-colors">
                                             Anzeigen
                                         </a>
+                                        <!-- PDF Button -->
                                         <a href="{{ url_for('estimates.pdf', {id: item.document.id}) }}" 
-                                           class="bg-red-100 text-red-700 px-2 py-1 rounded text-xs hover:bg-red-200 transition-colors">
+                                           class="bg-red-100 text-red-700 px-3 py-1 rounded text-sm hover:bg-red-200 transition-colors"
+                                           title="PDF herunterladen">
                                             PDF
                                         </a>
                                     {% endif %}
                                 </div>
                             </div>
+                            
+                            <!-- Issue Preview -->
+                            {% if item.estimate and item.estimate.issue_text %}
+                                <div class="mt-3 pl-14">
+                                    <p class="text-sm text-gray-600 italic">
+                                        "{{ item.estimate.issue_text|slice(0, 150) }}{% if item.estimate.issue_text|length > 150 %}...{% endif %}"
+                                    </p>
+                                </div>
+                            {% endif %}
                         </li>
                     {% endfor %}
                 </ul>
