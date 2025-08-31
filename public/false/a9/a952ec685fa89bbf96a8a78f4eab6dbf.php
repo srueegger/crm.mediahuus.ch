@@ -237,6 +237,66 @@ class __TwigTemplate_cde074e60723647b725aec70f54fcfb7 extends Template
                     </div>
                 </div>
 
+                <!-- Gerätedaten -->
+                <div class=\"border-b border-gray-200 pb-8\">
+                    <h3 class=\"text-lg font-medium text-gray-900 mb-4\">Geräteinformationen</h3>
+                    <div class=\"grid grid-cols-1 md:grid-cols-2 gap-6\">
+                        <!-- Gerätename -->
+                        <div>
+                            <label for=\"device_name\" class=\"block text-sm font-medium text-gray-700 mb-2\">
+                                Gerätename / Modell *
+                            </label>
+                            <input type=\"text\" name=\"device_name\" id=\"device_name\" required
+                                   value=\"";
+        // line 106
+        yield $this->env->getRuntime('Twig\Runtime\EscaperRuntime')->escape(((CoreExtension::getAttribute($this->env, $this->source, ($context["formData"] ?? null), "device_name", [], "any", true, true, false, 106)) ? (Twig\Extension\CoreExtension::default(CoreExtension::getAttribute($this->env, $this->source, ($context["formData"] ?? null), "device_name", [], "any", false, false, false, 106), "")) : ("")), "html", null, true);
+        yield "\"
+                                   class=\"block w-full border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 sm:text-sm ";
+        // line 107
+        yield (((($tmp = CoreExtension::getAttribute($this->env, $this->source, ($context["errors"] ?? null), "device_name", [], "any", false, false, false, 107)) && $tmp instanceof Markup ? (string) $tmp : $tmp)) ? ("border-red-300") : (""));
+        yield "\"
+                                   placeholder=\"z.B. iPhone 15 Pro, Samsung Galaxy S24\">
+                            ";
+        // line 109
+        if ((($tmp = CoreExtension::getAttribute($this->env, $this->source, ($context["errors"] ?? null), "device_name", [], "any", false, false, false, 109)) && $tmp instanceof Markup ? (string) $tmp : $tmp)) {
+            // line 110
+            yield "                                <p class=\"mt-1 text-sm text-red-600\">";
+            yield $this->env->getRuntime('Twig\Runtime\EscaperRuntime')->escape(CoreExtension::getAttribute($this->env, $this->source, ($context["errors"] ?? null), "device_name", [], "any", false, false, false, 110), "html", null, true);
+            yield "</p>
+                            ";
+        }
+        // line 112
+        yield "                        </div>
+
+                        <!-- Seriennummer -->
+                        <div>
+                            <label for=\"serial_number\" class=\"block text-sm font-medium text-gray-700 mb-2\">
+                                Seriennummer *
+                            </label>
+                            <input type=\"text\" name=\"serial_number\" id=\"serial_number\" required
+                                   value=\"";
+        // line 120
+        yield $this->env->getRuntime('Twig\Runtime\EscaperRuntime')->escape(((CoreExtension::getAttribute($this->env, $this->source, ($context["formData"] ?? null), "serial_number", [], "any", true, true, false, 120)) ? (Twig\Extension\CoreExtension::default(CoreExtension::getAttribute($this->env, $this->source, ($context["formData"] ?? null), "serial_number", [], "any", false, false, false, 120), "")) : ("")), "html", null, true);
+        yield "\"
+                                   class=\"block w-full border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 sm:text-sm ";
+        // line 121
+        yield (((($tmp = CoreExtension::getAttribute($this->env, $this->source, ($context["errors"] ?? null), "serial_number", [], "any", false, false, false, 121)) && $tmp instanceof Markup ? (string) $tmp : $tmp)) ? ("border-red-300") : (""));
+        yield "\"
+                                   placeholder=\"z.B. IMEI oder Seriennummer\">
+                            ";
+        // line 123
+        if ((($tmp = CoreExtension::getAttribute($this->env, $this->source, ($context["errors"] ?? null), "serial_number", [], "any", false, false, false, 123)) && $tmp instanceof Markup ? (string) $tmp : $tmp)) {
+            // line 124
+            yield "                                <p class=\"mt-1 text-sm text-red-600\">";
+            yield $this->env->getRuntime('Twig\Runtime\EscaperRuntime')->escape(CoreExtension::getAttribute($this->env, $this->source, ($context["errors"] ?? null), "serial_number", [], "any", false, false, false, 124), "html", null, true);
+            yield "</p>
+                            ";
+        }
+        // line 126
+        yield "                        </div>
+                    </div>
+                </div>
+
                 <!-- Schadensbeschreibung und Preis -->
                 <div class=\"pb-8\">
                     <h3 class=\"text-lg font-medium text-gray-900 mb-4\">Reparaturdetails</h3>
@@ -248,23 +308,23 @@ class __TwigTemplate_cde074e60723647b725aec70f54fcfb7 extends Template
                             </label>
                             <textarea name=\"issue_text\" id=\"issue_text\" rows=\"4\" required
                                       class=\"block w-full border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 sm:text-sm ";
-        // line 106
-        yield (((($tmp = CoreExtension::getAttribute($this->env, $this->source, ($context["errors"] ?? null), "issue_text", [], "any", false, false, false, 106)) && $tmp instanceof Markup ? (string) $tmp : $tmp)) ? ("border-red-300") : (""));
+        // line 140
+        yield (((($tmp = CoreExtension::getAttribute($this->env, $this->source, ($context["errors"] ?? null), "issue_text", [], "any", false, false, false, 140)) && $tmp instanceof Markup ? (string) $tmp : $tmp)) ? ("border-red-300") : (""));
         yield "\"
                                       placeholder=\"Beschreiben Sie den Schaden oder das Problem detailliert...\">";
-        // line 107
-        yield $this->env->getRuntime('Twig\Runtime\EscaperRuntime')->escape(((CoreExtension::getAttribute($this->env, $this->source, ($context["formData"] ?? null), "issue_text", [], "any", true, true, false, 107)) ? (Twig\Extension\CoreExtension::default(CoreExtension::getAttribute($this->env, $this->source, ($context["formData"] ?? null), "issue_text", [], "any", false, false, false, 107), "")) : ("")), "html", null, true);
+        // line 141
+        yield $this->env->getRuntime('Twig\Runtime\EscaperRuntime')->escape(((CoreExtension::getAttribute($this->env, $this->source, ($context["formData"] ?? null), "issue_text", [], "any", true, true, false, 141)) ? (Twig\Extension\CoreExtension::default(CoreExtension::getAttribute($this->env, $this->source, ($context["formData"] ?? null), "issue_text", [], "any", false, false, false, 141), "")) : ("")), "html", null, true);
         yield "</textarea>
                             ";
-        // line 108
-        if ((($tmp = CoreExtension::getAttribute($this->env, $this->source, ($context["errors"] ?? null), "issue_text", [], "any", false, false, false, 108)) && $tmp instanceof Markup ? (string) $tmp : $tmp)) {
-            // line 109
+        // line 142
+        if ((($tmp = CoreExtension::getAttribute($this->env, $this->source, ($context["errors"] ?? null), "issue_text", [], "any", false, false, false, 142)) && $tmp instanceof Markup ? (string) $tmp : $tmp)) {
+            // line 143
             yield "                                <p class=\"mt-1 text-sm text-red-600\">";
-            yield $this->env->getRuntime('Twig\Runtime\EscaperRuntime')->escape(CoreExtension::getAttribute($this->env, $this->source, ($context["errors"] ?? null), "issue_text", [], "any", false, false, false, 109), "html", null, true);
+            yield $this->env->getRuntime('Twig\Runtime\EscaperRuntime')->escape(CoreExtension::getAttribute($this->env, $this->source, ($context["errors"] ?? null), "issue_text", [], "any", false, false, false, 143), "html", null, true);
             yield "</p>
                             ";
         }
-        // line 111
+        // line 145
         yield "                        </div>
 
                         <!-- Preis -->
@@ -278,25 +338,25 @@ class __TwigTemplate_cde074e60723647b725aec70f54fcfb7 extends Template
                                 </div>
                                 <input type=\"number\" name=\"price_chf\" id=\"price_chf\" step=\"0.05\" min=\"0\" required
                                        value=\"";
-        // line 123
-        yield $this->env->getRuntime('Twig\Runtime\EscaperRuntime')->escape(((CoreExtension::getAttribute($this->env, $this->source, ($context["formData"] ?? null), "price_chf", [], "any", true, true, false, 123)) ? (Twig\Extension\CoreExtension::default(CoreExtension::getAttribute($this->env, $this->source, ($context["formData"] ?? null), "price_chf", [], "any", false, false, false, 123), "")) : ("")), "html", null, true);
+        // line 157
+        yield $this->env->getRuntime('Twig\Runtime\EscaperRuntime')->escape(((CoreExtension::getAttribute($this->env, $this->source, ($context["formData"] ?? null), "price_chf", [], "any", true, true, false, 157)) ? (Twig\Extension\CoreExtension::default(CoreExtension::getAttribute($this->env, $this->source, ($context["formData"] ?? null), "price_chf", [], "any", false, false, false, 157), "")) : ("")), "html", null, true);
         yield "\"
                                        class=\"block w-full pl-12 pr-3 border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 sm:text-sm ";
-        // line 124
-        yield (((($tmp = CoreExtension::getAttribute($this->env, $this->source, ($context["errors"] ?? null), "price_chf", [], "any", false, false, false, 124)) && $tmp instanceof Markup ? (string) $tmp : $tmp)) ? ("border-red-300") : (""));
+        // line 158
+        yield (((($tmp = CoreExtension::getAttribute($this->env, $this->source, ($context["errors"] ?? null), "price_chf", [], "any", false, false, false, 158)) && $tmp instanceof Markup ? (string) $tmp : $tmp)) ? ("border-red-300") : (""));
         yield "\"
                                        placeholder=\"0.00\">
                             </div>
                             ";
-        // line 127
-        if ((($tmp = CoreExtension::getAttribute($this->env, $this->source, ($context["errors"] ?? null), "price_chf", [], "any", false, false, false, 127)) && $tmp instanceof Markup ? (string) $tmp : $tmp)) {
-            // line 128
+        // line 161
+        if ((($tmp = CoreExtension::getAttribute($this->env, $this->source, ($context["errors"] ?? null), "price_chf", [], "any", false, false, false, 161)) && $tmp instanceof Markup ? (string) $tmp : $tmp)) {
+            // line 162
             yield "                                <p class=\"mt-1 text-sm text-red-600\">";
-            yield $this->env->getRuntime('Twig\Runtime\EscaperRuntime')->escape(CoreExtension::getAttribute($this->env, $this->source, ($context["errors"] ?? null), "price_chf", [], "any", false, false, false, 128), "html", null, true);
+            yield $this->env->getRuntime('Twig\Runtime\EscaperRuntime')->escape(CoreExtension::getAttribute($this->env, $this->source, ($context["errors"] ?? null), "price_chf", [], "any", false, false, false, 162), "html", null, true);
             yield "</p>
                             ";
         }
-        // line 130
+        // line 164
         yield "                            <p class=\"mt-1 text-sm text-gray-500\">Geben Sie den geschätzten Reparaturpreis in CHF ein.</p>
                         </div>
                     </div>
@@ -305,7 +365,7 @@ class __TwigTemplate_cde074e60723647b725aec70f54fcfb7 extends Template
                 <!-- Buttons -->
                 <div class=\"flex justify-end space-x-3 pt-6 border-t\">
                     <a href=\"";
-        // line 137
+        // line 171
         yield $this->env->getRuntime('Twig\Runtime\EscaperRuntime')->escape($this->env->getFunction('url_for')->getCallable()("estimates.index"), "html", null, true);
         yield "\" 
                        class=\"bg-white py-2 px-4 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500\">
@@ -345,7 +405,7 @@ class __TwigTemplate_cde074e60723647b725aec70f54fcfb7 extends Template
      */
     public function getDebugInfo(): array
     {
-        return array (  309 => 137,  300 => 130,  294 => 128,  292 => 127,  286 => 124,  282 => 123,  268 => 111,  262 => 109,  260 => 108,  256 => 107,  252 => 106,  236 => 92,  230 => 90,  228 => 89,  223 => 87,  219 => 86,  209 => 78,  203 => 76,  201 => 75,  196 => 73,  192 => 72,  182 => 64,  176 => 62,  174 => 61,  169 => 59,  165 => 58,  150 => 45,  144 => 43,  142 => 42,  139 => 41,  128 => 38,  122 => 37,  117 => 36,  113 => 35,  108 => 33,  93 => 20,  87 => 17,  84 => 16,  82 => 15,  71 => 6,  64 => 5,  52 => 3,  41 => 1,);
+        return array (  369 => 171,  360 => 164,  354 => 162,  352 => 161,  346 => 158,  342 => 157,  328 => 145,  322 => 143,  320 => 142,  316 => 141,  312 => 140,  296 => 126,  290 => 124,  288 => 123,  283 => 121,  279 => 120,  269 => 112,  263 => 110,  261 => 109,  256 => 107,  252 => 106,  236 => 92,  230 => 90,  228 => 89,  223 => 87,  219 => 86,  209 => 78,  203 => 76,  201 => 75,  196 => 73,  192 => 72,  182 => 64,  176 => 62,  174 => 61,  169 => 59,  165 => 58,  150 => 45,  144 => 43,  142 => 42,  139 => 41,  128 => 38,  122 => 37,  117 => 36,  113 => 35,  108 => 33,  93 => 20,  87 => 17,  84 => 16,  82 => 15,  71 => 6,  64 => 5,  52 => 3,  41 => 1,);
     }
 
     public function getSourceContext(): Source
@@ -440,6 +500,40 @@ class __TwigTemplate_cde074e60723647b725aec70f54fcfb7 extends Template
                                    placeholder=\"kunde@example.com\">
                             {% if errors.customer_email %}
                                 <p class=\"mt-1 text-sm text-red-600\">{{ errors.customer_email }}</p>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Gerätedaten -->
+                <div class=\"border-b border-gray-200 pb-8\">
+                    <h3 class=\"text-lg font-medium text-gray-900 mb-4\">Geräteinformationen</h3>
+                    <div class=\"grid grid-cols-1 md:grid-cols-2 gap-6\">
+                        <!-- Gerätename -->
+                        <div>
+                            <label for=\"device_name\" class=\"block text-sm font-medium text-gray-700 mb-2\">
+                                Gerätename / Modell *
+                            </label>
+                            <input type=\"text\" name=\"device_name\" id=\"device_name\" required
+                                   value=\"{{ formData.device_name|default('') }}\"
+                                   class=\"block w-full border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 sm:text-sm {{ errors.device_name ? 'border-red-300' : '' }}\"
+                                   placeholder=\"z.B. iPhone 15 Pro, Samsung Galaxy S24\">
+                            {% if errors.device_name %}
+                                <p class=\"mt-1 text-sm text-red-600\">{{ errors.device_name }}</p>
+                            {% endif %}
+                        </div>
+
+                        <!-- Seriennummer -->
+                        <div>
+                            <label for=\"serial_number\" class=\"block text-sm font-medium text-gray-700 mb-2\">
+                                Seriennummer *
+                            </label>
+                            <input type=\"text\" name=\"serial_number\" id=\"serial_number\" required
+                                   value=\"{{ formData.serial_number|default('') }}\"
+                                   class=\"block w-full border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 sm:text-sm {{ errors.serial_number ? 'border-red-300' : '' }}\"
+                                   placeholder=\"z.B. IMEI oder Seriennummer\">
+                            {% if errors.serial_number %}
+                                <p class=\"mt-1 text-sm text-red-600\">{{ errors.serial_number }}</p>
                             {% endif %}
                         </div>
                     </div>

@@ -141,16 +141,22 @@ class __TwigTemplate_2e5b87360ba6c96ec861ec1c1dd24fa3 extends Template
                 yield $this->env->getRuntime('Twig\Runtime\EscaperRuntime')->escape(CoreExtension::getAttribute($this->env, $this->source, CoreExtension::getAttribute($this->env, $this->source, $context["item"], "document", [], "any", false, false, false, 52), "customer_name", [], "any", false, false, false, 52), "html", null, true);
                 yield "
                                         </p>
+                                        <p class=\"text-sm text-gray-600 font-medium\">
+                                            ";
+                // line 55
+                yield $this->env->getRuntime('Twig\Runtime\EscaperRuntime')->escape(CoreExtension::getAttribute($this->env, $this->source, CoreExtension::getAttribute($this->env, $this->source, $context["item"], "estimate", [], "any", false, false, false, 55), "device_name", [], "any", false, false, false, 55), "html", null, true);
+                yield "
+                                        </p>
                                         <div class=\"text-sm text-gray-500 space-y-1\">
                                             <p>";
-                // line 55
-                yield $this->env->getRuntime('Twig\Runtime\EscaperRuntime')->escape(CoreExtension::getAttribute($this->env, $this->source, CoreExtension::getAttribute($this->env, $this->source, $context["item"], "branch", [], "any", false, false, false, 55), "name", [], "any", false, false, false, 55), "html", null, true);
+                // line 58
+                yield $this->env->getRuntime('Twig\Runtime\EscaperRuntime')->escape(CoreExtension::getAttribute($this->env, $this->source, CoreExtension::getAttribute($this->env, $this->source, $context["item"], "branch", [], "any", false, false, false, 58), "name", [], "any", false, false, false, 58), "html", null, true);
                 yield " • ";
-                yield $this->env->getRuntime('Twig\Runtime\EscaperRuntime')->escape(CoreExtension::getAttribute($this->env, $this->source, CoreExtension::getAttribute($this->env, $this->source, $context["item"], "estimate", [], "any", false, false, false, 55), "formatted_price", [], "any", false, false, false, 55), "html", null, true);
+                yield $this->env->getRuntime('Twig\Runtime\EscaperRuntime')->escape(CoreExtension::getAttribute($this->env, $this->source, CoreExtension::getAttribute($this->env, $this->source, $context["item"], "estimate", [], "any", false, false, false, 58), "formatted_price", [], "any", false, false, false, 58), "html", null, true);
                 yield "</p>
                                             <p>Erstellt: ";
-                // line 56
-                yield $this->env->getRuntime('Twig\Runtime\EscaperRuntime')->escape($this->extensions['Twig\Extension\CoreExtension']->formatDate(CoreExtension::getAttribute($this->env, $this->source, CoreExtension::getAttribute($this->env, $this->source, $context["item"], "document", [], "any", false, false, false, 56), "created_at", [], "any", false, false, false, 56), "d.m.Y H:i"), "html", null, true);
+                // line 59
+                yield $this->env->getRuntime('Twig\Runtime\EscaperRuntime')->escape($this->extensions['Twig\Extension\CoreExtension']->formatDate(CoreExtension::getAttribute($this->env, $this->source, CoreExtension::getAttribute($this->env, $this->source, $context["item"], "document", [], "any", false, false, false, 59), "created_at", [], "any", false, false, false, 59), "d.m.Y H:i"), "html", null, true);
                 yield "</p>
                                         </div>
                                     </div>
@@ -159,16 +165,16 @@ class __TwigTemplate_2e5b87360ba6c96ec861ec1c1dd24fa3 extends Template
                                 <div class=\"flex items-center space-x-2\">
                                     <!-- View Button -->
                                     <a href=\"";
-                // line 63
-                yield $this->env->getRuntime('Twig\Runtime\EscaperRuntime')->escape($this->env->getFunction('url_for')->getCallable()("estimates.show", ["id" => CoreExtension::getAttribute($this->env, $this->source, CoreExtension::getAttribute($this->env, $this->source, $context["item"], "document", [], "any", false, false, false, 63), "id", [], "any", false, false, false, 63)]), "html", null, true);
+                // line 66
+                yield $this->env->getRuntime('Twig\Runtime\EscaperRuntime')->escape($this->env->getFunction('url_for')->getCallable()("estimates.show", ["id" => CoreExtension::getAttribute($this->env, $this->source, CoreExtension::getAttribute($this->env, $this->source, $context["item"], "document", [], "any", false, false, false, 66), "id", [], "any", false, false, false, 66)]), "html", null, true);
                 yield "\" 
                                        class=\"bg-gray-100 text-gray-700 px-3 py-1 rounded text-sm hover:bg-gray-200 transition-colors\">
                                         Anzeigen
                                     </a>
                                     <!-- PDF Button -->
                                     <a href=\"";
-                // line 68
-                yield $this->env->getRuntime('Twig\Runtime\EscaperRuntime')->escape($this->env->getFunction('url_for')->getCallable()("estimates.pdf", ["id" => CoreExtension::getAttribute($this->env, $this->source, CoreExtension::getAttribute($this->env, $this->source, $context["item"], "document", [], "any", false, false, false, 68), "id", [], "any", false, false, false, 68)]), "html", null, true);
+                // line 71
+                yield $this->env->getRuntime('Twig\Runtime\EscaperRuntime')->escape($this->env->getFunction('url_for')->getCallable()("estimates.pdf", ["id" => CoreExtension::getAttribute($this->env, $this->source, CoreExtension::getAttribute($this->env, $this->source, $context["item"], "document", [], "any", false, false, false, 71), "id", [], "any", false, false, false, 71)]), "html", null, true);
                 yield "\" 
                                        class=\"bg-red-100 text-red-700 px-3 py-1 rounded text-sm hover:bg-red-200 transition-colors\"
                                        title=\"PDF herunterladen\">
@@ -179,15 +185,15 @@ class __TwigTemplate_2e5b87360ba6c96ec861ec1c1dd24fa3 extends Template
                             
                             <!-- Issue Preview -->
                             ";
-                // line 77
-                if ((($tmp = CoreExtension::getAttribute($this->env, $this->source, CoreExtension::getAttribute($this->env, $this->source, $context["item"], "estimate", [], "any", false, false, false, 77), "issue_text", [], "any", false, false, false, 77)) && $tmp instanceof Markup ? (string) $tmp : $tmp)) {
-                    // line 78
+                // line 80
+                if ((($tmp = CoreExtension::getAttribute($this->env, $this->source, CoreExtension::getAttribute($this->env, $this->source, $context["item"], "estimate", [], "any", false, false, false, 80), "issue_text", [], "any", false, false, false, 80)) && $tmp instanceof Markup ? (string) $tmp : $tmp)) {
+                    // line 81
                     yield "                                <div class=\"mt-3 pl-14\">
                                     <p class=\"text-sm text-gray-600 italic\">
                                         \"";
-                    // line 80
-                    yield $this->env->getRuntime('Twig\Runtime\EscaperRuntime')->escape(Twig\Extension\CoreExtension::slice($this->env->getCharset(), CoreExtension::getAttribute($this->env, $this->source, CoreExtension::getAttribute($this->env, $this->source, $context["item"], "estimate", [], "any", false, false, false, 80), "issue_text", [], "any", false, false, false, 80), 0, 150), "html", null, true);
-                    if ((Twig\Extension\CoreExtension::length($this->env->getCharset(), CoreExtension::getAttribute($this->env, $this->source, CoreExtension::getAttribute($this->env, $this->source, $context["item"], "estimate", [], "any", false, false, false, 80), "issue_text", [], "any", false, false, false, 80)) > 150)) {
+                    // line 83
+                    yield $this->env->getRuntime('Twig\Runtime\EscaperRuntime')->escape(Twig\Extension\CoreExtension::slice($this->env->getCharset(), CoreExtension::getAttribute($this->env, $this->source, CoreExtension::getAttribute($this->env, $this->source, $context["item"], "estimate", [], "any", false, false, false, 83), "issue_text", [], "any", false, false, false, 83), 0, 150), "html", null, true);
+                    if ((Twig\Extension\CoreExtension::length($this->env->getCharset(), CoreExtension::getAttribute($this->env, $this->source, CoreExtension::getAttribute($this->env, $this->source, $context["item"], "estimate", [], "any", false, false, false, 83), "issue_text", [], "any", false, false, false, 83)) > 150)) {
                         yield "...";
                     }
                     yield "\"
@@ -195,18 +201,18 @@ class __TwigTemplate_2e5b87360ba6c96ec861ec1c1dd24fa3 extends Template
                                 </div>
                             ";
                 }
-                // line 84
+                // line 87
                 yield "                        </li>
                     ";
             }
             $_parent = $context['_parent'];
             unset($context['_seq'], $context['_key'], $context['item'], $context['_parent']);
             $context = array_intersect_key($context, $_parent) + $_parent;
-            // line 86
+            // line 89
             yield "                </ul>
             ";
         } else {
-            // line 88
+            // line 91
             yield "                <div class=\"text-center py-12\">
                     <svg class=\"mx-auto h-12 w-12 text-gray-400\" fill=\"none\" stroke=\"currentColor\" viewBox=\"0 0 24 24\">
                         <path stroke-linecap=\"round\" stroke-linejoin=\"round\" stroke-width=\"2\" d=\"M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z\" />
@@ -215,7 +221,7 @@ class __TwigTemplate_2e5b87360ba6c96ec861ec1c1dd24fa3 extends Template
                     <p class=\"mt-1 text-sm text-gray-500\">Erstellen Sie Ihren ersten Kostenvoranschlag.</p>
                     <div class=\"mt-6\">
                         <a href=\"";
-            // line 95
+            // line 98
             yield $this->env->getRuntime('Twig\Runtime\EscaperRuntime')->escape($this->env->getFunction('url_for')->getCallable()("estimates.create"), "html", null, true);
             yield "\" 
                            class=\"inline-flex items-center px-4 py-2 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700\">
@@ -225,7 +231,7 @@ class __TwigTemplate_2e5b87360ba6c96ec861ec1c1dd24fa3 extends Template
                 </div>
             ";
         }
-        // line 102
+        // line 105
         yield "        </div>
     </div>
 </div>
@@ -254,7 +260,7 @@ class __TwigTemplate_2e5b87360ba6c96ec861ec1c1dd24fa3 extends Template
      */
     public function getDebugInfo(): array
     {
-        return array (  229 => 102,  219 => 95,  210 => 88,  206 => 86,  199 => 84,  189 => 80,  185 => 78,  183 => 77,  171 => 68,  163 => 63,  153 => 56,  147 => 55,  141 => 52,  131 => 45,  116 => 32,  112 => 31,  109 => 30,  107 => 29,  102 => 26,  96 => 23,  93 => 22,  91 => 21,  81 => 14,  71 => 6,  64 => 5,  52 => 3,  41 => 1,);
+        return array (  235 => 105,  225 => 98,  216 => 91,  212 => 89,  205 => 87,  195 => 83,  191 => 81,  189 => 80,  177 => 71,  169 => 66,  159 => 59,  153 => 58,  147 => 55,  141 => 52,  131 => 45,  116 => 32,  112 => 31,  109 => 30,  107 => 29,  102 => 26,  96 => 23,  93 => 22,  91 => 21,  81 => 14,  71 => 6,  64 => 5,  52 => 3,  41 => 1,);
     }
 
     public function getSourceContext(): Source
@@ -311,6 +317,9 @@ class __TwigTemplate_2e5b87360ba6c96ec861ec1c1dd24fa3 extends Template
                                         </div>
                                         <p class=\"text-sm text-gray-900 font-medium\">
                                             {{ item.document.customer_name }}
+                                        </p>
+                                        <p class=\"text-sm text-gray-600 font-medium\">
+                                            {{ item.estimate.device_name }}
                                         </p>
                                         <div class=\"text-sm text-gray-500 space-y-1\">
                                             <p>{{ item.branch.name }} • {{ item.estimate.formatted_price }}</p>

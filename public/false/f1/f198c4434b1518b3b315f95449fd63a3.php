@@ -179,14 +179,31 @@ class __TwigTemplate_b45a910ffc9a20304bb8f2dfc798a1de extends Template
                         </dd>
                     </div>
                     
-                    <!-- Issue Description -->
+                    <!-- Device Information -->
                     <div class=\"bg-white px-4 py-5 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6\">
+                        <dt class=\"text-sm font-medium text-gray-500\">Geräteinformationen</dt>
+                        <dd class=\"mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2\">
+                            <div>
+                                <p class=\"font-medium\">";
+        // line 70
+        yield $this->env->getRuntime('Twig\Runtime\EscaperRuntime')->escape(CoreExtension::getAttribute($this->env, $this->source, ($context["estimate"] ?? null), "device_name", [], "any", false, false, false, 70), "html", null, true);
+        yield "</p>
+                                <p class=\"text-gray-600\">Seriennummer: ";
+        // line 71
+        yield $this->env->getRuntime('Twig\Runtime\EscaperRuntime')->escape(CoreExtension::getAttribute($this->env, $this->source, ($context["estimate"] ?? null), "serial_number", [], "any", false, false, false, 71), "html", null, true);
+        yield "</p>
+                            </div>
+                        </dd>
+                    </div>
+                    
+                    <!-- Issue Description -->
+                    <div class=\"bg-gray-50 px-4 py-5 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6\">
                         <dt class=\"text-sm font-medium text-gray-500\">Schadens-/Fehlerbeschreibung</dt>
                         <dd class=\"mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2\">
                             <div class=\"bg-gray-50 p-4 rounded-md\">
                                 <p class=\"whitespace-pre-line\">";
-        // line 70
-        yield $this->env->getRuntime('Twig\Runtime\EscaperRuntime')->escape(CoreExtension::getAttribute($this->env, $this->source, ($context["estimate"] ?? null), "issue_text", [], "any", false, false, false, 70), "html", null, true);
+        // line 81
+        yield $this->env->getRuntime('Twig\Runtime\EscaperRuntime')->escape(CoreExtension::getAttribute($this->env, $this->source, ($context["estimate"] ?? null), "issue_text", [], "any", false, false, false, 81), "html", null, true);
         yield "</p>
                             </div>
                         </dd>
@@ -197,8 +214,8 @@ class __TwigTemplate_b45a910ffc9a20304bb8f2dfc798a1de extends Template
                         <dt class=\"text-sm font-medium text-gray-500\">Voraussichtliche Kosten</dt>
                         <dd class=\"mt-1 text-lg font-bold text-gray-900 sm:mt-0 sm:col-span-2\">
                             ";
-        // line 79
-        yield $this->env->getRuntime('Twig\Runtime\EscaperRuntime')->escape(CoreExtension::getAttribute($this->env, $this->source, ($context["estimate"] ?? null), "formatted_price", [], "any", false, false, false, 79), "html", null, true);
+        // line 90
+        yield $this->env->getRuntime('Twig\Runtime\EscaperRuntime')->escape(CoreExtension::getAttribute($this->env, $this->source, ($context["estimate"] ?? null), "formatted_price", [], "any", false, false, false, 90), "html", null, true);
         yield "
                         </dd>
                     </div>
@@ -208,8 +225,8 @@ class __TwigTemplate_b45a910ffc9a20304bb8f2dfc798a1de extends Template
                         <dt class=\"text-sm font-medium text-gray-500\">Erstellt</dt>
                         <dd class=\"mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2\">
                             ";
-        // line 87
-        yield $this->env->getRuntime('Twig\Runtime\EscaperRuntime')->escape($this->extensions['Twig\Extension\CoreExtension']->formatDate(CoreExtension::getAttribute($this->env, $this->source, ($context["document"] ?? null), "created_at", [], "any", false, false, false, 87), "d.m.Y H:i"), "html", null, true);
+        // line 98
+        yield $this->env->getRuntime('Twig\Runtime\EscaperRuntime')->escape($this->extensions['Twig\Extension\CoreExtension']->formatDate(CoreExtension::getAttribute($this->env, $this->source, ($context["document"] ?? null), "created_at", [], "any", false, false, false, 98), "d.m.Y H:i"), "html", null, true);
         yield "
                         </dd>
                     </div>
@@ -226,8 +243,8 @@ class __TwigTemplate_b45a910ffc9a20304bb8f2dfc798a1de extends Template
                 E-Mail senden
             </button>
             <a href=\"";
-        // line 102
-        yield $this->env->getRuntime('Twig\Runtime\EscaperRuntime')->escape($this->env->getFunction('url_for')->getCallable()("estimates.pdf", ["id" => CoreExtension::getAttribute($this->env, $this->source, ($context["document"] ?? null), "id", [], "any", false, false, false, 102)]), "html", null, true);
+        // line 113
+        yield $this->env->getRuntime('Twig\Runtime\EscaperRuntime')->escape($this->env->getFunction('url_for')->getCallable()("estimates.pdf", ["id" => CoreExtension::getAttribute($this->env, $this->source, ($context["document"] ?? null), "id", [], "any", false, false, false, 113)]), "html", null, true);
         yield "\" 
                class=\"bg-red-600 text-white px-4 py-2 rounded-md text-sm hover:bg-red-700 transition-colors\">
                 PDF herunterladen
@@ -260,7 +277,7 @@ class __TwigTemplate_b45a910ffc9a20304bb8f2dfc798a1de extends Template
      */
     public function getDebugInfo(): array
     {
-        return array (  230 => 102,  212 => 87,  201 => 79,  189 => 70,  178 => 61,  171 => 60,  165 => 59,  161 => 58,  150 => 49,  143 => 48,  137 => 47,  133 => 46,  129 => 45,  118 => 37,  97 => 19,  90 => 15,  84 => 12,  80 => 11,  73 => 6,  66 => 5,  52 => 3,  41 => 1,);
+        return array (  247 => 113,  229 => 98,  218 => 90,  206 => 81,  193 => 71,  189 => 70,  178 => 61,  171 => 60,  165 => 59,  161 => 58,  150 => 49,  143 => 48,  137 => 47,  133 => 46,  129 => 45,  118 => 37,  97 => 19,  90 => 15,  84 => 12,  80 => 11,  73 => 6,  66 => 5,  52 => 3,  41 => 1,);
     }
 
     public function getSourceContext(): Source
@@ -329,8 +346,19 @@ class __TwigTemplate_b45a910ffc9a20304bb8f2dfc798a1de extends Template
                         </dd>
                     </div>
                     
-                    <!-- Issue Description -->
+                    <!-- Device Information -->
                     <div class=\"bg-white px-4 py-5 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6\">
+                        <dt class=\"text-sm font-medium text-gray-500\">Geräteinformationen</dt>
+                        <dd class=\"mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2\">
+                            <div>
+                                <p class=\"font-medium\">{{ estimate.device_name }}</p>
+                                <p class=\"text-gray-600\">Seriennummer: {{ estimate.serial_number }}</p>
+                            </div>
+                        </dd>
+                    </div>
+                    
+                    <!-- Issue Description -->
+                    <div class=\"bg-gray-50 px-4 py-5 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6\">
                         <dt class=\"text-sm font-medium text-gray-500\">Schadens-/Fehlerbeschreibung</dt>
                         <dd class=\"mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2\">
                             <div class=\"bg-gray-50 p-4 rounded-md\">

@@ -34,9 +34,9 @@ class PdfService
             $pdf->setPrintHeader(false);
             $pdf->setPrintFooter(false);
 
-            // Set margins
+            // Set margins - reduce bottom margin to prevent aggressive page breaks
             $pdf->SetMargins(20, 15, 20);
-            $pdf->SetAutoPageBreak(true, 25);
+            $pdf->SetAutoPageBreak(false); // Disable auto page break initially
 
             // Add a page
             $pdf->AddPage();
@@ -46,9 +46,6 @@ class PdfService
 
             // Add content
             $this->addEstimateContent($pdf, $document, $estimate, $branch);
-            
-            // Ensure we don't have extra empty pages
-            $pdf->lastPage();
 
             $this->logger->info('PDF generated successfully', [
                 'document_id' => $document->getId(),
@@ -281,25 +278,20 @@ class PdfService
 
     private function addFooter(TCPDF $pdf, Branch $branch, Document $document): void
     {
-        // Get current position and page height
-        $currentY = $pdf->GetY();
-        $pageHeight = $pdf->getPageHeight();
+        // Add some space before footer
+        $currentY = $pdf->GetY() + 20;
         
-        // Position footer 30mm from bottom
-        $footerY = $pageHeight - 30;
+        // Simple footer without complex positioning
+        $pdf->SetY($currentY);
+        $pdf->SetFont('helvetica', '', 8);
+        $pdf->SetTextColor(100, 100, 100);
         
-        // Only add footer if there's enough space, otherwise it's handled by auto page break
-        if ($currentY < $footerY) {
-            $pdf->SetY($footerY);
-            $pdf->SetFont('helvetica', '', 8);
-            $pdf->SetTextColor(100, 100, 100);
-            
-            $pdf->Cell(0, 4, 'Dieser Kostenvoranschlag ist unverbindlich und 30 Tage gültig.', 0, 1, 'C');
-            $pdf->Cell(0, 4, 'Alle Preise verstehen sich in CHF inkl. MwSt.', 0, 1, 'C');
-            
-            $pdf->SetY($pageHeight - 15);
-            $pdf->Cell(0, 4, 'Erstellt am ' . $document->getCreatedAt()->format('d.m.Y H:i') . ' • ' . $branch->getName(), 0, 1, 'C');
-        }
+        $pdf->Cell(0, 6, 'Dieser Kostenvoranschlag ist unverbindlich und 30 Tage gültig.', 0, 1, 'C');
+        $pdf->Cell(0, 6, 'Alle Preise verstehen sich in CHF inkl. MwSt.', 0, 1, 'C');
+        $pdf->Cell(0, 6, 'Erstellt am ' . $document->getCreatedAt()->format('d.m.Y H:i') . ' • ' . $branch->getName(), 0, 1, 'C');
+        
+        // Reset text color
+        $pdf->SetTextColor(0, 0, 0);
     }
 
     public function getEstimatePdfFilename(Document $document): string
