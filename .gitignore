@@ -12,6 +12,8 @@ logs/
 # Cache
 cache/
 tmp/
+var/cache/
+public/false/
 
 # IDE
 .vscode/
