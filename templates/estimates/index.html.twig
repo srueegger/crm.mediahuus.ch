@@ -1,0 +1,103 @@
+{% extends "base.html.twig" %}
+
+{% block title %}Kostenvoranschläge - {{ parent() }}{% endblock %}
+
+{% block content %}
+<div class="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
+    <div class="px-4 py-6 sm:px-0">
+        <!-- Header -->
+        <div class="mb-8 flex justify-between items-center">
+            <div>
+                <h2 class="text-2xl font-bold text-gray-900 mb-2">Kostenvoranschläge</h2>
+                <p class="text-gray-600">Übersicht aller erstellten Kostenvoranschläge</p>
+            </div>
+            <a href="{{ url_for('estimates.create') }}" 
+               class="bg-blue-600 text-white px-4 py-2 rounded-md text-sm hover:bg-blue-700 transition-colors">
+                Neuer Kostenvoranschlag
+            </a>
+        </div>
+
+        <!-- Error Message -->
+        {% if error %}
+            <div class="mb-6 bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded">
+                {{ error }}
+            </div>
+        {% endif %}
+
+        <!-- Estimates List -->
+        <div class="bg-white shadow overflow-hidden sm:rounded-md">
+            {% if estimates|length > 0 %}
+                <ul class="divide-y divide-gray-200">
+                    {% for item in estimates %}
+                        <li class="px-6 py-4 hover:bg-gray-50">
+                            <div class="flex items-center justify-between">
+                                <div class="flex items-center space-x-4">
+                                    <div class="flex-shrink-0">
+                                        <div class="h-10 w-10 rounded-full bg-blue-100 flex items-center justify-center">
+                                            <svg class="h-5 w-5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                                            </svg>
+                                        </div>
+                                    </div>
+                                    <div class="flex-1 min-w-0">
+                                        <div class="flex items-center space-x-3">
+                                            <p class="text-sm font-medium text-gray-900">
+                                                {{ item.document.doc_number }}
+                                            </p>
+                                            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
+                                                Kostenvoranschlag
+                                            </span>
+                                        </div>
+                                        <p class="text-sm text-gray-900 font-medium">
+                                            {{ item.document.customer_name }}
+                                        </p>
+                                        <div class="text-sm text-gray-500 space-y-1">
+                                            <p>{{ item.branch.name }} • {{ item.estimate.formatted_price }}</p>
+                                            <p>Erstellt: {{ item.document.created_at|date('d.m.Y H:i') }}</p>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <div class="flex items-center space-x-2">
+                                    <!-- View Button -->
+                                    <a href="{{ url_for('estimates.show', {id: item.document.id}) }}" 
+                                       class="bg-gray-100 text-gray-700 px-3 py-1 rounded text-sm hover:bg-gray-200 transition-colors">
+                                        Anzeigen
+                                    </a>
+                                    <!-- PDF Button (placeholder) -->
+                                    <button class="bg-red-100 text-red-700 px-3 py-1 rounded text-sm hover:bg-red-200 transition-colors opacity-50 cursor-not-allowed">
+                                        PDF
+                                    </button>
+                                </div>
+                            </div>
+                            
+                            <!-- Issue Preview -->
+                            {% if item.estimate.issue_text %}
+                                <div class="mt-3 pl-14">
+                                    <p class="text-sm text-gray-600 italic">
+                                        "{{ item.estimate.issue_text|slice(0, 150) }}{% if item.estimate.issue_text|length > 150 %}...{% endif %}"
+                                    </p>
+                                </div>
+                            {% endif %}
+                        </li>
+                    {% endfor %}
+                </ul>
+            {% else %}
+                <div class="text-center py-12">
+                    <svg class="mx-auto h-12 w-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                    </svg>
+                    <h3 class="mt-2 text-sm font-medium text-gray-900">Keine Kostenvoranschläge</h3>
+                    <p class="mt-1 text-sm text-gray-500">Erstellen Sie Ihren ersten Kostenvoranschlag.</p>
+                    <div class="mt-6">
+                        <a href="{{ url_for('estimates.create') }}" 
+                           class="inline-flex items-center px-4 py-2 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700">
+                            Neuer Kostenvoranschlag
+                        </a>
+                    </div>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}

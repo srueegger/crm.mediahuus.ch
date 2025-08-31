@@ -1,0 +1,150 @@
+{% extends "base.html.twig" %}
+
+{% block title %}Neuer Kostenvoranschlag - {{ parent() }}{% endblock %}
+
+{% block content %}
+<div class="max-w-4xl mx-auto py-6 sm:px-6 lg:px-8">
+    <div class="px-4 py-6 sm:px-0">
+        <!-- Header -->
+        <div class="mb-8">
+            <h2 class="text-2xl font-bold text-gray-900 mb-2">Neuer Kostenvoranschlag</h2>
+            <p class="text-gray-600">Erstellen Sie einen Kostenvoranschlag für Reparatur oder Service</p>
+        </div>
+
+        <!-- Error Message -->
+        {% if error %}
+            <div class="mb-6 bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded">
+                {{ error }}
+            </div>
+        {% endif %}
+
+        <!-- Form -->
+        <div class="bg-white shadow rounded-lg">
+            <form method="POST" action="/estimates" class="p-6 space-y-8">
+                
+                <!-- Filiale auswählen -->
+                <div class="border-b border-gray-200 pb-8">
+                    <h3 class="text-lg font-medium text-gray-900 mb-4">Filiale</h3>
+                    <div>
+                        <label for="branch_id" class="block text-sm font-medium text-gray-700 mb-2">
+                            Filiale auswählen *
+                        </label>
+                        <select name="branch_id" id="branch_id" required
+                                class="block w-full border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 sm:text-sm {{ errors.branch_id ? 'border-red-300' : '' }}">
+                            <option value="">-- Filiale auswählen --</option>
+                            {% for branch in branches %}
+                                <option value="{{ branch.id }}" 
+                                        {% if formData.branch_id|default('') == branch.id %}selected{% endif %}>
+                                    {{ branch.name }} - {{ branch.full_address }}
+                                </option>
+                            {% endfor %}
+                        </select>
+                        {% if errors.branch_id %}
+                            <p class="mt-1 text-sm text-red-600">{{ errors.branch_id }}</p>
+                        {% endif %}
+                    </div>
+                </div>
+
+                <!-- Kundendaten -->
+                <div class="border-b border-gray-200 pb-8">
+                    <h3 class="text-lg font-medium text-gray-900 mb-4">Kundendaten</h3>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <!-- Kundenname -->
+                        <div class="md:col-span-2">
+                            <label for="customer_name" class="block text-sm font-medium text-gray-700 mb-2">
+                                Name des Kunden *
+                            </label>
+                            <input type="text" name="customer_name" id="customer_name" required
+                                   value="{{ formData.customer_name|default('') }}"
+                                   class="block w-full border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 sm:text-sm {{ errors.customer_name ? 'border-red-300' : '' }}"
+                                   placeholder="Max Mustermann">
+                            {% if errors.customer_name %}
+                                <p class="mt-1 text-sm text-red-600">{{ errors.customer_name }}</p>
+                            {% endif %}
+                        </div>
+
+                        <!-- Telefon -->
+                        <div>
+                            <label for="customer_phone" class="block text-sm font-medium text-gray-700 mb-2">
+                                Telefon
+                            </label>
+                            <input type="tel" name="customer_phone" id="customer_phone"
+                                   value="{{ formData.customer_phone|default('') }}"
+                                   class="block w-full border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 sm:text-sm {{ errors.customer_phone ? 'border-red-300' : '' }}"
+                                   placeholder="+41 61 123 45 67">
+                            {% if errors.customer_phone %}
+                                <p class="mt-1 text-sm text-red-600">{{ errors.customer_phone }}</p>
+                            {% endif %}
+                        </div>
+
+                        <!-- E-Mail -->
+                        <div>
+                            <label for="customer_email" class="block text-sm font-medium text-gray-700 mb-2">
+                                E-Mail
+                            </label>
+                            <input type="email" name="customer_email" id="customer_email"
+                                   value="{{ formData.customer_email|default('') }}"
+                                   class="block w-full border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 sm:text-sm {{ errors.customer_email ? 'border-red-300' : '' }}"
+                                   placeholder="kunde@example.com">
+                            {% if errors.customer_email %}
+                                <p class="mt-1 text-sm text-red-600">{{ errors.customer_email }}</p>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Schadensbeschreibung und Preis -->
+                <div class="pb-8">
+                    <h3 class="text-lg font-medium text-gray-900 mb-4">Reparaturdetails</h3>
+                    <div class="space-y-6">
+                        <!-- Schadensbeschreibung -->
+                        <div>
+                            <label for="issue_text" class="block text-sm font-medium text-gray-700 mb-2">
+                                Schaden/Fehlerbeschreibung *
+                            </label>
+                            <textarea name="issue_text" id="issue_text" rows="4" required
+                                      class="block w-full border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 sm:text-sm {{ errors.issue_text ? 'border-red-300' : '' }}"
+                                      placeholder="Beschreiben Sie den Schaden oder das Problem detailliert...">{{ formData.issue_text|default('') }}</textarea>
+                            {% if errors.issue_text %}
+                                <p class="mt-1 text-sm text-red-600">{{ errors.issue_text }}</p>
+                            {% endif %}
+                        </div>
+
+                        <!-- Preis -->
+                        <div>
+                            <label for="price_chf" class="block text-sm font-medium text-gray-700 mb-2">
+                                Voraussichtliche Kosten (CHF) *
+                            </label>
+                            <div class="relative">
+                                <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                    <span class="text-gray-500 sm:text-sm">CHF</span>
+                                </div>
+                                <input type="number" name="price_chf" id="price_chf" step="0.05" min="0" required
+                                       value="{{ formData.price_chf|default('') }}"
+                                       class="block w-full pl-12 pr-3 border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 sm:text-sm {{ errors.price_chf ? 'border-red-300' : '' }}"
+                                       placeholder="0.00">
+                            </div>
+                            {% if errors.price_chf %}
+                                <p class="mt-1 text-sm text-red-600">{{ errors.price_chf }}</p>
+                            {% endif %}
+                            <p class="mt-1 text-sm text-gray-500">Geben Sie den geschätzten Reparaturpreis in CHF ein.</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Buttons -->
+                <div class="flex justify-end space-x-3 pt-6 border-t">
+                    <a href="{{ url_for('estimates.index') }}" 
+                       class="bg-white py-2 px-4 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
+                        Abbrechen
+                    </a>
+                    <button type="submit" 
+                            class="bg-blue-600 py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
+                        Kostenvoranschlag erstellen
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

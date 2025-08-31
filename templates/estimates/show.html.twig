@@ -1,0 +1,107 @@
+{% extends "base.html.twig" %}
+
+{% block title %}Kostenvoranschlag {{ document.doc_number }} - {{ parent() }}{% endblock %}
+
+{% block content %}
+<div class="max-w-4xl mx-auto py-6 sm:px-6 lg:px-8">
+    <div class="px-4 py-6 sm:px-0">
+        <!-- Header -->
+        <div class="mb-8 flex justify-between items-start">
+            <div>
+                <h2 class="text-2xl font-bold text-gray-900 mb-2">Kostenvoranschlag {{ document.doc_number }}</h2>
+                <p class="text-gray-600">{{ branch.name }}</p>
+            </div>
+            <div class="flex space-x-3">
+                <a href="{{ url_for('estimates.index') }}" 
+                   class="bg-gray-100 text-gray-700 px-4 py-2 rounded-md text-sm hover:bg-gray-200 transition-colors">
+                    ← Zurück zur Liste
+                </a>
+                <button class="bg-red-600 text-white px-4 py-2 rounded-md text-sm hover:bg-red-700 transition-colors opacity-50 cursor-not-allowed">
+                    PDF generieren
+                </button>
+            </div>
+        </div>
+
+        <!-- Document Details -->
+        <div class="bg-white shadow overflow-hidden sm:rounded-lg">
+            <div class="px-4 py-5 sm:px-6 border-b border-gray-200">
+                <h3 class="text-lg leading-6 font-medium text-gray-900">Dokumentdetails</h3>
+                <p class="mt-1 max-w-2xl text-sm text-gray-500">Informationen zu diesem Kostenvoranschlag</p>
+            </div>
+            <div class="border-t border-gray-200">
+                <dl>
+                    <!-- Document Number -->
+                    <div class="bg-gray-50 px-4 py-5 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
+                        <dt class="text-sm font-medium text-gray-500">Dokumentnummer</dt>
+                        <dd class="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2">{{ document.doc_number }}</dd>
+                    </div>
+                    
+                    <!-- Branch -->
+                    <div class="bg-white px-4 py-5 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
+                        <dt class="text-sm font-medium text-gray-500">Filiale</dt>
+                        <dd class="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2">
+                            <div>
+                                <p class="font-medium">{{ branch.name }}</p>
+                                <p class="text-gray-600">{{ branch.full_address }}</p>
+                                {% if branch.phone %}<p class="text-gray-600">Tel: {{ branch.phone }}</p>{% endif %}
+                                {% if branch.email %}<p class="text-gray-600">E-Mail: {{ branch.email }}</p>{% endif %}
+                            </div>
+                        </dd>
+                    </div>
+                    
+                    <!-- Customer -->
+                    <div class="bg-gray-50 px-4 py-5 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
+                        <dt class="text-sm font-medium text-gray-500">Kunde</dt>
+                        <dd class="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2">
+                            <div>
+                                <p class="font-medium">{{ document.customer_name }}</p>
+                                {% if document.customer_phone %}<p class="text-gray-600">Tel: {{ document.customer_phone }}</p>{% endif %}
+                                {% if document.customer_email %}<p class="text-gray-600">E-Mail: {{ document.customer_email }}</p>{% endif %}
+                            </div>
+                        </dd>
+                    </div>
+                    
+                    <!-- Issue Description -->
+                    <div class="bg-white px-4 py-5 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
+                        <dt class="text-sm font-medium text-gray-500">Schadens-/Fehlerbeschreibung</dt>
+                        <dd class="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2">
+                            <div class="bg-gray-50 p-4 rounded-md">
+                                <p class="whitespace-pre-line">{{ estimate.issue_text }}</p>
+                            </div>
+                        </dd>
+                    </div>
+                    
+                    <!-- Price -->
+                    <div class="bg-gray-50 px-4 py-5 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
+                        <dt class="text-sm font-medium text-gray-500">Voraussichtliche Kosten</dt>
+                        <dd class="mt-1 text-lg font-bold text-gray-900 sm:mt-0 sm:col-span-2">
+                            {{ estimate.formatted_price }}
+                        </dd>
+                    </div>
+                    
+                    <!-- Created -->
+                    <div class="bg-white px-4 py-5 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
+                        <dt class="text-sm font-medium text-gray-500">Erstellt</dt>
+                        <dd class="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2">
+                            {{ document.created_at|date('d.m.Y H:i') }}
+                        </dd>
+                    </div>
+                </dl>
+            </div>
+        </div>
+
+        <!-- Actions -->
+        <div class="mt-8 flex justify-end space-x-3">
+            <button class="bg-yellow-100 text-yellow-800 px-4 py-2 rounded-md text-sm hover:bg-yellow-200 transition-colors opacity-50 cursor-not-allowed">
+                Bearbeiten
+            </button>
+            <button class="bg-green-100 text-green-800 px-4 py-2 rounded-md text-sm hover:bg-green-200 transition-colors opacity-50 cursor-not-allowed">
+                E-Mail senden
+            </button>
+            <button class="bg-red-600 text-white px-4 py-2 rounded-md text-sm hover:bg-red-700 transition-colors opacity-50 cursor-not-allowed">
+                PDF herunterladen
+            </button>
+        </div>
+    </div>
+</div>
+{% endblock %}

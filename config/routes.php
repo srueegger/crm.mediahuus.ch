@@ -4,6 +4,7 @@ declare(strict_types=1);
 use App\Controllers\DashboardController;
 use App\Controllers\AuthController;
 use App\Controllers\UserController;
+use App\Controllers\EstimateController;
 use App\Middleware\AuthMiddleware;
 use Slim\App;
 
@@ -24,10 +25,12 @@ $app->group('', function () use ($app) {
     $app->post('/users/{id:[0-9]+}', [UserController::class, 'update'])->setName('users.update');
     $app->post('/users/{id:[0-9]+}/toggle-status', [UserController::class, 'toggleStatus'])->setName('users.toggle');
     
+    // Estimates
+    $app->get('/estimates', [EstimateController::class, 'index'])->setName('estimates.index');
+    $app->get('/estimates/create', [EstimateController::class, 'create'])->setName('estimates.create');
+    $app->post('/estimates', [EstimateController::class, 'store'])->setName('estimates.store');
+    $app->get('/estimates/{id:[0-9]+}', [EstimateController::class, 'show'])->setName('estimates.show');
     // Placeholder routes
-    $app->get('/estimate/new', function ($request, $response) {
-        return $response->withHeader('Location', '/')->withStatus(302);
-    })->setName('estimate.new');
     
     $app->get('/purchase/new', function ($request, $response) {
         return $response->withHeader('Location', '/')->withStatus(302);

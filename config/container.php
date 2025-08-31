@@ -9,8 +9,12 @@ use Monolog\Logger;
 use Monolog\Handler\StreamHandler;
 use Psr\Log\LoggerInterface;
 use App\Repositories\UserRepository;
+use App\Repositories\DocumentRepository;
+use App\Repositories\EstimateRepository;
+use App\Repositories\BranchRepository;
 use App\Services\AuthService;
 use App\Controllers\UserController;
+use App\Controllers\EstimateController;
 
 return [
     // Twig Template Engine
@@ -28,7 +32,10 @@ return [
         $twig->addFunction(new \Twig\TwigFunction('url_for', function ($routeName, $params = []) {
             // Simple hardcoded URLs for now
             $urls = [
-                'estimate.new' => '/estimate/new',
+                'estimate.new' => '/estimates/create',
+                'estimates.index' => '/estimates',
+                'estimates.create' => '/estimates/create',
+                'estimates.show' => '/estimates/' . ($params['id'] ?? '{id}'),
                 'purchase.new' => '/purchase/new',
                 'insurance.new' => '/insurance/new',
                 'users.index' => '/users',
@@ -80,5 +87,25 @@ return [
     // User Controller  
     UserController::class => function (Environment $twig, UserRepository $userRepository, LoggerInterface $logger) {
         return new UserController($twig, $userRepository, $logger);
+    },
+
+    // Document Repository
+    DocumentRepository::class => function (Connection $connection) {
+        return new DocumentRepository($connection);
+    },
+
+    // Estimate Repository
+    EstimateRepository::class => function (Connection $connection) {
+        return new EstimateRepository($connection);
+    },
+
+    // Branch Repository
+    BranchRepository::class => function (Connection $connection) {
+        return new BranchRepository($connection);
+    },
+
+    // Estimate Controller
+    EstimateController::class => function (Environment $twig, DocumentRepository $documentRepository, EstimateRepository $estimateRepository, BranchRepository $branchRepository, LoggerInterface $logger) {
+        return new EstimateController($twig, $documentRepository, $estimateRepository, $branchRepository, $logger);
     },
 ];
