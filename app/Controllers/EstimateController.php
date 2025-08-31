@@ -9,6 +9,7 @@ use App\Models\Estimate;
 use App\Repositories\DocumentRepository;
 use App\Repositories\EstimateRepository;
 use App\Repositories\BranchRepository;
+use App\Services\PdfService;
 use Psr\Http\Message\ResponseInterface as Response;
 use Psr\Http\Message\ServerRequestInterface as Request;
 use Psr\Log\LoggerInterface;
@@ -19,6 +20,7 @@ class EstimateController extends BaseController
     private DocumentRepository $documentRepository;
     private EstimateRepository $estimateRepository;
     private BranchRepository $branchRepository;
+    private PdfService $pdfService;
     private LoggerInterface $logger;
 
     public function __construct(
@@ -26,12 +28,14 @@ class EstimateController extends BaseController
         DocumentRepository $documentRepository,
         EstimateRepository $estimateRepository,
         BranchRepository $branchRepository,
+        PdfService $pdfService,
         LoggerInterface $logger
     ) {
         parent::__construct($twig);
         $this->documentRepository = $documentRepository;
         $this->estimateRepository = $estimateRepository;
         $this->branchRepository = $branchRepository;
+        $this->pdfService = $pdfService;
         $this->logger = $logger;
     }
 
@@ -199,6 +203,57 @@ class EstimateController extends BaseController
             ]);
             
             return $response->withHeader('Location', '/estimates?error=fetch')->withStatus(302);
+        }
+    }
+
+    public function generatePdf(Request $request, Response $response, array $args): Response
+    {
+        /** @var User $currentUser */
+        $currentUser = $request->getAttribute('current_user');
+        $documentId = (int) $args['id'];
+        
+        try {
+            // Fetch all required data
+            $document = $this->documentRepository->findById($documentId);
+            if (!$document || $document->getDocType() !== Document::TYPE_ESTIMATE) {
+                return $response->withHeader('Location', '/estimates?error=notfound')->withStatus(302);
+            }
+            
+            $estimate = $this->estimateRepository->findByDocumentId($documentId);
+            $branch = $this->branchRepository->findById($document->getBranchId());
+            
+            if (!$estimate || !$branch) {
+                return $response->withHeader('Location', '/estimates?error=incomplete')->withStatus(302);
+            }
+
+            // Generate PDF
+            $pdfContent = $this->pdfService->generateEstimatePdf($document, $estimate, $branch);
+            $filename = $this->pdfService->getEstimatePdfFilename($document);
+
+            // Set headers for PDF download
+            $response = $response
+                ->withHeader('Content-Type', 'application/pdf')
+                ->withHeader('Content-Disposition', 'attachment; filename="' . $filename . '"')
+                ->withHeader('Content-Length', (string) strlen($pdfContent));
+
+            $response->getBody()->write($pdfContent);
+
+            $this->logger->info('PDF downloaded', [
+                'document_id' => $documentId,
+                'user_id' => $currentUser->getId(),
+                'filename' => $filename
+            ]);
+
+            return $response;
+
+        } catch (\Exception $e) {
+            $this->logger->error('PDF generation failed', [
+                'document_id' => $documentId,
+                'user_id' => $currentUser->getId(),
+                'error' => $e->getMessage()
+            ]);
+            
+            return $response->withHeader('Location', '/estimates?error=pdf_generation')->withStatus(302);
         }
     }
 

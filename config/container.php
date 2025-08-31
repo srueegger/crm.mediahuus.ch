@@ -13,6 +13,7 @@ use App\Repositories\DocumentRepository;
 use App\Repositories\EstimateRepository;
 use App\Repositories\BranchRepository;
 use App\Services\AuthService;
+use App\Services\PdfService;
 use App\Controllers\UserController;
 use App\Controllers\EstimateController;
 
@@ -36,6 +37,7 @@ return [
                 'estimates.index' => '/estimates',
                 'estimates.create' => '/estimates/create',
                 'estimates.show' => '/estimates/' . ($params['id'] ?? '{id}'),
+                'estimates.pdf' => '/estimates/' . ($params['id'] ?? '{id}') . '/pdf',
                 'purchase.new' => '/purchase/new',
                 'insurance.new' => '/insurance/new',
                 'users.index' => '/users',
@@ -84,6 +86,11 @@ return [
         return new AuthService($userRepository, $logger);
     },
 
+    // PDF Service
+    PdfService::class => function (LoggerInterface $logger) {
+        return new PdfService($logger);
+    },
+
     // User Controller  
     UserController::class => function (Environment $twig, UserRepository $userRepository, LoggerInterface $logger) {
         return new UserController($twig, $userRepository, $logger);
@@ -105,7 +112,7 @@ return [
     },
 
     // Estimate Controller
-    EstimateController::class => function (Environment $twig, DocumentRepository $documentRepository, EstimateRepository $estimateRepository, BranchRepository $branchRepository, LoggerInterface $logger) {
-        return new EstimateController($twig, $documentRepository, $estimateRepository, $branchRepository, $logger);
+    EstimateController::class => function (Environment $twig, DocumentRepository $documentRepository, EstimateRepository $estimateRepository, BranchRepository $branchRepository, PdfService $pdfService, LoggerInterface $logger) {
+        return new EstimateController($twig, $documentRepository, $estimateRepository, $branchRepository, $pdfService, $logger);
     },
 ];

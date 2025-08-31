@@ -16,9 +16,10 @@
                    class="bg-gray-100 text-gray-700 px-4 py-2 rounded-md text-sm hover:bg-gray-200 transition-colors">
                     ← Zurück zur Liste
                 </a>
-                <button class="bg-red-600 text-white px-4 py-2 rounded-md text-sm hover:bg-red-700 transition-colors opacity-50 cursor-not-allowed">
-                    PDF generieren
-                </button>
+                <a href="{{ url_for('estimates.pdf', {id: document.id}) }}" 
+                   class="bg-red-600 text-white px-4 py-2 rounded-md text-sm hover:bg-red-700 transition-colors">
+                    PDF herunterladen
+                </a>
             </div>
         </div>
 
@@ -98,9 +99,10 @@
             <button class="bg-green-100 text-green-800 px-4 py-2 rounded-md text-sm hover:bg-green-200 transition-colors opacity-50 cursor-not-allowed">
                 E-Mail senden
             </button>
-            <button class="bg-red-600 text-white px-4 py-2 rounded-md text-sm hover:bg-red-700 transition-colors opacity-50 cursor-not-allowed">
+            <a href="{{ url_for('estimates.pdf', {id: document.id}) }}" 
+               class="bg-red-600 text-white px-4 py-2 rounded-md text-sm hover:bg-red-700 transition-colors">
                 PDF herunterladen
-            </button>
+            </a>
         </div>
     </div>
 </div>

@@ -58,19 +58,19 @@ class __TwigTemplate_77e6bc4a40a1b5f116f750bfa3790137 extends Template
     ";
         // line 10
         yield from $this->unwrap()->yieldBlock('header', $context, $blocks);
-        // line 31
+        // line 33
         yield "
     <main>
         ";
-        // line 33
+        // line 35
         yield from $this->unwrap()->yieldBlock('content', $context, $blocks);
-        // line 34
+        // line 36
         yield "    </main>
 
     ";
-        // line 36
+        // line 38
         yield from $this->unwrap()->yieldBlock('scripts', $context, $blocks);
-        // line 37
+        // line 39
         yield "</body>
 </html>";
         yield from [];
@@ -102,15 +102,17 @@ class __TwigTemplate_77e6bc4a40a1b5f116f750bfa3790137 extends Template
         <div class=\"max-w-7xl mx-auto px-4 sm:px-6 lg:px-8\">
             <div class=\"flex justify-between h-16\">
                 <div class=\"flex items-center\">
-                    <img src=\"/assets/logo.png\" alt=\"";
-            // line 16
+                    <a href=\"/\" class=\"flex items-center hover:opacity-75 transition-opacity\">
+                        <img src=\"/assets/logo.png\" alt=\"";
+            // line 17
             yield $this->env->getRuntime('Twig\Runtime\EscaperRuntime')->escape(($context["app_name"] ?? null), "html", null, true);
             yield "\" class=\"h-12 w-auto\">
+                    </a>
                 </div>
                 <div class=\"flex items-center space-x-4\">
                     <span class=\"text-sm text-gray-700\">";
-            // line 19
-            yield $this->env->getRuntime('Twig\Runtime\EscaperRuntime')->escape(CoreExtension::getAttribute($this->env, $this->source, ($context["user"] ?? null), "name", [], "any", false, false, false, 19), "html", null, true);
+            // line 21
+            yield $this->env->getRuntime('Twig\Runtime\EscaperRuntime')->escape(CoreExtension::getAttribute($this->env, $this->source, ($context["user"] ?? null), "name", [], "any", false, false, false, 21), "html", null, true);
             yield "</span>
                     <form method=\"POST\" action=\"/logout\" class=\"inline\">
                         <button type=\"submit\" class=\"bg-red-600 text-white px-4 py-2 rounded-md text-sm hover:bg-red-700\">
@@ -123,12 +125,12 @@ class __TwigTemplate_77e6bc4a40a1b5f116f750bfa3790137 extends Template
     </nav>
     ";
         }
-        // line 30
+        // line 32
         yield "    ";
         yield from [];
     }
 
-    // line 33
+    // line 35
     /**
      * @return iterable<null|scalar|\Stringable>
      */
@@ -138,7 +140,7 @@ class __TwigTemplate_77e6bc4a40a1b5f116f750bfa3790137 extends Template
         yield from [];
     }
 
-    // line 36
+    // line 38
     /**
      * @return iterable<null|scalar|\Stringable>
      */
@@ -161,7 +163,7 @@ class __TwigTemplate_77e6bc4a40a1b5f116f750bfa3790137 extends Template
      */
     public function getDebugInfo(): array
     {
-        return array (  142 => 36,  132 => 33,  127 => 30,  113 => 19,  107 => 16,  101 => 12,  98 => 11,  91 => 10,  80 => 6,  74 => 37,  72 => 36,  68 => 34,  66 => 33,  62 => 31,  60 => 10,  53 => 6,  46 => 1,);
+        return array (  144 => 38,  134 => 35,  129 => 32,  115 => 21,  108 => 17,  101 => 12,  98 => 11,  91 => 10,  80 => 6,  74 => 39,  72 => 38,  68 => 36,  66 => 35,  62 => 33,  60 => 10,  53 => 6,  46 => 1,);
     }
 
     public function getSourceContext(): Source
@@ -181,7 +183,9 @@ class __TwigTemplate_77e6bc4a40a1b5f116f750bfa3790137 extends Template
         <div class=\"max-w-7xl mx-auto px-4 sm:px-6 lg:px-8\">
             <div class=\"flex justify-between h-16\">
                 <div class=\"flex items-center\">
-                    <img src=\"/assets/logo.png\" alt=\"{{ app_name }}\" class=\"h-12 w-auto\">
+                    <a href=\"/\" class=\"flex items-center hover:opacity-75 transition-opacity\">
+                        <img src=\"/assets/logo.png\" alt=\"{{ app_name }}\" class=\"h-12 w-auto\">
+                    </a>
                 </div>
                 <div class=\"flex items-center space-x-4\">
                     <span class=\"text-sm text-gray-700\">{{ user.name }}</span>

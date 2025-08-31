@@ -30,6 +30,7 @@ $app->group('', function () use ($app) {
     $app->get('/estimates/create', [EstimateController::class, 'create'])->setName('estimates.create');
     $app->post('/estimates', [EstimateController::class, 'store'])->setName('estimates.store');
     $app->get('/estimates/{id:[0-9]+}', [EstimateController::class, 'show'])->setName('estimates.show');
+    $app->get('/estimates/{id:[0-9]+}/pdf', [EstimateController::class, 'generatePdf'])->setName('estimates.pdf');
     // Placeholder routes
     
     $app->get('/purchase/new', function ($request, $response) {
