@@ -16,6 +16,7 @@ use App\Services\AuthService;
 use App\Services\PdfService;
 use App\Controllers\UserController;
 use App\Controllers\EstimateController;
+use App\Controllers\DashboardController;
 
 return [
     // Twig Template Engine
@@ -114,5 +115,10 @@ return [
     // Estimate Controller
     EstimateController::class => function (Environment $twig, DocumentRepository $documentRepository, EstimateRepository $estimateRepository, BranchRepository $branchRepository, PdfService $pdfService, LoggerInterface $logger) {
         return new EstimateController($twig, $documentRepository, $estimateRepository, $branchRepository, $pdfService, $logger);
+    },
+
+    // Dashboard Controller
+    DashboardController::class => function (DocumentRepository $documentRepository, BranchRepository $branchRepository, EstimateRepository $estimateRepository) {
+        return new DashboardController($documentRepository, $branchRepository, $estimateRepository);
     },
 ];

@@ -92,9 +92,13 @@ class __TwigTemplate_b45a910ffc9a20304bb8f2dfc798a1de extends Template
                    class=\"bg-gray-100 text-gray-700 px-4 py-2 rounded-md text-sm hover:bg-gray-200 transition-colors\">
                     ← Zurück zur Liste
                 </a>
-                <button class=\"bg-red-600 text-white px-4 py-2 rounded-md text-sm hover:bg-red-700 transition-colors opacity-50 cursor-not-allowed\">
-                    PDF generieren
-                </button>
+                <a href=\"";
+        // line 19
+        yield $this->env->getRuntime('Twig\Runtime\EscaperRuntime')->escape($this->env->getFunction('url_for')->getCallable()("estimates.pdf", ["id" => CoreExtension::getAttribute($this->env, $this->source, ($context["document"] ?? null), "id", [], "any", false, false, false, 19)]), "html", null, true);
+        yield "\" 
+                   class=\"bg-red-600 text-white px-4 py-2 rounded-md text-sm hover:bg-red-700 transition-colors\">
+                    PDF herunterladen
+                </a>
             </div>
         </div>
 
@@ -110,8 +114,8 @@ class __TwigTemplate_b45a910ffc9a20304bb8f2dfc798a1de extends Template
                     <div class=\"bg-gray-50 px-4 py-5 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6\">
                         <dt class=\"text-sm font-medium text-gray-500\">Dokumentnummer</dt>
                         <dd class=\"mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2\">";
-        // line 36
-        yield $this->env->getRuntime('Twig\Runtime\EscaperRuntime')->escape(CoreExtension::getAttribute($this->env, $this->source, ($context["document"] ?? null), "doc_number", [], "any", false, false, false, 36), "html", null, true);
+        // line 37
+        yield $this->env->getRuntime('Twig\Runtime\EscaperRuntime')->escape(CoreExtension::getAttribute($this->env, $this->source, ($context["document"] ?? null), "doc_number", [], "any", false, false, false, 37), "html", null, true);
         yield "</dd>
                     </div>
                     
@@ -121,28 +125,28 @@ class __TwigTemplate_b45a910ffc9a20304bb8f2dfc798a1de extends Template
                         <dd class=\"mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2\">
                             <div>
                                 <p class=\"font-medium\">";
-        // line 44
-        yield $this->env->getRuntime('Twig\Runtime\EscaperRuntime')->escape(CoreExtension::getAttribute($this->env, $this->source, ($context["branch"] ?? null), "name", [], "any", false, false, false, 44), "html", null, true);
+        // line 45
+        yield $this->env->getRuntime('Twig\Runtime\EscaperRuntime')->escape(CoreExtension::getAttribute($this->env, $this->source, ($context["branch"] ?? null), "name", [], "any", false, false, false, 45), "html", null, true);
         yield "</p>
                                 <p class=\"text-gray-600\">";
-        // line 45
-        yield $this->env->getRuntime('Twig\Runtime\EscaperRuntime')->escape(CoreExtension::getAttribute($this->env, $this->source, ($context["branch"] ?? null), "full_address", [], "any", false, false, false, 45), "html", null, true);
+        // line 46
+        yield $this->env->getRuntime('Twig\Runtime\EscaperRuntime')->escape(CoreExtension::getAttribute($this->env, $this->source, ($context["branch"] ?? null), "full_address", [], "any", false, false, false, 46), "html", null, true);
         yield "</p>
                                 ";
-        // line 46
-        if ((($tmp = CoreExtension::getAttribute($this->env, $this->source, ($context["branch"] ?? null), "phone", [], "any", false, false, false, 46)) && $tmp instanceof Markup ? (string) $tmp : $tmp)) {
-            yield "<p class=\"text-gray-600\">Tel: ";
-            yield $this->env->getRuntime('Twig\Runtime\EscaperRuntime')->escape(CoreExtension::getAttribute($this->env, $this->source, ($context["branch"] ?? null), "phone", [], "any", false, false, false, 46), "html", null, true);
-            yield "</p>";
-        }
         // line 47
-        yield "                                ";
-        if ((($tmp = CoreExtension::getAttribute($this->env, $this->source, ($context["branch"] ?? null), "email", [], "any", false, false, false, 47)) && $tmp instanceof Markup ? (string) $tmp : $tmp)) {
-            yield "<p class=\"text-gray-600\">E-Mail: ";
-            yield $this->env->getRuntime('Twig\Runtime\EscaperRuntime')->escape(CoreExtension::getAttribute($this->env, $this->source, ($context["branch"] ?? null), "email", [], "any", false, false, false, 47), "html", null, true);
+        if ((($tmp = CoreExtension::getAttribute($this->env, $this->source, ($context["branch"] ?? null), "phone", [], "any", false, false, false, 47)) && $tmp instanceof Markup ? (string) $tmp : $tmp)) {
+            yield "<p class=\"text-gray-600\">Tel: ";
+            yield $this->env->getRuntime('Twig\Runtime\EscaperRuntime')->escape(CoreExtension::getAttribute($this->env, $this->source, ($context["branch"] ?? null), "phone", [], "any", false, false, false, 47), "html", null, true);
             yield "</p>";
         }
         // line 48
+        yield "                                ";
+        if ((($tmp = CoreExtension::getAttribute($this->env, $this->source, ($context["branch"] ?? null), "email", [], "any", false, false, false, 48)) && $tmp instanceof Markup ? (string) $tmp : $tmp)) {
+            yield "<p class=\"text-gray-600\">E-Mail: ";
+            yield $this->env->getRuntime('Twig\Runtime\EscaperRuntime')->escape(CoreExtension::getAttribute($this->env, $this->source, ($context["branch"] ?? null), "email", [], "any", false, false, false, 48), "html", null, true);
+            yield "</p>";
+        }
+        // line 49
         yield "                            </div>
                         </dd>
                     </div>
@@ -153,24 +157,24 @@ class __TwigTemplate_b45a910ffc9a20304bb8f2dfc798a1de extends Template
                         <dd class=\"mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2\">
                             <div>
                                 <p class=\"font-medium\">";
-        // line 57
-        yield $this->env->getRuntime('Twig\Runtime\EscaperRuntime')->escape(CoreExtension::getAttribute($this->env, $this->source, ($context["document"] ?? null), "customer_name", [], "any", false, false, false, 57), "html", null, true);
+        // line 58
+        yield $this->env->getRuntime('Twig\Runtime\EscaperRuntime')->escape(CoreExtension::getAttribute($this->env, $this->source, ($context["document"] ?? null), "customer_name", [], "any", false, false, false, 58), "html", null, true);
         yield "</p>
                                 ";
-        // line 58
-        if ((($tmp = CoreExtension::getAttribute($this->env, $this->source, ($context["document"] ?? null), "customer_phone", [], "any", false, false, false, 58)) && $tmp instanceof Markup ? (string) $tmp : $tmp)) {
-            yield "<p class=\"text-gray-600\">Tel: ";
-            yield $this->env->getRuntime('Twig\Runtime\EscaperRuntime')->escape(CoreExtension::getAttribute($this->env, $this->source, ($context["document"] ?? null), "customer_phone", [], "any", false, false, false, 58), "html", null, true);
-            yield "</p>";
-        }
         // line 59
-        yield "                                ";
-        if ((($tmp = CoreExtension::getAttribute($this->env, $this->source, ($context["document"] ?? null), "customer_email", [], "any", false, false, false, 59)) && $tmp instanceof Markup ? (string) $tmp : $tmp)) {
-            yield "<p class=\"text-gray-600\">E-Mail: ";
-            yield $this->env->getRuntime('Twig\Runtime\EscaperRuntime')->escape(CoreExtension::getAttribute($this->env, $this->source, ($context["document"] ?? null), "customer_email", [], "any", false, false, false, 59), "html", null, true);
+        if ((($tmp = CoreExtension::getAttribute($this->env, $this->source, ($context["document"] ?? null), "customer_phone", [], "any", false, false, false, 59)) && $tmp instanceof Markup ? (string) $tmp : $tmp)) {
+            yield "<p class=\"text-gray-600\">Tel: ";
+            yield $this->env->getRuntime('Twig\Runtime\EscaperRuntime')->escape(CoreExtension::getAttribute($this->env, $this->source, ($context["document"] ?? null), "customer_phone", [], "any", false, false, false, 59), "html", null, true);
             yield "</p>";
         }
         // line 60
+        yield "                                ";
+        if ((($tmp = CoreExtension::getAttribute($this->env, $this->source, ($context["document"] ?? null), "customer_email", [], "any", false, false, false, 60)) && $tmp instanceof Markup ? (string) $tmp : $tmp)) {
+            yield "<p class=\"text-gray-600\">E-Mail: ";
+            yield $this->env->getRuntime('Twig\Runtime\EscaperRuntime')->escape(CoreExtension::getAttribute($this->env, $this->source, ($context["document"] ?? null), "customer_email", [], "any", false, false, false, 60), "html", null, true);
+            yield "</p>";
+        }
+        // line 61
         yield "                            </div>
                         </dd>
                     </div>
@@ -181,8 +185,8 @@ class __TwigTemplate_b45a910ffc9a20304bb8f2dfc798a1de extends Template
                         <dd class=\"mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2\">
                             <div class=\"bg-gray-50 p-4 rounded-md\">
                                 <p class=\"whitespace-pre-line\">";
-        // line 69
-        yield $this->env->getRuntime('Twig\Runtime\EscaperRuntime')->escape(CoreExtension::getAttribute($this->env, $this->source, ($context["estimate"] ?? null), "issue_text", [], "any", false, false, false, 69), "html", null, true);
+        // line 70
+        yield $this->env->getRuntime('Twig\Runtime\EscaperRuntime')->escape(CoreExtension::getAttribute($this->env, $this->source, ($context["estimate"] ?? null), "issue_text", [], "any", false, false, false, 70), "html", null, true);
         yield "</p>
                             </div>
                         </dd>
@@ -193,8 +197,8 @@ class __TwigTemplate_b45a910ffc9a20304bb8f2dfc798a1de extends Template
                         <dt class=\"text-sm font-medium text-gray-500\">Voraussichtliche Kosten</dt>
                         <dd class=\"mt-1 text-lg font-bold text-gray-900 sm:mt-0 sm:col-span-2\">
                             ";
-        // line 78
-        yield $this->env->getRuntime('Twig\Runtime\EscaperRuntime')->escape(CoreExtension::getAttribute($this->env, $this->source, ($context["estimate"] ?? null), "formatted_price", [], "any", false, false, false, 78), "html", null, true);
+        // line 79
+        yield $this->env->getRuntime('Twig\Runtime\EscaperRuntime')->escape(CoreExtension::getAttribute($this->env, $this->source, ($context["estimate"] ?? null), "formatted_price", [], "any", false, false, false, 79), "html", null, true);
         yield "
                         </dd>
                     </div>
@@ -204,8 +208,8 @@ class __TwigTemplate_b45a910ffc9a20304bb8f2dfc798a1de extends Template
                         <dt class=\"text-sm font-medium text-gray-500\">Erstellt</dt>
                         <dd class=\"mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2\">
                             ";
-        // line 86
-        yield $this->env->getRuntime('Twig\Runtime\EscaperRuntime')->escape($this->extensions['Twig\Extension\CoreExtension']->formatDate(CoreExtension::getAttribute($this->env, $this->source, ($context["document"] ?? null), "created_at", [], "any", false, false, false, 86), "d.m.Y H:i"), "html", null, true);
+        // line 87
+        yield $this->env->getRuntime('Twig\Runtime\EscaperRuntime')->escape($this->extensions['Twig\Extension\CoreExtension']->formatDate(CoreExtension::getAttribute($this->env, $this->source, ($context["document"] ?? null), "created_at", [], "any", false, false, false, 87), "d.m.Y H:i"), "html", null, true);
         yield "
                         </dd>
                     </div>
@@ -221,9 +225,13 @@ class __TwigTemplate_b45a910ffc9a20304bb8f2dfc798a1de extends Template
             <button class=\"bg-green-100 text-green-800 px-4 py-2 rounded-md text-sm hover:bg-green-200 transition-colors opacity-50 cursor-not-allowed\">
                 E-Mail senden
             </button>
-            <button class=\"bg-red-600 text-white px-4 py-2 rounded-md text-sm hover:bg-red-700 transition-colors opacity-50 cursor-not-allowed\">
+            <a href=\"";
+        // line 102
+        yield $this->env->getRuntime('Twig\Runtime\EscaperRuntime')->escape($this->env->getFunction('url_for')->getCallable()("estimates.pdf", ["id" => CoreExtension::getAttribute($this->env, $this->source, ($context["document"] ?? null), "id", [], "any", false, false, false, 102)]), "html", null, true);
+        yield "\" 
+               class=\"bg-red-600 text-white px-4 py-2 rounded-md text-sm hover:bg-red-700 transition-colors\">
                 PDF herunterladen
-            </button>
+            </a>
         </div>
     </div>
 </div>
@@ -252,7 +260,7 @@ class __TwigTemplate_b45a910ffc9a20304bb8f2dfc798a1de extends Template
      */
     public function getDebugInfo(): array
     {
-        return array (  208 => 86,  197 => 78,  185 => 69,  174 => 60,  167 => 59,  161 => 58,  157 => 57,  146 => 48,  139 => 47,  133 => 46,  129 => 45,  125 => 44,  114 => 36,  90 => 15,  84 => 12,  80 => 11,  73 => 6,  66 => 5,  52 => 3,  41 => 1,);
+        return array (  230 => 102,  212 => 87,  201 => 79,  189 => 70,  178 => 61,  171 => 60,  165 => 59,  161 => 58,  150 => 49,  143 => 48,  137 => 47,  133 => 46,  129 => 45,  118 => 37,  97 => 19,  90 => 15,  84 => 12,  80 => 11,  73 => 6,  66 => 5,  52 => 3,  41 => 1,);
     }
 
     public function getSourceContext(): Source
@@ -275,9 +283,10 @@ class __TwigTemplate_b45a910ffc9a20304bb8f2dfc798a1de extends Template
                    class=\"bg-gray-100 text-gray-700 px-4 py-2 rounded-md text-sm hover:bg-gray-200 transition-colors\">
                     ← Zurück zur Liste
                 </a>
-                <button class=\"bg-red-600 text-white px-4 py-2 rounded-md text-sm hover:bg-red-700 transition-colors opacity-50 cursor-not-allowed\">
-                    PDF generieren
-                </button>
+                <a href=\"{{ url_for('estimates.pdf', {id: document.id}) }}\" 
+                   class=\"bg-red-600 text-white px-4 py-2 rounded-md text-sm hover:bg-red-700 transition-colors\">
+                    PDF herunterladen
+                </a>
             </div>
         </div>
 
@@ -357,9 +366,10 @@ class __TwigTemplate_b45a910ffc9a20304bb8f2dfc798a1de extends Template
             <button class=\"bg-green-100 text-green-800 px-4 py-2 rounded-md text-sm hover:bg-green-200 transition-colors opacity-50 cursor-not-allowed\">
                 E-Mail senden
             </button>
-            <button class=\"bg-red-600 text-white px-4 py-2 rounded-md text-sm hover:bg-red-700 transition-colors opacity-50 cursor-not-allowed\">
+            <a href=\"{{ url_for('estimates.pdf', {id: document.id}) }}\" 
+               class=\"bg-red-600 text-white px-4 py-2 rounded-md text-sm hover:bg-red-700 transition-colors\">
                 PDF herunterladen
-            </button>
+            </a>
         </div>
     </div>
 </div>

@@ -46,6 +46,9 @@ class PdfService
 
             // Add content
             $this->addEstimateContent($pdf, $document, $estimate, $branch);
+            
+            // Ensure we don't have extra empty pages
+            $pdf->lastPage();
 
             $this->logger->info('PDF generated successfully', [
                 'document_id' => $document->getId(),
@@ -186,17 +189,29 @@ class PdfService
         // Section title
         $pdf->SetFont('helvetica', 'B', 12);
         $pdf->SetXY(20, $currentY);
-        $pdf->Cell(0, 6, 'Schadens-/Fehlerbeschreibung', 0, 1, 'L');
+        $pdf->Cell(0, 6, 'Kostenvoranschlag für Handy-Reparatur', 0, 1, 'L');
         
         $currentY += 10;
+
+        // Standard introduction text
+        $pdf->SetFont('helvetica', '', 10);
+        $pdf->SetXY(20, $currentY);
+        $introText = "Sehr geehrte Damen und Herren,\n\nbasierend auf Ihren Angaben und der Inspektion Ihres Gerätes erstellen wir Ihnen gerne den folgenden Kostenvoranschlag für die Reparatur:";
+        $pdf->MultiCell(170, 5, $introText, 0, 'L', false);
+        
+        $currentY = $pdf->GetY() + 10;
+
+        // Issue description section
+        $pdf->SetFont('helvetica', 'B', 11);
+        $pdf->SetXY(20, $currentY);
+        $pdf->Cell(0, 6, 'Schadens-/Fehlerbeschreibung:', 0, 1, 'L');
+        
+        $currentY += 8;
 
         // Issue description in a box
         $pdf->SetFillColor(248, 249, 250);
         $pdf->SetDrawColor(229, 231, 235);
-        $pdf->Rect(20, $currentY, 170, 0, 'DF', array(), array(248, 249, 250));
-        
         $pdf->SetFont('helvetica', '', 10);
-        $pdf->SetXY(25, $currentY + 5);
         
         // Calculate height needed for text
         $textHeight = $pdf->getStringHeight(165, $estimate->getIssueText());
@@ -209,13 +224,21 @@ class PdfService
         $pdf->SetXY(25, $currentY + 5);
         $pdf->MultiCell(165, 5, $estimate->getIssueText(), 0, 'L', false);
 
-        return $currentY + $boxHeight + 15;
+        $currentY += $boxHeight + 15;
+
+        // Standard closing text
+        $pdf->SetFont('helvetica', '', 10);
+        $pdf->SetXY(20, $currentY);
+        $closingText = "Die Reparatur wird fachgerecht von unseren qualifizierten Technikern durchgeführt. Alle verwendeten Ersatzteile entsprechen hohen Qualitätsstandards und werden mit einer Garantie von 6 Monaten abgedeckt.\n\nSollten während der Reparatur zusätzliche Defekte festgestellt werden, werden wir Sie umgehend kontaktieren, bevor weitere Arbeiten durchgeführt werden.";
+        $pdf->MultiCell(170, 5, $closingText, 0, 'L', false);
+        
+        return $pdf->GetY() + 15;
     }
 
     private function addTotalPrice(TCPDF $pdf, Estimate $estimate, float $currentY): float
     {
-        // Price box
-        $pdf->SetFillColor(59, 130, 246);
+        // Price box - Green color #2d8f3e (45, 143, 62)
+        $pdf->SetFillColor(45, 143, 62);
         $pdf->SetTextColor(255, 255, 255);
         $pdf->Rect(20, $currentY, 170, 15, 'F');
         
@@ -235,16 +258,25 @@ class PdfService
 
     private function addFooter(TCPDF $pdf, Branch $branch, Document $document): void
     {
-        // Footer with additional info
-        $pdf->SetY(-30);
-        $pdf->SetFont('helvetica', '', 8);
-        $pdf->SetTextColor(100, 100, 100);
+        // Get current position and page height
+        $currentY = $pdf->GetY();
+        $pageHeight = $pdf->getPageHeight();
         
-        $pdf->Cell(0, 4, 'Dieser Kostenvoranschlag ist unverbindlich und 30 Tage gültig.', 0, 1, 'C');
-        $pdf->Cell(0, 4, 'Alle Preise verstehen sich in CHF inkl. MwSt.', 0, 1, 'C');
+        // Position footer 30mm from bottom
+        $footerY = $pageHeight - 30;
         
-        $pdf->SetY(-15);
-        $pdf->Cell(0, 4, 'Erstellt am ' . $document->getCreatedAt()->format('d.m.Y H:i') . ' • ' . $branch->getName(), 0, 1, 'C');
+        // Only add footer if there's enough space, otherwise it's handled by auto page break
+        if ($currentY < $footerY) {
+            $pdf->SetY($footerY);
+            $pdf->SetFont('helvetica', '', 8);
+            $pdf->SetTextColor(100, 100, 100);
+            
+            $pdf->Cell(0, 4, 'Dieser Kostenvoranschlag ist unverbindlich und 30 Tage gültig.', 0, 1, 'C');
+            $pdf->Cell(0, 4, 'Alle Preise verstehen sich in CHF inkl. MwSt.', 0, 1, 'C');
+            
+            $pdf->SetY($pageHeight - 15);
+            $pdf->Cell(0, 4, 'Erstellt am ' . $document->getCreatedAt()->format('d.m.Y H:i') . ' • ' . $branch->getName(), 0, 1, 'C');
+        }
     }
 
     public function getEstimatePdfFilename(Document $document): string
