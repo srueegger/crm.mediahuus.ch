@@ -1,0 +1,11 @@
+<svg width="180" height="180" viewBox="0 0 180 180" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <!-- Background with Mediahuus green -->
+  <rect width="180" height="180" rx="20" fill="#2d8f3e"/>
+  
+  <!-- Stylized "M" for Mediahuus - larger for 180x180 -->
+  <path d="M45 65v50h12v-35l18 25h10l18-25v35h12v-50h-14L90 92 75 65H45z" fill="white" stroke="white" stroke-width="1"/>
+  
+  <!-- Decorative element -->
+  <circle cx="140" cy="50" r="12" fill="white" opacity="0.9"/>
+  <circle cx="140" cy="50" r="6" fill="#2d8f3e"/>
+</svg>
