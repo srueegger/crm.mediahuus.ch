@@ -234,7 +234,9 @@ class PdfService
         $pdf->SetFont('helvetica', '', 10);
         
         // Calculate height needed for text
-        $textHeight = $pdf->getStringHeight(165, $estimate->getIssueText());
+        // Convert HTML to text with basic formatting preservation
+        $cleanIssueText = $this->convertHtmlToText($estimate->getIssueText());
+        $textHeight = $pdf->getStringHeight(165, $cleanIssueText);
         $boxHeight = max(20, $textHeight + 10);
         
         // Draw the box with proper height
@@ -242,7 +244,7 @@ class PdfService
         
         // Add text with proper line breaks
         $pdf->SetXY(25, $currentY + 5);
-        $pdf->MultiCell(165, 5, $estimate->getIssueText(), 0, 'L', false);
+        $pdf->MultiCell(165, 5, $cleanIssueText, 0, 'L', false);
 
         $currentY += $boxHeight + 15;
 
@@ -297,5 +299,29 @@ class PdfService
     public function getEstimatePdfFilename(Document $document): string
     {
         return 'Kostenvoranschlag_' . $document->getDocNumber() . '.pdf';
+    }
+
+    private function convertHtmlToText(string $html): string
+    {
+        // Replace HTML formatting with text equivalents
+        $text = $html;
+        
+        // Convert line breaks
+        $text = str_replace(['<br>', '<br/>', '<br />'], "\n", $text);
+        $text = str_replace('</p>', "\n\n", $text);
+        
+        // Convert lists with bullet points
+        $text = preg_replace('/<li[^>]*>/i', '• ', $text);
+        $text = str_replace('</li>', "\n", $text);
+        $text = preg_replace('/<\/?(ul|ol)[^>]*>/i', "\n", $text);
+        
+        // Remove other HTML tags but keep their content
+        $text = strip_tags($text);
+        
+        // Clean up extra whitespace and line breaks
+        $text = preg_replace('/\n\s*\n\s*\n/', "\n\n", $text); // Max 2 consecutive line breaks
+        $text = trim($text);
+        
+        return $text;
     }
 }

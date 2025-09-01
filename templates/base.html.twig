@@ -5,6 +5,121 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{% block title %}{{ app_name }}{% endblock %}</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdn.quilljs.com/1.3.6/quill.snow.css" rel="stylesheet">
+    <script src="https://cdn.quilljs.com/1.3.6/quill.min.js"></script>
+    <style>
+        /* Mediahuus Form Styling */
+        .mediahuus-input {
+            @apply block rounded-lg shadow-sm text-lg;
+            @apply transition-all duration-200 ease-in-out;
+            @apply focus:ring-2 focus:ring-green-500 focus:border-green-500 focus:outline-none;
+            @apply hover:border-green-400;
+            border: 2px solid #2d8f3e !important;
+            background-color: white !important;
+            width: 100% !important;
+            padding: 1rem 1.5rem !important;
+            min-height: 56px;
+        }
+        .mediahuus-input.error, .mediahuus-select.error, .mediahuus-textarea.error {
+            border: 2px solid #f87171 !important;
+            @apply focus:ring-red-500 focus:border-red-500;
+        }
+        .mediahuus-select {
+            @apply block rounded-lg shadow-sm text-lg;
+            @apply transition-all duration-200 ease-in-out;
+            @apply focus:ring-2 focus:ring-green-500 focus:border-green-500 focus:outline-none;
+            @apply hover:border-green-400;
+            border: 2px solid #2d8f3e !important;
+            background-color: white !important;
+            width: 100% !important;
+            padding: 1rem 1.5rem !important;
+            min-height: 56px;
+        }
+        .mediahuus-textarea {
+            @apply block rounded-lg shadow-sm text-lg;
+            @apply transition-all duration-200 ease-in-out resize-vertical;
+            @apply focus:ring-2 focus:ring-green-500 focus:border-green-500 focus:outline-none;
+            @apply hover:border-green-400;
+            border: 2px solid #2d8f3e !important;
+            background-color: white !important;
+            width: 100% !important;
+            padding: 1rem 1.5rem !important;
+            min-height: 240px !important;
+            height: 240px;
+        }
+        .mediahuus-label {
+            @apply block text-base font-semibold text-gray-700 mb-3;
+            display: block !important;
+            width: 100%;
+        }
+        .mediahuus-button-primary {
+            background-color: #2d8f3e !important;
+            color: white !important;
+            padding: 0.75rem 1.5rem !important;
+            border-radius: 0.5rem !important;
+            font-size: 1rem !important;
+            font-weight: 600 !important;
+            box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05) !important;
+            transition: all 0.2s ease-in-out !important;
+            border: 2px solid #2d8f3e !important;
+            cursor: pointer !important;
+            display: inline-block !important;
+            text-decoration: none !important;
+            text-align: center !important;
+        }
+        .mediahuus-button-primary:hover {
+            background-color: #1f5f2a !important;
+            border-color: #1f5f2a !important;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1) !important;
+        }
+        .mediahuus-button-secondary {
+            background-color: white !important;
+            color: #2d8f3e !important;
+            padding: 0.75rem 1.5rem !important;
+            border-radius: 0.5rem !important;
+            font-size: 1rem !important;
+            font-weight: 600 !important;
+            box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05) !important;
+            transition: all 0.2s ease-in-out !important;
+            border: 2px solid #2d8f3e !important;
+            cursor: pointer !important;
+            display: inline-block !important;
+            text-decoration: none !important;
+            text-align: center !important;
+        }
+        .mediahuus-button-secondary:hover {
+            background-color: #f0f9f0 !important;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1) !important;
+        }
+        .mediahuus-form-section {
+            @apply space-y-6 p-8 bg-white rounded-xl shadow-sm border border-gray-100;
+        }
+        .mediahuus-richtext {
+            border: 2px solid #2d8f3e;
+            border-radius: 0.5rem;
+            min-height: 240px;
+            background: white;
+        }
+        .mediahuus-richtext .ql-toolbar {
+            border-radius: 0.5rem 0.5rem 0 0;
+            border: 2px solid #2d8f3e;
+            border-bottom: none;
+            background: #f0fdf4;
+        }
+        .mediahuus-richtext .ql-container {
+            border-radius: 0 0 0.5rem 0.5rem;
+            border: 2px solid #2d8f3e;
+            border-top: none;
+            min-height: 200px;
+            background: white;
+        }
+        .mediahuus-richtext .ql-editor {
+            min-height: 200px;
+            font-size: 16px;
+            line-height: 1.6;
+            padding: 1.25rem 1rem;
+        }
+    </style>
 </head>
 <body class="bg-gray-50 min-h-screen">
     {% block header %}

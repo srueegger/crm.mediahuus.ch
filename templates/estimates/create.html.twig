@@ -3,7 +3,7 @@
 {% block title %}Neuer Kostenvoranschlag - {{ parent() }}{% endblock %}
 
 {% block content %}
-<div class="max-w-4xl mx-auto py-6 sm:px-6 lg:px-8">
+<div class="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
     <div class="px-4 py-6 sm:px-0">
         <!-- Header -->
         <div class="mb-8">
@@ -19,18 +19,18 @@
         {% endif %}
 
         <!-- Form -->
-        <div class="bg-white shadow rounded-lg">
-            <form method="POST" action="/estimates" class="p-6 space-y-8">
+        <div class="mediahuus-form-section">
+            <form method="POST" action="/estimates" class="space-y-8">
                 
                 <!-- Filiale auswählen -->
                 <div class="border-b border-gray-200 pb-8">
                     <h3 class="text-lg font-medium text-gray-900 mb-4">Filiale</h3>
                     <div>
-                        <label for="branch_id" class="block text-sm font-medium text-gray-700 mb-2">
+                        <label for="branch_id" class="mediahuus-label">
                             Filiale auswählen *
                         </label>
                         <select name="branch_id" id="branch_id" required
-                                class="block w-full border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 sm:text-sm {{ errors.branch_id ? 'border-red-300' : '' }}">
+                                class="mediahuus-select {{ errors.branch_id ? 'error' : '' }}">
                             <option value="">-- Filiale auswählen --</option>
                             {% for branch in branches %}
                                 <option value="{{ branch.id }}" 
@@ -51,12 +51,12 @@
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                         <!-- Kundenname -->
                         <div class="md:col-span-2">
-                            <label for="customer_name" class="block text-sm font-medium text-gray-700 mb-2">
+                            <label for="customer_name" class="mediahuus-label">
                                 Name des Kunden *
                             </label>
                             <input type="text" name="customer_name" id="customer_name" required
                                    value="{{ formData.customer_name|default('') }}"
-                                   class="block w-full border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 sm:text-sm {{ errors.customer_name ? 'border-red-300' : '' }}"
+                                   class="mediahuus-input {{ errors.customer_name ? 'error' : '' }}"
                                    placeholder="Max Mustermann">
                             {% if errors.customer_name %}
                                 <p class="mt-1 text-sm text-red-600">{{ errors.customer_name }}</p>
@@ -65,12 +65,12 @@
 
                         <!-- Telefon -->
                         <div>
-                            <label for="customer_phone" class="block text-sm font-medium text-gray-700 mb-2">
+                            <label for="customer_phone" class="mediahuus-label">
                                 Telefon
                             </label>
                             <input type="tel" name="customer_phone" id="customer_phone"
                                    value="{{ formData.customer_phone|default('') }}"
-                                   class="block w-full border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 sm:text-sm {{ errors.customer_phone ? 'border-red-300' : '' }}"
+                                   class="mediahuus-input {{ errors.customer_phone ? 'error' : '' }}"
                                    placeholder="+41 61 123 45 67">
                             {% if errors.customer_phone %}
                                 <p class="mt-1 text-sm text-red-600">{{ errors.customer_phone }}</p>
@@ -79,12 +79,12 @@
 
                         <!-- E-Mail -->
                         <div>
-                            <label for="customer_email" class="block text-sm font-medium text-gray-700 mb-2">
+                            <label for="customer_email" class="mediahuus-label">
                                 E-Mail
                             </label>
                             <input type="email" name="customer_email" id="customer_email"
                                    value="{{ formData.customer_email|default('') }}"
-                                   class="block w-full border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 sm:text-sm {{ errors.customer_email ? 'border-red-300' : '' }}"
+                                   class="mediahuus-input {{ errors.customer_email ? 'error' : '' }}"
                                    placeholder="kunde@example.com">
                             {% if errors.customer_email %}
                                 <p class="mt-1 text-sm text-red-600">{{ errors.customer_email }}</p>
@@ -99,12 +99,12 @@
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                         <!-- Gerätename -->
                         <div>
-                            <label for="device_name" class="block text-sm font-medium text-gray-700 mb-2">
+                            <label for="device_name" class="mediahuus-label">
                                 Gerätename / Modell *
                             </label>
                             <input type="text" name="device_name" id="device_name" required
                                    value="{{ formData.device_name|default('') }}"
-                                   class="block w-full border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 sm:text-sm {{ errors.device_name ? 'border-red-300' : '' }}"
+                                   class="mediahuus-input {{ errors.device_name ? 'error' : '' }}"
                                    placeholder="z.B. iPhone 15 Pro, Samsung Galaxy S24">
                             {% if errors.device_name %}
                                 <p class="mt-1 text-sm text-red-600">{{ errors.device_name }}</p>
@@ -113,12 +113,12 @@
 
                         <!-- Seriennummer -->
                         <div>
-                            <label for="serial_number" class="block text-sm font-medium text-gray-700 mb-2">
+                            <label for="serial_number" class="mediahuus-label">
                                 Seriennummer *
                             </label>
                             <input type="text" name="serial_number" id="serial_number" required
                                    value="{{ formData.serial_number|default('') }}"
-                                   class="block w-full border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 sm:text-sm {{ errors.serial_number ? 'border-red-300' : '' }}"
+                                   class="mediahuus-input {{ errors.serial_number ? 'error' : '' }}"
                                    placeholder="z.B. IMEI oder Seriennummer">
                             {% if errors.serial_number %}
                                 <p class="mt-1 text-sm text-red-600">{{ errors.serial_number }}</p>
@@ -133,12 +133,13 @@
                     <div class="space-y-6">
                         <!-- Schadensbeschreibung -->
                         <div>
-                            <label for="issue_text" class="block text-sm font-medium text-gray-700 mb-2">
+                            <label for="issue_text" class="mediahuus-label">
                                 Schaden/Fehlerbeschreibung *
                             </label>
-                            <textarea name="issue_text" id="issue_text" rows="4" required
-                                      class="block w-full border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 sm:text-sm {{ errors.issue_text ? 'border-red-300' : '' }}"
-                                      placeholder="Beschreiben Sie den Schaden oder das Problem detailliert...">{{ formData.issue_text|default('') }}</textarea>
+                            <div class="mediahuus-richtext">
+                                <div id="issue_text_editor" style="height: 200px;"></div>
+                                <textarea name="issue_text" id="issue_text" required style="display: none;">{{ formData.issue_text|default('') }}</textarea>
+                            </div>
                             {% if errors.issue_text %}
                                 <p class="mt-1 text-sm text-red-600">{{ errors.issue_text }}</p>
                             {% endif %}
@@ -146,7 +147,7 @@
 
                         <!-- Preis -->
                         <div>
-                            <label for="price_chf" class="block text-sm font-medium text-gray-700 mb-2">
+                            <label for="price_chf" class="mediahuus-label">
                                 Voraussichtliche Kosten (CHF) *
                             </label>
                             <div class="relative">
@@ -155,7 +156,8 @@
                                 </div>
                                 <input type="number" name="price_chf" id="price_chf" step="0.05" min="0" required
                                        value="{{ formData.price_chf|default('') }}"
-                                       class="block w-full pl-12 pr-3 border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 sm:text-sm {{ errors.price_chf ? 'border-red-300' : '' }}"
+                                       class="mediahuus-input {{ errors.price_chf ? 'error' : '' }}"
+                                       style="padding-left: 4rem !important;"
                                        placeholder="0.00">
                             </div>
                             {% if errors.price_chf %}
@@ -169,11 +171,11 @@
                 <!-- Buttons -->
                 <div class="flex justify-end space-x-3 pt-6 border-t">
                     <a href="{{ url_for('estimates.index') }}" 
-                       class="bg-white py-2 px-4 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
+                       class="mediahuus-button-secondary">
                         Abbrechen
                     </a>
                     <button type="submit" 
-                            class="bg-blue-600 py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
+                            class="mediahuus-button-primary">
                         Kostenvoranschlag erstellen
                     </button>
                 </div>
@@ -181,4 +183,38 @@
         </div>
     </div>
 </div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+// Quill Rich Text Editor
+var quill = new Quill('#issue_text_editor', {
+    theme: 'snow',
+    placeholder: 'Beschreiben Sie den Schaden oder das Problem detailliert...',
+    modules: {
+        toolbar: [
+            ['bold', 'italic', 'underline'],
+            [{ 'list': 'ordered'}, { 'list': 'bullet' }],
+            ['link'],
+            ['clean']
+        ]
+    }
+});
+
+// Sync with hidden textarea for form submission
+var hiddenTextarea = document.querySelector('#issue_text');
+var initialContent = hiddenTextarea.value;
+if (initialContent) {
+    quill.root.innerHTML = initialContent;
+}
+
+quill.on('text-change', function() {
+    hiddenTextarea.value = quill.root.innerHTML;
+});
+
+// Ensure content is synced before form submission
+document.querySelector('form').addEventListener('submit', function() {
+    hiddenTextarea.value = quill.root.innerHTML;
+});
+</script>
 {% endblock %}

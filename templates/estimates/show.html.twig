@@ -17,7 +17,7 @@
                     ← Zurück zur Liste
                 </a>
                 <a href="{{ url_for('estimates.pdf', {id: document.id}) }}" 
-                   class="bg-red-600 text-white px-4 py-2 rounded-md text-sm hover:bg-red-700 transition-colors">
+                   class="mediahuus-button-primary">
                     PDF herunterladen
                 </a>
             </div>
@@ -78,7 +78,7 @@
                         <dt class="text-sm font-medium text-gray-500">Schadens-/Fehlerbeschreibung</dt>
                         <dd class="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2">
                             <div class="bg-gray-50 p-4 rounded-md">
-                                <p class="whitespace-pre-line">{{ estimate.issue_text }}</p>
+                                <div class="prose prose-sm">{{ estimate.issue_text|raw }}</div>
                             </div>
                         </dd>
                     </div>
@@ -111,7 +111,7 @@
                 E-Mail senden
             </button>
             <a href="{{ url_for('estimates.pdf', {id: document.id}) }}" 
-               class="bg-red-600 text-white px-4 py-2 rounded-md text-sm hover:bg-red-700 transition-colors">
+               class="mediahuus-button-primary">
                 PDF herunterladen
             </a>
         </div>
