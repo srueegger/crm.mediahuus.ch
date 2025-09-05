@@ -306,3 +306,4 @@ Passwort: admin123
 **Nächste Iteration:** Ankauf-Modul (Sprint 2)
 
 Diese Dokumentation wird kontinuierlich mit der Entwicklung aktualisiert.
+- immer das gleiche gürn für icons und buttons verwenden, das wir sonst auch überall bei dem projekt nutzen

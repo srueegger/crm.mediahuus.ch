@@ -5,6 +5,7 @@ namespace App\Services;
 
 use App\Models\Document;
 use App\Models\Estimate;
+use App\Models\Receipt;
 use App\Models\Branch;
 use TCPDF;
 use Psr\Log\LoggerInterface;
@@ -334,9 +335,251 @@ class PdfService
         $pdf->SetTextColor(0, 0, 0);
     }
 
+    public function generateReceiptPdf(Document $document, Receipt $receipt, Branch $branch): string
+    {
+        try {
+            // Create new PDF document
+            $pdf = new TCPDF(PDF_PAGE_ORIENTATION, PDF_UNIT, PDF_PAGE_FORMAT, true, 'UTF-8', false);
+
+            // Set document information
+            $pdf->SetCreator('Mediahuus CRM');
+            $pdf->SetAuthor('Mediahuus');
+            $pdf->SetTitle('Quittung ' . $document->getDocNumber());
+            $pdf->SetSubject('Kaufquittung');
+
+            // Remove default header/footer
+            $pdf->setPrintHeader(false);
+            $pdf->setPrintFooter(false);
+
+            // Set margins with proper bottom margin for page breaks
+            $pdf->SetMargins(20, 15, 20);
+            $pdf->SetAutoPageBreak(true, 25); // Enable auto page break with 25mm bottom margin
+
+            // Add a page
+            $pdf->AddPage();
+
+            // Set font
+            $pdf->SetFont('helvetica', '', 10);
+
+            // Add content
+            $this->addReceiptContent($pdf, $document, $receipt, $branch);
+
+            $this->logger->info('Receipt PDF generated successfully', [
+                'document_id' => $document->getId(),
+                'doc_number' => $document->getDocNumber()
+            ]);
+
+            return $pdf->Output('', 'S');
+
+        } catch (\Exception $e) {
+            $this->logger->error('Receipt PDF generation failed', [
+                'document_id' => $document->getId(),
+                'error' => $e->getMessage()
+            ]);
+            throw $e;
+        }
+    }
+
     public function getEstimatePdfFilename(Document $document): string
     {
         return 'Kostenvoranschlag_' . $document->getDocNumber() . '.pdf';
+    }
+
+    public function getReceiptPdfFilename(Document $document): string
+    {
+        return 'Quittung_' . $document->getDocNumber() . '.pdf';
+    }
+
+    private function addReceiptContent(TCPDF $pdf, Document $document, Receipt $receipt, Branch $branch): void
+    {
+        $currentY = 15;
+
+        // Header with Logo and Branch Info
+        $currentY = $this->addHeader($pdf, $branch, $currentY);
+        
+        // Document Title and Number
+        $currentY = $this->addReceiptTitle($pdf, $document, $currentY);
+        
+        // Skip customer information for receipts
+        
+        // Receipt Items Table
+        $currentY = $this->addReceiptItemsTable($pdf, $receipt, $currentY);
+        
+        // Total Amount
+        $currentY = $this->addReceiptTotal($pdf, $receipt, $currentY);
+        
+        // Footer Information
+        $this->addReceiptFooter($pdf, $branch, $document);
+    }
+
+    private function addReceiptTitle(TCPDF $pdf, Document $document, float $currentY): float
+    {
+        // Line separator
+        $pdf->SetLineWidth(0.3);
+        $pdf->SetDrawColor(200, 200, 200);
+        $pdf->Line(20, $currentY, 190, $currentY);
+        
+        $currentY += 10;
+
+        // Title
+        $pdf->SetFont('helvetica', 'B', 16);
+        $pdf->SetXY(20, $currentY);
+        $pdf->Cell(0, 8, 'QUITTUNG', 0, 1, 'L');
+
+        $currentY += 12;
+
+        // Document number and date
+        $pdf->SetFont('helvetica', '', 10);
+        $pdf->SetXY(20, $currentY);
+        $pdf->Cell(60, 6, 'Nummer:', 0, 0, 'L');
+        $pdf->SetFont('helvetica', 'B', 10);
+        $pdf->Cell(0, 6, $document->getDocNumber(), 0, 1, 'L');
+
+        $pdf->SetFont('helvetica', '', 10);
+        $pdf->SetXY(20, $currentY + 6);
+        $pdf->Cell(60, 6, 'Datum:', 0, 0, 'L');
+        $pdf->Cell(0, 6, $document->getCreatedAt()->format('d.m.Y'), 0, 1, 'L');
+
+        return $currentY + 20;
+    }
+
+    private function addReceiptItemsTable(TCPDF $pdf, Receipt $receipt, float $currentY): float
+    {
+        // Section title
+        $pdf->SetFont('helvetica', 'B', 12);
+        $pdf->SetXY(20, $currentY);
+        $pdf->Cell(0, 6, 'Verkaufte Produkte/Dienstleistungen', 0, 1, 'L');
+        
+        $currentY += 10;
+
+        // Table headers
+        $pdf->SetFont('helvetica', 'B', 9);
+        $pdf->SetFillColor(240, 240, 240);
+        
+        $pdf->SetXY(20, $currentY);
+        $pdf->Cell(80, 8, 'Beschreibung', 1, 0, 'L', true);
+        $pdf->Cell(20, 8, 'Menge', 1, 0, 'C', true);
+        $pdf->Cell(35, 8, 'Einzelpreis', 1, 0, 'R', true);
+        $pdf->Cell(35, 8, 'Summe', 1, 1, 'R', true);
+        
+        $currentY += 8;
+
+        // Table items
+        $pdf->SetFont('helvetica', '', 9);
+        $pdf->SetFillColor(255, 255, 255);
+        
+        foreach ($receipt->getItems() as $item) {
+            // Check if we need a new page
+            if ($currentY > 250) {
+                $pdf->AddPage();
+                $currentY = 15;
+            }
+            
+            $pdf->SetXY(20, $currentY);
+            
+            // Description (with text wrapping if needed)
+            $description = $item->getItemDescription();
+            $descriptionHeight = max(8, $pdf->getStringHeight(80, $description));
+            
+            $pdf->MultiCell(80, $descriptionHeight, $description, 1, 'L', false);
+            
+            // Quantity
+            $pdf->SetXY(100, $currentY);
+            $pdf->Cell(20, $descriptionHeight, (string)$item->getQuantity(), 1, 0, 'C');
+            
+            // Unit price
+            $pdf->SetXY(120, $currentY);
+            $pdf->Cell(35, $descriptionHeight, $item->getFormattedUnitPrice(), 1, 0, 'R');
+            
+            // Line total
+            $pdf->SetXY(155, $currentY);
+            $pdf->Cell(35, $descriptionHeight, $item->getFormattedLineTotal(), 1, 0, 'R');
+            
+            $currentY += $descriptionHeight;
+        }
+
+        return $currentY + 10;
+    }
+
+    private function addReceiptTotal(TCPDF $pdf, Receipt $receipt, float $currentY): float
+    {
+        // Check if total fits on current page
+        $totalHeight = 15;
+        $pageHeight = $pdf->getPageHeight();
+        $bottomMargin = 25;
+        
+        if (($currentY + $totalHeight + 10) > ($pageHeight - $bottomMargin)) {
+            $pdf->AddPage();
+            $currentY = 15; // Reset to top margin
+        }
+        
+        // Total box - Green color #2d8f3e (45, 143, 62)
+        $pdf->SetFillColor(45, 143, 62);
+        $pdf->SetTextColor(255, 255, 255);
+        $pdf->Rect(20, $currentY, 170, $totalHeight, 'F');
+        
+        $pdf->SetFont('helvetica', 'B', 14);
+        $pdf->SetXY(25, $currentY + 4);
+        $pdf->Cell(80, 8, 'Gesamtbetrag:', 0, 0, 'L');
+        
+        $pdf->SetFont('helvetica', 'B', 16);
+        $pdf->SetXY(110, $currentY + 4);
+        $pdf->Cell(75, 8, $receipt->getFormattedTotal(), 0, 0, 'R');
+        
+        // Reset text color
+        $pdf->SetTextColor(0, 0, 0);
+
+        return $currentY + 25;
+    }
+
+    private function addReceiptFooter(TCPDF $pdf, Branch $branch, Document $document): void
+    {
+        // Add some space before footer
+        $currentY = $pdf->GetY() + 20;
+        
+        // Simple footer without complex positioning
+        $pdf->SetY($currentY);
+        $pdf->SetFont('helvetica', '', 8);
+        $pdf->SetTextColor(100, 100, 100);
+        
+        $pdf->Cell(0, 6, 'Vielen Dank für Ihren Einkauf bei ' . $branch->getName() . '!', 0, 1, 'C');
+        $pdf->Cell(0, 6, 'Alle Preise verstehen sich in CHF inkl. MwSt.', 0, 1, 'C');
+        $pdf->Cell(0, 6, 'Erstellt am ' . $document->getCreatedAt()->format('d.m.Y H:i') . ' • ' . $branch->getName(), 0, 1, 'C');
+        
+        // Reset text color
+        $pdf->SetTextColor(0, 0, 0);
+    }
+
+    private function addReceiptCustomerInfo(TCPDF $pdf, Document $document, float $currentY): float
+    {
+        // Only show customer info if phone or email is provided
+        if (!$document->getCustomerPhone() && !$document->getCustomerEmail()) {
+            return $currentY;
+        }
+
+        // Section title
+        $pdf->SetFont('helvetica', 'B', 12);
+        $pdf->SetXY(20, $currentY);
+        $pdf->Cell(0, 6, 'Kundeninformationen', 0, 1, 'L');
+        
+        $currentY += 8;
+
+        // Customer details (only show non-empty fields)
+        $pdf->SetFont('helvetica', '', 10);
+        
+        if ($document->getCustomerPhone()) {
+            $pdf->SetXY(20, $currentY);
+            $pdf->Cell(0, 5, 'Tel: ' . $document->getCustomerPhone(), 0, 1, 'L');
+            $currentY += 5;
+        }
+
+        if ($document->getCustomerEmail()) {
+            $pdf->SetXY(20, $currentY);
+            $pdf->Cell(0, 5, 'E-Mail: ' . $document->getCustomerEmail(), 0, 1, 'L');
+            $currentY += 5;
+        }
+
+        return $currentY + 10;
     }
 
     private function convertHtmlToText(string $html): string

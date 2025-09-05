@@ -5,6 +5,7 @@ use App\Controllers\DashboardController;
 use App\Controllers\AuthController;
 use App\Controllers\UserController;
 use App\Controllers\EstimateController;
+use App\Controllers\ReceiptController;
 use App\Middleware\AuthMiddleware;
 use Slim\App;
 
@@ -32,6 +33,13 @@ $app->group('', function () use ($app) {
     $app->post('/estimates', [EstimateController::class, 'store'])->setName('estimates.store');
     $app->get('/estimates/{id:[0-9]+}', [EstimateController::class, 'show'])->setName('estimates.show');
     $app->get('/estimates/{id:[0-9]+}/pdf', [EstimateController::class, 'generatePdf'])->setName('estimates.pdf');
+    
+    // Receipts
+    $app->get('/receipts', [ReceiptController::class, 'index'])->setName('receipts.index');
+    $app->get('/receipts/create', [ReceiptController::class, 'create'])->setName('receipts.create');
+    $app->post('/receipts', [ReceiptController::class, 'store'])->setName('receipts.store');
+    $app->get('/receipts/{id:[0-9]+}', [ReceiptController::class, 'show'])->setName('receipts.show');
+    $app->get('/receipts/{id:[0-9]+}/pdf', [ReceiptController::class, 'generatePdf'])->setName('receipts.pdf');
     // Placeholder routes
     
     $app->get('/purchase/new', function ($request, $response) {

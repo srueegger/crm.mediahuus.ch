@@ -12,10 +12,13 @@ use App\Repositories\UserRepository;
 use App\Repositories\DocumentRepository;
 use App\Repositories\EstimateRepository;
 use App\Repositories\BranchRepository;
+use App\Repositories\ReceiptRepository;
+use App\Repositories\ReceiptItemRepository;
 use App\Services\AuthService;
 use App\Services\PdfService;
 use App\Controllers\UserController;
 use App\Controllers\EstimateController;
+use App\Controllers\ReceiptController;
 use App\Controllers\DashboardController;
 
 return [
@@ -39,6 +42,10 @@ return [
                 'estimates.create' => '/estimates/create',
                 'estimates.show' => '/estimates/' . ($params['id'] ?? '{id}'),
                 'estimates.pdf' => '/estimates/' . ($params['id'] ?? '{id}') . '/pdf',
+                'receipts.index' => '/receipts',
+                'receipts.create' => '/receipts/create',
+                'receipts.show' => '/receipts/' . ($params['id'] ?? '{id}'),
+                'receipts.pdf' => '/receipts/' . ($params['id'] ?? '{id}') . '/pdf',
                 'purchase.new' => '/purchase/new',
                 'insurance.new' => '/insurance/new',
                 'users.index' => '/users',
@@ -112,9 +119,24 @@ return [
         return new BranchRepository($connection);
     },
 
+    // Receipt Item Repository
+    ReceiptItemRepository::class => function (Connection $connection) {
+        return new ReceiptItemRepository($connection);
+    },
+
+    // Receipt Repository
+    ReceiptRepository::class => function (Connection $connection, ReceiptItemRepository $receiptItemRepository) {
+        return new ReceiptRepository($connection, $receiptItemRepository);
+    },
+
     // Estimate Controller
     EstimateController::class => function (Environment $twig, DocumentRepository $documentRepository, EstimateRepository $estimateRepository, BranchRepository $branchRepository, PdfService $pdfService, LoggerInterface $logger) {
         return new EstimateController($twig, $documentRepository, $estimateRepository, $branchRepository, $pdfService, $logger);
+    },
+
+    // Receipt Controller
+    ReceiptController::class => function (Environment $twig, DocumentRepository $documentRepository, ReceiptRepository $receiptRepository, ReceiptItemRepository $receiptItemRepository, BranchRepository $branchRepository, PdfService $pdfService, LoggerInterface $logger) {
+        return new ReceiptController($twig, $documentRepository, $receiptRepository, $receiptItemRepository, $branchRepository, $pdfService, $logger);
     },
 
     // Dashboard Controller

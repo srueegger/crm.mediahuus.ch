@@ -1,0 +1,139 @@
+{% extends "base.html.twig" %}
+
+{% block title %}Quittungen - {{ parent() }}{% endblock %}
+
+{% block content %}
+<div class="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
+    <div class="px-4 py-6 sm:px-0">
+        <!-- Header -->
+        <div class="mb-8">
+            <div class="flex justify-between items-center">
+                <div>
+                    <h2 class="text-2xl font-bold text-gray-900">Quittungen</h2>
+                    <p class="text-gray-600">Alle erstellten Kaufquittungen verwalten</p>
+                </div>
+                <a href="{{ url_for('receipts.create') }}" 
+                   class="mediahuus-button-primary">
+                    Neue Quittung
+                </a>
+            </div>
+        </div>
+
+        <!-- Error Message -->
+        {% if error %}
+            <div class="mb-6 bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded">
+                {{ error }}
+            </div>
+        {% endif %}
+
+        <!-- Success Message -->
+        {% if app.request.query.get('success') %}
+            <div class="mb-6 bg-green-50 border border-green-200 text-green-700 px-4 py-3 rounded">
+                Quittung wurde erfolgreich erstellt!
+            </div>
+        {% endif %}
+
+        <!-- Receipts List -->
+        <div class="bg-white shadow rounded-lg">
+            {% if receipts is empty %}
+                <!-- Empty State -->
+                <div class="text-center py-12">
+                    <svg class="mx-auto h-12 w-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 14l6-6m-5.5.5h.01m4.99 5h.01M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16l3.5-2 3.5 2 3.5-2 3.5 2zM13 8.5a1.5 1.5 0 11-3 0 1.5 1.5 0 013 0zm-3 4a1.5 1.5 0 11-3 0 1.5 1.5 0 013 0z" />
+                    </svg>
+                    <h3 class="mt-2 text-sm font-medium text-gray-900">Keine Quittungen vorhanden</h3>
+                    <p class="mt-1 text-sm text-gray-500">Erstellen Sie Ihre erste Kaufquittung.</p>
+                    <div class="mt-6">
+                        <a href="{{ url_for('receipts.create') }}" 
+                           class="mediahuus-button-primary">
+                            Erste Quittung erstellen
+                        </a>
+                    </div>
+                </div>
+            {% else %}
+                <!-- Table Header -->
+                <div class="px-6 py-3 bg-gray-50 border-b border-gray-200">
+                    <div class="grid grid-cols-12 gap-4 text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        <div class="col-span-2">Nummer</div>
+                        <div class="col-span-2">Datum</div>
+                        <div class="col-span-2">Filiale</div>
+                        <div class="col-span-2">Gesamtbetrag</div>
+                        <div class="col-span-2">Erstellt von</div>
+                        <div class="col-span-2">Aktionen</div>
+                    </div>
+                </div>
+
+                <!-- Table Body -->
+                <div class="divide-y divide-gray-200">
+                    {% for item in receipts %}
+                        <div class="px-6 py-4 hover:bg-gray-50">
+                            <div class="grid grid-cols-12 gap-4 items-center">
+                                <!-- Document Number -->
+                                <div class="col-span-2">
+                                    <div class="text-sm font-medium text-gray-900">
+                                        {{ item.document.doc_number }}
+                                    </div>
+                                </div>
+
+                                <!-- Date -->
+                                <div class="col-span-2">
+                                    <div class="text-sm text-gray-900">
+                                        {{ item.document.created_at|date('d.m.Y') }}
+                                    </div>
+                                    <div class="text-xs text-gray-500">
+                                        {{ item.document.created_at|date('H:i') }}
+                                    </div>
+                                </div>
+
+                                <!-- Branch -->
+                                <div class="col-span-2">
+                                    <div class="text-sm text-gray-900">
+                                        {{ item.branch.name }}
+                                    </div>
+                                </div>
+
+                                <!-- Total Amount -->
+                                <div class="col-span-2">
+                                    <div class="text-sm font-medium text-green-600">
+                                        {{ item.receipt.formatted_total }}
+                                    </div>
+                                </div>
+
+                                <!-- Created By -->
+                                <div class="col-span-2">
+                                    <div class="text-sm text-gray-900">
+                                        {{ item.document.user_name ?? 'Unbekannt' }}
+                                    </div>
+                                </div>
+
+                                <!-- Actions -->
+                                <div class="col-span-2">
+                                    <div class="flex space-x-2">
+                                        <a href="{{ url_for('receipts.show', {id: item.document.id}) }}" 
+                                           class="text-indigo-600 hover:text-indigo-900 text-sm font-medium">
+                                            Anzeigen
+                                        </a>
+                                        <a href="{{ url_for('receipts.pdf', {id: item.document.id}) }}" 
+                                           class="text-green-600 hover:text-green-900 text-sm font-medium">
+                                            PDF
+                                        </a>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    {% endfor %}
+                </div>
+            {% endif %}
+        </div>
+
+        {% if receipts is not empty %}
+            <!-- Footer Stats -->
+            <div class="mt-6 text-center">
+                <p class="text-sm text-gray-500">
+                    {{ receipts|length }} Quittung{% if receipts|length != 1 %}en{% endif %} insgesamt
+                </p>
+            </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

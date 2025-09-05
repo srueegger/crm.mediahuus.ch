@@ -1,0 +1,252 @@
+{% extends "base.html.twig" %}
+
+{% block title %}Neue Quittung - {{ parent() }}{% endblock %}
+
+{% block content %}
+<div class="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
+    <div class="px-4 py-6 sm:px-0">
+        <!-- Header -->
+        <div class="mb-8">
+            <h2 class="text-2xl font-bold text-gray-900 mb-2">Neue Quittung</h2>
+            <p class="text-gray-600">Erstellen Sie eine Kaufquittung für verkaufte Produkte oder Dienstleistungen</p>
+        </div>
+
+        <!-- Error Message -->
+        {% if error %}
+            <div class="mb-6 bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded">
+                {{ error }}
+            </div>
+        {% endif %}
+
+        <!-- Form -->
+        <div class="mediahuus-form-section">
+            <form method="POST" action="/receipts" class="space-y-8" id="receipt-form">
+                
+                <!-- Filiale auswählen -->
+                <div class="border-b border-gray-200 pb-8">
+                    <h3 class="text-lg font-medium text-gray-900 mb-4">Filiale</h3>
+                    <div>
+                        <label for="branch_id" class="mediahuus-label">
+                            Filiale auswählen *
+                        </label>
+                        <select name="branch_id" id="branch_id" required
+                                class="mediahuus-select {{ errors.branch_id ? 'error' : '' }}">
+                            <option value="">-- Filiale auswählen --</option>
+                            {% for branch in branches %}
+                                <option value="{{ branch.id }}" 
+                                        {% if formData.branch_id|default('') == branch.id %}selected{% endif %}>
+                                    {{ branch.name }} - {{ branch.full_address }}
+                                </option>
+                            {% endfor %}
+                        </select>
+                        {% if errors.branch_id %}
+                            <p class="mt-1 text-sm text-red-600">{{ errors.branch_id }}</p>
+                        {% endif %}
+                    </div>
+                </div>
+
+                <!-- Verkaufte Produkte/Dienstleistungen -->
+                <div class="pb-8">
+                    <h3 class="text-lg font-medium text-gray-900 mb-4">Verkaufte Produkte/Dienstleistungen</h3>
+                    
+                    <div id="items-container">
+                        <!-- Dynamic items will be added here -->
+                    </div>
+                    
+                    <div class="mt-4">
+                        <button type="button" id="add-item-btn" 
+                                class="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-md text-sm font-medium">
+                            + Position hinzufügen
+                        </button>
+                    </div>
+
+                    <!-- Total Amount Display -->
+                    <div class="mt-6 bg-gray-50 p-4 rounded-lg">
+                        <div class="flex justify-between items-center">
+                            <span class="text-lg font-medium text-gray-900">Gesamtbetrag:</span>
+                            <span id="total-amount" class="text-2xl font-bold text-green-600">CHF 0.00</span>
+                        </div>
+                    </div>
+
+                    {% if errors.items %}
+                        <p class="mt-2 text-sm text-red-600">{{ errors.items }}</p>
+                    {% endif %}
+                </div>
+
+                <!-- Buttons -->
+                <div class="flex justify-end space-x-3 pt-6 border-t">
+                    <a href="{{ url_for('dashboard.index') }}" 
+                       class="mediahuus-button-secondary">
+                        Abbrechen
+                    </a>
+                    <button type="submit" 
+                            class="mediahuus-button-primary">
+                        Quittung erstellen
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Item Template (hidden) -->
+<template id="item-template">
+    <div class="item-row bg-white border border-gray-200 rounded-lg p-4 mb-4">
+        <div class="flex justify-between items-start mb-4">
+            <h4 class="text-sm font-medium text-gray-900">Position __INDEX__</h4>
+            <button type="button" class="remove-item-btn text-red-600 hover:text-red-700">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+                </svg>
+            </button>
+        </div>
+        
+        <div class="grid grid-cols-1 md:grid-cols-12 gap-4">
+            <!-- Produktbeschreibung -->
+            <div class="md:col-span-6">
+                <label class="mediahuus-label">
+                    Produkt/Dienstleistung *
+                </label>
+                <input type="text" name="items[__INDEX__][description]" required
+                       class="mediahuus-input item-description"
+                       placeholder="z.B. iPhone 15 Pro 128GB, Displayreparatur">
+            </div>
+
+            <!-- Menge -->
+            <div class="md:col-span-2">
+                <label class="mediahuus-label">
+                    Menge *
+                </label>
+                <input type="number" name="items[__INDEX__][quantity]" min="1" value="1" required
+                       class="mediahuus-input item-quantity">
+            </div>
+
+            <!-- Einzelpreis -->
+            <div class="md:col-span-2">
+                <label class="mediahuus-label">
+                    Einzelpreis (CHF) *
+                </label>
+                <input type="number" name="items[__INDEX__][unit_price_chf]" step="0.01" min="0" required
+                       class="mediahuus-input item-unit-price"
+                       placeholder="0.00">
+            </div>
+
+            <!-- Zeilensumme -->
+            <div class="md:col-span-2">
+                <label class="mediahuus-label">
+                    Zeilensumme (CHF)
+                </label>
+                <div class="flex items-center h-10 px-3 py-2 bg-gray-100 border border-gray-300 rounded-md text-gray-700 font-medium item-line-total">
+                    CHF 0.00
+                </div>
+            </div>
+        </div>
+    </div>
+</template>
+{% endblock %}
+
+{% block scripts %}
+<script>
+let itemIndex = 0;
+
+function addItem() {
+    const template = document.getElementById('item-template');
+    const container = document.getElementById('items-container');
+    
+    // Clone template content
+    const clone = template.content.cloneNode(true);
+    
+    // Replace __INDEX__ placeholders
+    const html = clone.firstElementChild.outerHTML.replace(/__INDEX__/g, itemIndex);
+    
+    // Create wrapper div and set innerHTML
+    const wrapper = document.createElement('div');
+    wrapper.innerHTML = html;
+    const itemElement = wrapper.firstElementChild;
+    
+    // Add event listeners
+    const removeBtn = itemElement.querySelector('.remove-item-btn');
+    const quantityInput = itemElement.querySelector('.item-quantity');
+    const unitPriceInput = itemElement.querySelector('.item-unit-price');
+    
+    removeBtn.addEventListener('click', () => removeItem(itemElement));
+    quantityInput.addEventListener('input', calculateLineTotal);
+    unitPriceInput.addEventListener('input', calculateLineTotal);
+    
+    container.appendChild(itemElement);
+    itemIndex++;
+    
+    calculateTotal();
+}
+
+function removeItem(itemElement) {
+    itemElement.remove();
+    calculateTotal();
+}
+
+function calculateLineTotal(event) {
+    const itemRow = event.target.closest('.item-row');
+    const quantity = parseInt(itemRow.querySelector('.item-quantity').value) || 0;
+    const unitPrice = parseFloat(itemRow.querySelector('.item-unit-price').value) || 0;
+    const lineTotal = quantity * unitPrice;
+    
+    itemRow.querySelector('.item-line-total').textContent = 'CHF ' + lineTotal.toFixed(2);
+    
+    calculateTotal();
+}
+
+function calculateTotal() {
+    let total = 0;
+    document.querySelectorAll('.item-row').forEach(row => {
+        const quantity = parseInt(row.querySelector('.item-quantity').value) || 0;
+        const unitPrice = parseFloat(row.querySelector('.item-unit-price').value) || 0;
+        total += quantity * unitPrice;
+    });
+    
+    document.getElementById('total-amount').textContent = 'CHF ' + total.toFixed(2);
+}
+
+// Event listeners
+document.getElementById('add-item-btn').addEventListener('click', addItem);
+
+// Form submission debug
+document.getElementById('receipt-form').addEventListener('submit', function(e) {
+    const formData = new FormData(this);
+    console.log('Form data being submitted:');
+    for (let pair of formData.entries()) {
+        console.log(pair[0] + ': ' + pair[1]);
+    }
+    
+    // Check if at least one item exists
+    const itemRows = document.querySelectorAll('.item-row');
+    if (itemRows.length === 0) {
+        alert('Bitte fügen Sie mindestens eine Position hinzu.');
+        e.preventDefault();
+        return;
+    }
+    
+    // Check if all items have required data
+    let hasValidItems = false;
+    itemRows.forEach(row => {
+        const description = row.querySelector('.item-description').value;
+        const quantity = row.querySelector('.item-quantity').value;
+        const unitPrice = row.querySelector('.item-unit-price').value;
+        
+        if (description && quantity && unitPrice && parseFloat(unitPrice) > 0) {
+            hasValidItems = true;
+        }
+    });
+    
+    if (!hasValidItems) {
+        alert('Bitte füllen Sie alle Pflichtfelder aus.');
+        e.preventDefault();
+        return;
+    }
+});
+
+// Add initial item
+document.addEventListener('DOMContentLoaded', function() {
+    addItem();
+});
+</script>
+{% endblock %}

@@ -90,6 +90,7 @@ class DocumentRepository
             Document::TYPE_ESTIMATE => 'KO',
             Document::TYPE_PURCHASE => 'AK',
             Document::TYPE_INSURANCE => 'VG',
+            Document::TYPE_RECEIPT => 'QU',
             default => 'DOC'
         };
 
