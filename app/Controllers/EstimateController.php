@@ -10,6 +10,7 @@ use App\Repositories\DocumentRepository;
 use App\Repositories\EstimateRepository;
 use App\Repositories\BranchRepository;
 use App\Services\PdfService;
+use App\Services\DamageTypeService;
 use Psr\Http\Message\ResponseInterface as Response;
 use Psr\Http\Message\ServerRequestInterface as Request;
 use Psr\Log\LoggerInterface;
@@ -89,6 +90,8 @@ class EstimateController extends BaseController
             return $this->render($response, 'estimates/create.html.twig', [
                 'user' => $currentUser->toArray(),
                 'branches' => array_map(fn($branch) => $branch->toArray(), $branches),
+                'damageTypes' => DamageTypeService::getDamageTypes(),
+                'damageTemplates' => DamageTypeService::getDamageTemplates(),
             ]);
         } catch (\Exception $e) {
             $this->logger->error('Failed to load branches for estimate creation', ['error' => $e->getMessage()]);
@@ -116,6 +119,8 @@ class EstimateController extends BaseController
                 return $this->render($response, 'estimates/create.html.twig', [
                     'user' => $currentUser->toArray(),
                     'branches' => array_map(fn($branch) => $branch->toArray(), $branches),
+                    'damageTypes' => DamageTypeService::getDamageTypes(),
+                    'damageTemplates' => DamageTypeService::getDamageTemplates(),
                     'errors' => $errors,
                     'formData' => $data,
                 ]);
@@ -145,6 +150,7 @@ class EstimateController extends BaseController
             // Create estimate details
             $estimate = new Estimate(
                 documentId: $documentId,
+                damageType: $data['damage_type'],
                 deviceName: trim($data['device_name']),
                 serialNumber: trim($data['serial_number']),
                 issueText: trim($data['issue_text']),
@@ -280,6 +286,13 @@ class EstimateController extends BaseController
             $errors['customer_email'] = 'Ungültige E-Mail-Adresse';
         }
         
+        // Damage type
+        if (empty($data['damage_type'] ?? '')) {
+            $errors['damage_type'] = 'Schadenstyp ist erforderlich';
+        } elseif (!DamageTypeService::isValidDamageType($data['damage_type'])) {
+            $errors['damage_type'] = 'Ungültiger Schadenstyp';
+        }
+        
         // Device name
         if (empty(trim($data['device_name'] ?? ''))) {
             $errors['device_name'] = 'Gerätename ist erforderlich';
@@ -290,10 +303,8 @@ class EstimateController extends BaseController
             $errors['serial_number'] = 'Seriennummer ist erforderlich';
         }
         
-        // Issue text
-        if (empty(trim($data['issue_text'] ?? ''))) {
-            $errors['issue_text'] = 'Schadens-/Fehlerbeschreibung ist erforderlich';
-        }
+        // Issue text - no longer required since damage type provides the main description
+        // Custom text is optional now
         
         // Price
         $price = $data['price_chf'] ?? '';

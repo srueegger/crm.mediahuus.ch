@@ -34,9 +34,9 @@ class PdfService
             $pdf->setPrintHeader(false);
             $pdf->setPrintFooter(false);
 
-            // Set margins - reduce bottom margin to prevent aggressive page breaks
+            // Set margins with proper bottom margin for page breaks
             $pdf->SetMargins(20, 15, 20);
-            $pdf->SetAutoPageBreak(false); // Disable auto page break initially
+            $pdf->SetAutoPageBreak(true, 25); // Enable auto page break with 25mm bottom margin
 
             // Add a page
             $pdf->AddPage();
@@ -228,14 +228,31 @@ class PdfService
         
         $currentY += 8;
 
+        // Get combined issue text (damage template + custom text)
+        $combinedIssueText = DamageTypeService::getCombinedIssueText(
+            $estimate->getDamageType(), 
+            $estimate->getIssueText()
+        );
+        
         // Issue description in a box
         $pdf->SetFillColor(248, 249, 250);
         $pdf->SetDrawColor(229, 231, 235);
         $pdf->SetFont('helvetica', '', 10);
         
-        // Calculate height needed for text
         // Convert HTML to text with basic formatting preservation
-        $cleanIssueText = $this->convertHtmlToText($estimate->getIssueText());
+        $cleanIssueText = $this->convertHtmlToText($combinedIssueText);
+        
+        // Check if we need a new page before adding the text box
+        $pageHeight = $pdf->getPageHeight();
+        $bottomMargin = 25; // Same as auto page break margin
+        $estimatedTextHeight = $pdf->getStringHeight(165, $cleanIssueText) + 10;
+        
+        if (($currentY + $estimatedTextHeight) > ($pageHeight - $bottomMargin)) {
+            $pdf->AddPage();
+            $currentY = 15; // Reset to top margin
+        }
+        
+        // Calculate actual height needed for text
         $textHeight = $pdf->getStringHeight(165, $cleanIssueText);
         $boxHeight = max(20, $textHeight + 10);
         
@@ -246,12 +263,23 @@ class PdfService
         $pdf->SetXY(25, $currentY + 5);
         $pdf->MultiCell(165, 5, $cleanIssueText, 0, 'L', false);
 
-        $currentY += $boxHeight + 15;
+        $currentY = $pdf->GetY() + 15;
 
         // Standard closing text
         $pdf->SetFont('helvetica', '', 10);
-        $pdf->SetXY(20, $currentY);
         $closingText = "Die Reparatur wird fachgerecht von unseren qualifizierten Technikern durchgeführt. Alle verwendeten Ersatzteile entsprechen hohen Qualitätsstandards und werden mit einer Garantie von 6 Monaten abgedeckt.\n\nSollten während der Reparatur zusätzliche Defekte festgestellt werden, werden wir Sie umgehend kontaktieren, bevor weitere Arbeiten durchgeführt werden.";
+        
+        // Check if closing text fits on current page
+        $closingTextHeight = $pdf->getStringHeight(170, $closingText);
+        $pageHeight = $pdf->getPageHeight();
+        $bottomMargin = 25;
+        
+        if (($currentY + $closingTextHeight) > ($pageHeight - $bottomMargin)) {
+            $pdf->AddPage();
+            $currentY = 15; // Reset to top margin
+        }
+        
+        $pdf->SetXY(20, $currentY);
         $pdf->MultiCell(170, 5, $closingText, 0, 'L', false);
         
         return $pdf->GetY() + 15;
@@ -259,10 +287,20 @@ class PdfService
 
     private function addTotalPrice(TCPDF $pdf, Estimate $estimate, float $currentY): float
     {
+        // Check if price box fits on current page
+        $priceBoxHeight = 15;
+        $pageHeight = $pdf->getPageHeight();
+        $bottomMargin = 25;
+        
+        if (($currentY + $priceBoxHeight + 10) > ($pageHeight - $bottomMargin)) {
+            $pdf->AddPage();
+            $currentY = 15; // Reset to top margin
+        }
+        
         // Price box - Green color #2d8f3e (45, 143, 62)
         $pdf->SetFillColor(45, 143, 62);
         $pdf->SetTextColor(255, 255, 255);
-        $pdf->Rect(20, $currentY, 170, 15, 'F');
+        $pdf->Rect(20, $currentY, 170, $priceBoxHeight, 'F');
         
         $pdf->SetFont('helvetica', 'B', 14);
         $pdf->SetXY(25, $currentY + 4);

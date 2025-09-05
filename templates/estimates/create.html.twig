@@ -131,18 +131,46 @@
                 <div class="pb-8">
                     <h3 class="text-lg font-medium text-gray-900 mb-4">Reparaturdetails</h3>
                     <div class="space-y-6">
-                        <!-- Schadensbeschreibung -->
+                        <!-- Schadenstyp -->
+                        <div>
+                            <label for="damage_type" class="mediahuus-label">
+                                Art des Schadens *
+                            </label>
+                            <select name="damage_type" id="damage_type" required
+                                    class="mediahuus-select {{ errors.damage_type ? 'error' : '' }}">
+                                <option value="">-- Schadenstyp auswählen --</option>
+                                {% for value, label in damageTypes %}
+                                    <option value="{{ value }}" 
+                                            {% if formData.damage_type|default('') == value %}selected{% endif %}>
+                                        {{ label }}
+                                    </option>
+                                {% endfor %}
+                            </select>
+                            {% if errors.damage_type %}
+                                <p class="mt-1 text-sm text-red-600">{{ errors.damage_type }}</p>
+                            {% endif %}
+                            <p class="mt-1 text-sm text-gray-500">Wählen Sie den Hauptschadenstyp für automatische Textbausteine</p>
+                            
+                            <!-- Textvorschau -->
+                            <div id="damage_preview" class="mt-4 p-4 bg-blue-50 border border-blue-200 rounded-lg" style="display: none;">
+                                <h4 class="text-sm font-medium text-blue-900 mb-2">Textbaustein-Vorschau:</h4>
+                                <p id="damage_preview_text" class="text-sm text-blue-800 leading-relaxed"></p>
+                            </div>
+                        </div>
+
+                        <!-- Zusätzliche Schadensbeschreibung -->
                         <div>
                             <label for="issue_text" class="mediahuus-label">
-                                Schaden/Fehlerbeschreibung *
+                                Zusätzliche Bemerkungen
                             </label>
                             <div class="mediahuus-richtext">
                                 <div id="issue_text_editor" style="height: 200px;"></div>
-                                <textarea name="issue_text" id="issue_text" required style="display: none;">{{ formData.issue_text|default('') }}</textarea>
+                                <textarea name="issue_text" id="issue_text" style="display: none;">{{ formData.issue_text|default('') }}</textarea>
                             </div>
                             {% if errors.issue_text %}
                                 <p class="mt-1 text-sm text-red-600">{{ errors.issue_text }}</p>
                             {% endif %}
+                            <p class="mt-1 text-sm text-gray-500">Optional: Ergänzende Informationen zum Schaden oder spezielle Kundenanforderungen</p>
                         </div>
 
                         <!-- Preis -->
@@ -187,10 +215,13 @@
 
 {% block scripts %}
 <script>
+// Damage type templates for preview
+const damageTemplates = {{ damageTemplates|json_encode|raw }};
+
 // Quill Rich Text Editor
 var quill = new Quill('#issue_text_editor', {
     theme: 'snow',
-    placeholder: 'Beschreiben Sie den Schaden oder das Problem detailliert...',
+    placeholder: 'Optional: Ergänzende Informationen zum Schaden oder spezielle Kundenanforderungen...',
     modules: {
         toolbar: [
             ['bold', 'italic', 'underline'],
@@ -215,6 +246,30 @@ quill.on('text-change', function() {
 // Ensure content is synced before form submission
 document.querySelector('form').addEventListener('submit', function() {
     hiddenTextarea.value = quill.root.innerHTML;
+});
+
+// Damage type preview functionality
+const damageTypeSelect = document.getElementById('damage_type');
+const damagePreview = document.getElementById('damage_preview');
+const damagePreviewText = document.getElementById('damage_preview_text');
+
+function updateDamagePreview() {
+    const selectedType = damageTypeSelect.value;
+    
+    if (selectedType && damageTemplates[selectedType]) {
+        damagePreviewText.textContent = damageTemplates[selectedType];
+        damagePreview.style.display = 'block';
+    } else {
+        damagePreview.style.display = 'none';
+    }
+}
+
+// Update preview when damage type changes
+damageTypeSelect.addEventListener('change', updateDamagePreview);
+
+// Update preview on page load if a value is already selected
+document.addEventListener('DOMContentLoaded', function() {
+    updateDamagePreview();
 });
 </script>
 {% endblock %}

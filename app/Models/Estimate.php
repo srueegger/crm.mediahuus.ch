@@ -7,6 +7,7 @@ class Estimate
 {
     private ?int $id;
     private int $documentId;
+    private string $damageType;
     private string $deviceName;
     private string $serialNumber;
     private string $issueText;
@@ -14,6 +15,7 @@ class Estimate
 
     public function __construct(
         int $documentId,
+        string $damageType,
         string $deviceName,
         string $serialNumber,
         string $issueText,
@@ -22,6 +24,7 @@ class Estimate
     ) {
         $this->id = $id;
         $this->documentId = $documentId;
+        $this->damageType = $damageType;
         $this->deviceName = $deviceName;
         $this->serialNumber = $serialNumber;
         $this->issueText = $issueText;
@@ -36,6 +39,11 @@ class Estimate
     public function getDocumentId(): int
     {
         return $this->documentId;
+    }
+
+    public function getDamageType(): string
+    {
+        return $this->damageType;
     }
 
     public function getDeviceName(): string
@@ -68,6 +76,7 @@ class Estimate
         return [
             'id' => $this->id,
             'document_id' => $this->documentId,
+            'damage_type' => $this->damageType,
             'device_name' => $this->deviceName,
             'serial_number' => $this->serialNumber,
             'issue_text' => $this->issueText,

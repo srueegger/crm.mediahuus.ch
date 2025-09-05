@@ -19,6 +19,7 @@ class EstimateRepository
     {
         $this->connection->insert('estimates', [
             'document_id' => $estimate->getDocumentId(),
+            'damage_type' => $estimate->getDamageType(),
             'device_name' => $estimate->getDeviceName(),
             'serial_number' => $estimate->getSerialNumber(),
             'issue_text' => $estimate->getIssueText(),
@@ -63,6 +64,7 @@ class EstimateRepository
         }
 
         $affectedRows = $this->connection->update('estimates', [
+            'damage_type' => $estimate->getDamageType(),
             'device_name' => $estimate->getDeviceName(),
             'serial_number' => $estimate->getSerialNumber(),
             'issue_text' => $estimate->getIssueText(),
@@ -84,6 +86,7 @@ class EstimateRepository
     {
         return new Estimate(
             documentId: (int) $row['document_id'],
+            damageType: $row['damage_type'] ?? 'other',
             deviceName: $row['device_name'],
             serialNumber: $row['serial_number'],
             issueText: $row['issue_text'],
