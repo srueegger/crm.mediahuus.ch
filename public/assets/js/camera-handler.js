@@ -116,43 +116,37 @@ class CameraHandler {
         try {
             // Show loading state
             if (scanBtn) scanBtn.disabled = true;
-            if (scanText) scanText.textContent = 'Erkenne Text...';
+            if (scanText) scanText.textContent = 'Scanne Barcode...';
 
-            // Use Tesseract.js for OCR
-            const { data: { text } } = await Tesseract.recognize(
-                imageDataUrl,
-                'eng',
-                {
-                    logger: m => {
-                        if (m.status === 'recognizing text') {
-                            const progress = Math.round(m.progress * 100);
-                            if (scanText) scanText.textContent = `Verarbeite... ${progress}%`;
-                        }
-                    }
+            // Use QuaggaJS for Barcode Scanning
+            const result = await this.scanBarcodeFromImage(imageDataUrl);
+
+            if (result) {
+                // Extract 15-digit IMEI
+                const numbers = result.replace(/\D/g, '');
+                const imeiMatch = numbers.match(/\d{15}/);
+
+                if (imeiMatch) {
+                    imeiInput.value = imeiMatch[0];
+
+                    // Visual feedback
+                    imeiInput.classList.add('border-emerald-500', 'border-2');
+                    setTimeout(() => {
+                        imeiInput.classList.remove('border-emerald-500', 'border-2');
+                    }, 2000);
+
+                    alert(`IMEI erkannt: ${imeiMatch[0]}\n\nBitte überprüfen Sie die Nummer.`);
+                } else if (numbers.length >= 14) {
+                    // Accept 14-17 digit codes
+                    imeiInput.value = numbers.substring(0, 15);
+                    alert(`Code erkannt: ${numbers.substring(0, 15)}\n\nBitte überprüfen Sie die Nummer.`);
+                } else {
+                    throw new Error('Keine gültige IMEI gefunden');
                 }
-            );
-
-            // Extract numbers from recognized text (IMEI is typically 15 digits)
-            const numbers = text.replace(/\D/g, '');
-
-            // Find 15-digit sequence (IMEI format)
-            const imeiMatch = numbers.match(/\d{15}/);
-
-            if (imeiMatch) {
-                imeiInput.value = imeiMatch[0];
-
-                // Visual feedback
-                imeiInput.classList.add('border-emerald-500', 'border-2');
-                setTimeout(() => {
-                    imeiInput.classList.remove('border-emerald-500', 'border-2');
-                }, 2000);
-
-                alert(`IMEI erkannt: ${imeiMatch[0]}\n\nBitte überprüfen Sie die Nummer.`);
             } else {
-                // If no IMEI found, allow manual input
+                // If no barcode found, allow manual input
                 const manualInput = prompt(
-                    'Konnte keine IMEI erkennen.\n\nBitte geben Sie die IMEI manuell ein:\n' +
-                    '(Erkannter Text: ' + text.substring(0, 50) + '...)'
+                    'Konnte keinen Barcode erkennen.\n\nBitte geben Sie die IMEI manuell ein:'
                 );
 
                 if (manualInput && manualInput.trim()) {
@@ -161,8 +155,8 @@ class CameraHandler {
             }
 
         } catch (error) {
-            console.error('OCR Error:', error);
-            alert('Text-Erkennung fehlgeschlagen.\n\nBitte geben Sie die IMEI manuell ein.');
+            console.error('Barcode Scan Error:', error);
+            alert('Barcode-Erkennung fehlgeschlagen.\n\nBitte geben Sie die IMEI manuell ein.');
         } finally {
             // Reset button state
             if (scanBtn) scanBtn.disabled = false;
@@ -172,6 +166,35 @@ class CameraHandler {
             imeiInput.scrollIntoView({ behavior: 'smooth', block: 'center' });
             setTimeout(() => imeiInput.focus(), 500);
         }
+    }
+
+    scanBarcodeFromImage(imageDataUrl) {
+        return new Promise((resolve, reject) => {
+            Quagga.decodeSingle({
+                src: imageDataUrl,
+                numOfWorkers: 0,
+                locate: true,
+                decoder: {
+                    readers: [
+                        'code_128_reader',
+                        'ean_reader',
+                        'ean_8_reader',
+                        'code_39_reader',
+                        'code_39_vin_reader',
+                        'codabar_reader',
+                        'upc_reader',
+                        'upc_e_reader',
+                        'i2of5_reader'
+                    ]
+                }
+            }, (result) => {
+                if (result && result.codeResult) {
+                    resolve(result.codeResult.code);
+                } else {
+                    resolve(null);
+                }
+            });
+        });
     }
 
     handleIdDocumentCapture(imageDataUrl) {
