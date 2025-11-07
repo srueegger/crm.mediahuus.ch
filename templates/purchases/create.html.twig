@@ -34,21 +34,38 @@
 
     .capture-button {
         position: absolute;
-        bottom: 1rem;
+        bottom: 2rem;
         left: 50%;
         transform: translateX(-50%);
-        width: 4rem;
-        height: 4rem;
+        width: 5rem;
+        height: 5rem;
         border-radius: 50%;
         background: white;
-        border: 4px solid #10b981;
-        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
+        border: 5px solid #10b981;
+        box-shadow: 0 8px 16px rgba(0, 0, 0, 0.5);
         cursor: pointer;
         transition: all 0.2s;
+        z-index: 100;
+    }
+
+    .capture-button::before {
+        content: '';
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        width: 3.5rem;
+        height: 3.5rem;
+        background: #10b981;
+        border-radius: 50%;
     }
 
     .capture-button:active {
         transform: translateX(-50%) scale(0.9);
+    }
+
+    .capture-button:hover::before {
+        background: #059669;
     }
 
     .retake-button {
@@ -270,15 +287,18 @@
                         <input type="text" name="imei" id="imei"
                                value="{{ formData.imei|default('') }}"
                                class="mediahuus-input {{ errors.imei ? 'error' : '' }}"
-                               placeholder="Mit *#06# am Gerät auslesen">
+                               placeholder="Mit *#06# am Gerät auslesen oder hier eingeben">
                         <button type="button" id="scanImeiBtn"
                                 class="w-full sm:w-auto px-4 py-2 bg-emerald-50 text-emerald-700 rounded-lg border border-emerald-200 hover:bg-emerald-100 transition-colors flex items-center justify-center gap-2">
                             <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"/>
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z"/>
                             </svg>
-                            IMEI mit Kamera scannen
+                            <span id="scanImeiText">IMEI mit Kamera scannen</span>
                         </button>
+                        <p class="text-xs text-gray-500">
+                            💡 Tipp: Geben Sie am zu verkaufenden Gerät *#06# ein, fotografieren Sie die IMEI mit der Kamera, oder geben Sie diese manuell ein.
+                        </p>
                     </div>
                     {% if errors.imei %}
                         <p class="mt-1 text-sm text-red-600">{{ errors.imei }}</p>
@@ -391,7 +411,7 @@
 <!-- Camera Modal -->
 <div id="cameraModal" class="fixed inset-0 bg-black bg-opacity-90 z-50 hidden">
     <div class="h-full flex flex-col">
-        <div class="flex justify-between items-center p-4 text-white">
+        <div class="flex justify-between items-center p-4 text-white bg-black bg-opacity-50">
             <h3 class="text-lg font-medium" id="cameraModalTitle">Foto aufnehmen</h3>
             <button type="button" id="closeCameraBtn" class="p-2 hover:bg-white hover:bg-opacity-20 rounded-lg">
                 <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -400,12 +420,19 @@
             </button>
         </div>
         <div class="flex-1 relative">
-            <video id="cameraVideo" class="w-full h-full object-contain" autoplay playsinline></video>
+            <video id="cameraVideo" class="w-full h-full object-contain bg-black" autoplay playsinline></video>
             <canvas id="cameraCanvas" class="hidden"></canvas>
-            <button type="button" id="capturePhotoBtn" class="capture-button"></button>
+            <button type="button" id="capturePhotoBtn" class="capture-button" title="Foto aufnehmen"></button>
+            <div class="absolute bottom-24 left-0 right-0 text-center">
+                <p class="text-white text-sm bg-black bg-opacity-50 inline-block px-4 py-2 rounded-lg">
+                    Tippen Sie auf den grünen Button, um das Foto aufzunehmen
+                </p>
+            </div>
         </div>
     </div>
 </div>
 
+<!-- Tesseract.js for OCR -->
+<script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
 <script src="/assets/js/camera-handler.js"></script>
 {% endblock %}

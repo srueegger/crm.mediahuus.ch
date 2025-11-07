@@ -38,7 +38,7 @@ class CameraHandler {
         const scanImeiBtn = document.getElementById('scanImeiBtn');
         if (scanImeiBtn) {
             scanImeiBtn.addEventListener('click', () => {
-                this.openCamera('imei', 'IMEI scannen');
+                this.openCamera('imei', 'IMEI fotografieren');
             });
         }
 
@@ -109,24 +109,68 @@ class CameraHandler {
     }
 
     async handleImeiScan(imageDataUrl) {
-        // For IMEI scanning, we would ideally use OCR
-        // Since we're PHP-only backend, we'll provide a manual input flow
         const imeiInput = document.getElementById('imei');
+        const scanBtn = document.getElementById('scanImeiBtn');
+        const scanText = document.getElementById('scanImeiText');
 
-        // Show a prompt with the captured image for manual entry
-        const imei = prompt(
-            'Bitte geben Sie die IMEI/Seriennummer ein, die Sie auf dem Bildschirm sehen:\n' +
-            '(Sie finden diese mit *#06# auf dem Gerät)'
-        );
+        try {
+            // Show loading state
+            if (scanBtn) scanBtn.disabled = true;
+            if (scanText) scanText.textContent = 'Erkenne Text...';
 
-        if (imei && imei.trim()) {
-            imeiInput.value = imei.trim();
+            // Use Tesseract.js for OCR
+            const { data: { text } } = await Tesseract.recognize(
+                imageDataUrl,
+                'eng',
+                {
+                    logger: m => {
+                        if (m.status === 'recognizing text') {
+                            const progress = Math.round(m.progress * 100);
+                            if (scanText) scanText.textContent = `Verarbeite... ${progress}%`;
+                        }
+                    }
+                }
+            );
 
-            // Visual feedback
-            imeiInput.classList.add('border-emerald-500', 'border-2');
-            setTimeout(() => {
-                imeiInput.classList.remove('border-emerald-500', 'border-2');
-            }, 2000);
+            // Extract numbers from recognized text (IMEI is typically 15 digits)
+            const numbers = text.replace(/\D/g, '');
+
+            // Find 15-digit sequence (IMEI format)
+            const imeiMatch = numbers.match(/\d{15}/);
+
+            if (imeiMatch) {
+                imeiInput.value = imeiMatch[0];
+
+                // Visual feedback
+                imeiInput.classList.add('border-emerald-500', 'border-2');
+                setTimeout(() => {
+                    imeiInput.classList.remove('border-emerald-500', 'border-2');
+                }, 2000);
+
+                alert(`IMEI erkannt: ${imeiMatch[0]}\n\nBitte überprüfen Sie die Nummer.`);
+            } else {
+                // If no IMEI found, allow manual input
+                const manualInput = prompt(
+                    'Konnte keine IMEI erkennen.\n\nBitte geben Sie die IMEI manuell ein:\n' +
+                    '(Erkannter Text: ' + text.substring(0, 50) + '...)'
+                );
+
+                if (manualInput && manualInput.trim()) {
+                    imeiInput.value = manualInput.trim();
+                }
+            }
+
+        } catch (error) {
+            console.error('OCR Error:', error);
+            alert('Text-Erkennung fehlgeschlagen.\n\nBitte geben Sie die IMEI manuell ein.');
+        } finally {
+            // Reset button state
+            if (scanBtn) scanBtn.disabled = false;
+            if (scanText) scanText.textContent = 'IMEI mit Kamera scannen';
+
+            // Scroll to and focus input
+            imeiInput.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            setTimeout(() => imeiInput.focus(), 500);
         }
     }
 
