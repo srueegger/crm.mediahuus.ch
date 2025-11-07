@@ -1,0 +1,136 @@
+{% extends "base.html.twig" %}
+
+{% block title %}Ankäufe - {{ parent() }}{% endblock %}
+
+{% block content %}
+<div class="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
+    <div class="px-4 py-6 sm:px-0">
+        <!-- Header -->
+        <div class="mb-8 flex justify-between items-center">
+            <div>
+                <h2 class="text-2xl font-bold text-gray-900 mb-2">Ankäufe</h2>
+                <p class="text-gray-600">Übersicht aller Ankaufsbelege</p>
+            </div>
+            <a href="{{ url_for('purchases.create') }}"
+               class="px-6 py-3 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 transition-colors inline-flex items-center gap-2">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
+                </svg>
+                Neuer Ankauf
+            </a>
+        </div>
+
+        <!-- Error Message -->
+        {% if error %}
+            <div class="mb-6 bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded">
+                {{ error }}
+            </div>
+        {% endif %}
+
+        <!-- Purchases Table -->
+        {% if purchases is empty %}
+            <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-12 text-center">
+                <svg class="mx-auto h-12 w-12 text-gray-400 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 18h.01M8 21h8a2 2 0 002-2V5a2 2 0 00-2-2H8a2 2 0 00-2 2v14a2 2 0 002 2z"/>
+                </svg>
+                <h3 class="text-lg font-medium text-gray-900 mb-2">Keine Ankäufe vorhanden</h3>
+                <p class="text-gray-500 mb-6">Erstellen Sie Ihren ersten Ankaufsbeleg</p>
+                <a href="{{ url_for('purchases.create') }}"
+                   class="inline-flex items-center px-4 py-2 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 transition-colors">
+                    <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
+                    </svg>
+                    Neuer Ankauf
+                </a>
+            </div>
+        {% else %}
+            <div class="bg-white shadow-sm rounded-lg border border-gray-200 overflow-hidden">
+                <div class="overflow-x-auto">
+                    <table class="min-w-full divide-y divide-gray-200">
+                        <thead class="bg-gray-50">
+                            <tr>
+                                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                    Beleg-Nr.
+                                </th>
+                                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                    Datum
+                                </th>
+                                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                    Verkäufer
+                                </th>
+                                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                    Gerät
+                                </th>
+                                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                    Preis
+                                </th>
+                                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                    Filiale
+                                </th>
+                                <th scope="col" class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                    Aktionen
+                                </th>
+                            </tr>
+                        </thead>
+                        <tbody class="bg-white divide-y divide-gray-200">
+                            {% for item in purchases %}
+                                <tr class="hover:bg-gray-50 transition-colors">
+                                    <td class="px-6 py-4 whitespace-nowrap">
+                                        <div class="text-sm font-medium text-gray-900">
+                                            {{ item.document.doc_number }}
+                                        </div>
+                                    </td>
+                                    <td class="px-6 py-4 whitespace-nowrap">
+                                        <div class="text-sm text-gray-900">
+                                            {{ item.document.created_at|date('d.m.Y') }}
+                                        </div>
+                                        <div class="text-xs text-gray-500">
+                                            {{ item.document.created_at|date('H:i') }}
+                                        </div>
+                                    </td>
+                                    <td class="px-6 py-4">
+                                        <div class="text-sm font-medium text-gray-900">
+                                            {{ item.document.customer_name }}
+                                        </div>
+                                        <div class="text-xs text-gray-500">
+                                            {{ item.document.customer_phone }}
+                                        </div>
+                                    </td>
+                                    <td class="px-6 py-4">
+                                        <div class="text-sm text-gray-900">
+                                            {{ item.purchase.device_full_name }}
+                                        </div>
+                                        <div class="text-xs text-gray-500">
+                                            {{ item.purchase.device_type_name }}
+                                        </div>
+                                    </td>
+                                    <td class="px-6 py-4 whitespace-nowrap">
+                                        <div class="text-sm font-semibold text-emerald-600">
+                                            {{ item.purchase.formatted_price }}
+                                        </div>
+                                    </td>
+                                    <td class="px-6 py-4 whitespace-nowrap">
+                                        <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-blue-100 text-blue-800">
+                                            {{ item.branch.name }}
+                                        </span>
+                                    </td>
+                                    <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                                        <a href="{{ url_for('purchases.show', {id: item.document.id}) }}"
+                                           class="text-emerald-600 hover:text-emerald-900 mr-4">
+                                            Anzeigen
+                                        </a>
+                                        <a href="{{ url_for('purchases.pdf', {id: item.document.id}) }}"
+                                           class="text-blue-600 hover:text-blue-900">
+                                            PDF
+                                        </a>
+                                    </td>
+                                </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

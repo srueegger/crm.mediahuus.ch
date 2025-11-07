@@ -14,11 +14,14 @@ use App\Repositories\EstimateRepository;
 use App\Repositories\BranchRepository;
 use App\Repositories\ReceiptRepository;
 use App\Repositories\ReceiptItemRepository;
+use App\Repositories\PurchaseRepository;
 use App\Services\AuthService;
 use App\Services\PdfService;
+use App\Services\FileUploadService;
 use App\Controllers\UserController;
 use App\Controllers\EstimateController;
 use App\Controllers\ReceiptController;
+use App\Controllers\PurchaseController;
 use App\Controllers\DashboardController;
 
 return [
@@ -46,7 +49,10 @@ return [
                 'receipts.create' => '/receipts/create',
                 'receipts.show' => '/receipts/' . ($params['id'] ?? '{id}'),
                 'receipts.pdf' => '/receipts/' . ($params['id'] ?? '{id}') . '/pdf',
-                'purchase.new' => '/purchase/new',
+                'purchases.index' => '/purchases',
+                'purchases.create' => '/purchases/create',
+                'purchases.show' => '/purchases/' . ($params['id'] ?? '{id}'),
+                'purchases.pdf' => '/purchases/' . ($params['id'] ?? '{id}') . '/pdf',
                 'insurance.new' => '/insurance/new',
                 'users.index' => '/users',
                 'users.create' => '/users/create',
@@ -137,6 +143,22 @@ return [
     // Receipt Controller
     ReceiptController::class => function (Environment $twig, DocumentRepository $documentRepository, ReceiptRepository $receiptRepository, ReceiptItemRepository $receiptItemRepository, BranchRepository $branchRepository, PdfService $pdfService, LoggerInterface $logger) {
         return new ReceiptController($twig, $documentRepository, $receiptRepository, $receiptItemRepository, $branchRepository, $pdfService, $logger);
+    },
+
+    // Purchase Repository
+    PurchaseRepository::class => function (Connection $connection) {
+        return new PurchaseRepository($connection);
+    },
+
+    // File Upload Service
+    FileUploadService::class => function (LoggerInterface $logger) {
+        $uploadDir = __DIR__ . '/../public/uploads/id_documents';
+        return new FileUploadService($uploadDir, $logger);
+    },
+
+    // Purchase Controller
+    PurchaseController::class => function (Environment $twig, DocumentRepository $documentRepository, PurchaseRepository $purchaseRepository, BranchRepository $branchRepository, PdfService $pdfService, FileUploadService $fileUploadService, LoggerInterface $logger) {
+        return new PurchaseController($twig, $documentRepository, $purchaseRepository, $branchRepository, $pdfService, $fileUploadService, $logger);
     },
 
     // Dashboard Controller
