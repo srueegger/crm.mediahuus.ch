@@ -98,8 +98,19 @@ class CameraHandler {
         const scanText = document.getElementById('scanImeiText');
         const barcodeScanArea = document.getElementById('barcodeScanArea');
 
+        console.log('=== Starting IMEI Barcode Scanner ===');
+        console.log('Quagga available:', typeof Quagga !== 'undefined');
+
         if (scanText) scanText.textContent = 'Scanne Barcode...';
         if (barcodeScanArea) barcodeScanArea.style.display = 'block';
+
+        // Check if Quagga is loaded
+        if (typeof Quagga === 'undefined') {
+            console.error('QuaggaJS not loaded!');
+            alert('Barcode-Scanner Bibliothek nicht geladen.\n\nBitte laden Sie die Seite neu.');
+            this.closeCamera();
+            return;
+        }
 
         try {
             // Start camera stream first
@@ -111,17 +122,21 @@ class CameraHandler {
                 }
             };
 
+            console.log('Requesting camera access...');
             this.stream = await navigator.mediaDevices.getUserMedia(constraints);
             this.video.srcObject = this.stream;
 
             // Wait for video to be ready
+            console.log('Waiting for video to be ready...');
             await new Promise((resolve) => {
                 this.video.onloadedmetadata = () => {
+                    console.log('Video ready, dimensions:', this.video.videoWidth, 'x', this.video.videoHeight);
                     this.video.play();
                     resolve();
                 };
             });
 
+            console.log('Initializing QuaggaJS...');
             // Initialize QuaggaJS
             await Quagga.init({
                 inputStream: {
