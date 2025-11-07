@@ -213,10 +213,25 @@ class CameraHandler {
                 }
             });
 
-            // Debug: Log processing events
+            // Visual feedback during scanning
+            let frameCount = 0;
             Quagga.onProcessed((result) => {
-                if (result && result.boxes) {
-                    console.log('Processing frame, boxes found:', result.boxes.length);
+                frameCount++;
+                const scanStatus = document.getElementById('scanStatus');
+
+                if (result) {
+                    if (result.boxes && result.boxes.length > 0) {
+                        console.log('Processing frame, boxes found:', result.boxes.length);
+                        if (scanStatus) {
+                            scanStatus.innerHTML = '<p style="color: #fbbf24; font-size: 0.875rem; background: rgba(0,0,0,0.8); padding: 0.5rem 1rem; border-radius: 0.5rem; display: inline-block; font-weight: 500;">⚡ Barcode erkannt, analysiere...</p>';
+                        }
+                    } else if (frameCount % 10 === 0) {
+                        // Update status every 10 frames
+                        if (scanStatus) {
+                            const dots = '.'.repeat((frameCount / 10) % 4);
+                            scanStatus.innerHTML = `<p style="color: #10b981; font-size: 0.875rem; background: rgba(0,0,0,0.8); padding: 0.5rem 1rem; border-radius: 0.5rem; display: inline-block; font-weight: 500; animation: pulse 1.5s infinite;">🔍 Suche Barcode${dots}</p>`;
+                        }
+                    }
                 }
             });
 
