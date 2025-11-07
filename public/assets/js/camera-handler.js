@@ -66,10 +66,18 @@ class CameraHandler {
         this.modalTitle.textContent = title;
 
         try {
+            // For IMEI scanning, use live barcode scanner instead of photo capture
+            if (target === 'imei') {
+                this.modal.classList.remove('hidden');
+                this.captureBtn.style.display = 'none'; // Hide capture button for barcode mode
+                await this.startLiveBarcodeScanner();
+                return;
+            }
+
             // Request camera with optimal settings for document scanning
             const constraints = {
                 video: {
-                    facingMode: target === 'imei' ? 'environment' : 'environment', // Use back camera
+                    facingMode: 'environment', // Use back camera
                     width: { ideal: 1920 },
                     height: { ideal: 1080 }
                 }
@@ -77,10 +85,98 @@ class CameraHandler {
 
             this.stream = await navigator.mediaDevices.getUserMedia(constraints);
             this.video.srcObject = this.stream;
+            this.captureBtn.style.display = 'block'; // Show capture button for photo mode
             this.modal.classList.remove('hidden');
         } catch (error) {
             console.error('Camera access error:', error);
             alert('Kamera-Zugriff fehlgeschlagen. Bitte überprüfen Sie die Berechtigungen.');
+        }
+    }
+
+    async startLiveBarcodeScanner() {
+        const imeiInput = document.getElementById('imei');
+        const scanText = document.getElementById('scanImeiText');
+        const barcodeScanArea = document.getElementById('barcodeScanArea');
+
+        if (scanText) scanText.textContent = 'Scanne Barcode...';
+        if (barcodeScanArea) barcodeScanArea.style.display = 'block';
+
+        try {
+            await Quagga.init({
+                inputStream: {
+                    type: 'LiveStream',
+                    target: this.video,
+                    constraints: {
+                        facingMode: 'environment',
+                        width: { ideal: 1920 },
+                        height: { ideal: 1080 }
+                    },
+                    area: { // Define scanning area
+                        top: '30%',
+                        right: '10%',
+                        left: '10%',
+                        bottom: '30%'
+                    }
+                },
+                decoder: {
+                    readers: [
+                        'code_128_reader',
+                        'ean_reader',
+                        'ean_8_reader',
+                        'code_39_reader',
+                        'code_39_vin_reader',
+                        'codabar_reader',
+                        'upc_reader',
+                        'upc_e_reader',
+                        'i2of5_reader'
+                    ],
+                    multiple: false
+                },
+                locate: true,
+                locator: {
+                    patchSize: 'medium',
+                    halfSample: true
+                }
+            });
+
+            Quagga.start();
+
+            // Listen for barcode detection
+            Quagga.onDetected((result) => {
+                if (result && result.codeResult && result.codeResult.code) {
+                    const code = result.codeResult.code;
+                    const numbers = code.replace(/\D/g, '');
+
+                    // Check if it's a valid IMEI (15 digits) or similar
+                    if (numbers.length >= 14) {
+                        const imei = numbers.substring(0, 15);
+                        imeiInput.value = imei;
+
+                        // Visual feedback
+                        imeiInput.classList.add('border-emerald-500', 'border-2');
+                        setTimeout(() => {
+                            imeiInput.classList.remove('border-emerald-500', 'border-2');
+                        }, 2000);
+
+                        // Stop scanning and close
+                        this.closeCamera();
+
+                        // Show success message
+                        alert(`IMEI erkannt: ${imei}\n\nBitte überprüfen Sie die Nummer.`);
+
+                        // Scroll to input
+                        imeiInput.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                        setTimeout(() => imeiInput.focus(), 500);
+                    }
+                }
+            });
+
+        } catch (error) {
+            console.error('Barcode scanner error:', error);
+            alert('Barcode-Scanner konnte nicht gestartet werden.\n\nBitte geben Sie die IMEI manuell ein.');
+            this.closeCamera();
+
+            if (scanText) scanText.textContent = 'IMEI-Barcode scannen';
         }
     }
 
@@ -98,104 +194,12 @@ class CameraHandler {
         // Convert to base64
         const imageDataUrl = this.canvas.toDataURL('image/jpeg', 0.85);
 
-        // Handle based on target
-        if (this.currentTarget === 'imei') {
-            this.handleImeiScan(imageDataUrl);
-        } else {
-            this.handleIdDocumentCapture(imageDataUrl);
-        }
+        // Handle ID document capture
+        this.handleIdDocumentCapture(imageDataUrl);
 
         this.closeCamera();
     }
 
-    async handleImeiScan(imageDataUrl) {
-        const imeiInput = document.getElementById('imei');
-        const scanBtn = document.getElementById('scanImeiBtn');
-        const scanText = document.getElementById('scanImeiText');
-
-        try {
-            // Show loading state
-            if (scanBtn) scanBtn.disabled = true;
-            if (scanText) scanText.textContent = 'Scanne Barcode...';
-
-            // Use QuaggaJS for Barcode Scanning
-            const result = await this.scanBarcodeFromImage(imageDataUrl);
-
-            if (result) {
-                // Extract 15-digit IMEI
-                const numbers = result.replace(/\D/g, '');
-                const imeiMatch = numbers.match(/\d{15}/);
-
-                if (imeiMatch) {
-                    imeiInput.value = imeiMatch[0];
-
-                    // Visual feedback
-                    imeiInput.classList.add('border-emerald-500', 'border-2');
-                    setTimeout(() => {
-                        imeiInput.classList.remove('border-emerald-500', 'border-2');
-                    }, 2000);
-
-                    alert(`IMEI erkannt: ${imeiMatch[0]}\n\nBitte überprüfen Sie die Nummer.`);
-                } else if (numbers.length >= 14) {
-                    // Accept 14-17 digit codes
-                    imeiInput.value = numbers.substring(0, 15);
-                    alert(`Code erkannt: ${numbers.substring(0, 15)}\n\nBitte überprüfen Sie die Nummer.`);
-                } else {
-                    throw new Error('Keine gültige IMEI gefunden');
-                }
-            } else {
-                // If no barcode found, allow manual input
-                const manualInput = prompt(
-                    'Konnte keinen Barcode erkennen.\n\nBitte geben Sie die IMEI manuell ein:'
-                );
-
-                if (manualInput && manualInput.trim()) {
-                    imeiInput.value = manualInput.trim();
-                }
-            }
-
-        } catch (error) {
-            console.error('Barcode Scan Error:', error);
-            alert('Barcode-Erkennung fehlgeschlagen.\n\nBitte geben Sie die IMEI manuell ein.');
-        } finally {
-            // Reset button state
-            if (scanBtn) scanBtn.disabled = false;
-            if (scanText) scanText.textContent = 'IMEI mit Kamera scannen';
-
-            // Scroll to and focus input
-            imeiInput.scrollIntoView({ behavior: 'smooth', block: 'center' });
-            setTimeout(() => imeiInput.focus(), 500);
-        }
-    }
-
-    scanBarcodeFromImage(imageDataUrl) {
-        return new Promise((resolve, reject) => {
-            Quagga.decodeSingle({
-                src: imageDataUrl,
-                numOfWorkers: 0,
-                locate: true,
-                decoder: {
-                    readers: [
-                        'code_128_reader',
-                        'ean_reader',
-                        'ean_8_reader',
-                        'code_39_reader',
-                        'code_39_vin_reader',
-                        'codabar_reader',
-                        'upc_reader',
-                        'upc_e_reader',
-                        'i2of5_reader'
-                    ]
-                }
-            }, (result) => {
-                if (result && result.codeResult) {
-                    resolve(result.codeResult.code);
-                } else {
-                    resolve(null);
-                }
-            });
-        });
-    }
 
     handleIdDocumentCapture(imageDataUrl) {
         const targetId = `id_document_${this.currentTarget}`;
@@ -227,6 +231,16 @@ class CameraHandler {
     }
 
     closeCamera() {
+        // Stop Quagga if running
+        try {
+            if (typeof Quagga !== 'undefined' && Quagga.CameraAccess && Quagga.CameraAccess.getActiveStreamLabel()) {
+                Quagga.stop();
+            }
+        } catch (e) {
+            console.log('Quagga cleanup:', e);
+        }
+
+        // Stop regular video stream
         if (this.stream) {
             this.stream.getTracks().forEach(track => track.stop());
             this.stream = null;
@@ -234,6 +248,14 @@ class CameraHandler {
         this.video.srcObject = null;
         this.modal.classList.add('hidden');
         this.currentTarget = null;
+
+        // Hide barcode scan area
+        const barcodeScanArea = document.getElementById('barcodeScanArea');
+        if (barcodeScanArea) barcodeScanArea.style.display = 'none';
+
+        // Reset button text
+        const scanText = document.getElementById('scanImeiText');
+        if (scanText) scanText.textContent = 'IMEI-Barcode scannen';
     }
 }
 

@@ -425,6 +425,18 @@
             <video id="cameraVideo" style="width: 100%; height: 100%; object-fit: contain; background: black;" autoplay playsinline muted></video>
             <canvas id="cameraCanvas" style="display: none;"></canvas>
 
+            <!-- Barcode Scan Area Overlay -->
+            <div id="barcodeScanArea" style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
+                                            width: 80%; height: 40%; border: 2px solid #10b981; border-radius: 0.5rem;
+                                            box-shadow: 0 0 0 9999px rgba(0,0,0,0.5); display: none; z-index: 100;">
+                <div style="position: absolute; top: -2rem; left: 0; right: 0; text-align: center;">
+                    <p style="color: white; font-size: 0.875rem; background: rgba(0,0,0,0.8);
+                              padding: 0.5rem 1rem; border-radius: 0.5rem; display: inline-block;">
+                        📱 Barcode in den grünen Rahmen halten
+                    </p>
+                </div>
+            </div>
+
             <!-- Capture Button - SIMPLIFIED -->
             <button type="button" id="capturePhotoBtn"
                     style="position: absolute; bottom: 8rem; left: 50%; transform: translateX(-50%);
