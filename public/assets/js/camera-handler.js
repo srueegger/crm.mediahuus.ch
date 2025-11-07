@@ -102,22 +102,36 @@ class CameraHandler {
         if (barcodeScanArea) barcodeScanArea.style.display = 'block';
 
         try {
+            // Start camera stream first
+            const constraints = {
+                video: {
+                    facingMode: 'environment',
+                    width: { ideal: 1920 },
+                    height: { ideal: 1080 }
+                }
+            };
+
+            this.stream = await navigator.mediaDevices.getUserMedia(constraints);
+            this.video.srcObject = this.stream;
+
+            // Wait for video to be ready
+            await new Promise((resolve) => {
+                this.video.onloadedmetadata = () => {
+                    this.video.play();
+                    resolve();
+                };
+            });
+
+            // Initialize QuaggaJS
             await Quagga.init({
                 inputStream: {
                     type: 'LiveStream',
                     target: this.video,
                     constraints: {
-                        facingMode: 'environment',
-                        width: { ideal: 1920 },
-                        height: { ideal: 1080 }
-                    },
-                    area: { // Define scanning area
-                        top: '30%',
-                        right: '10%',
-                        left: '10%',
-                        bottom: '30%'
+                        facingMode: 'environment'
                     }
                 },
+                frequency: 10,
                 decoder: {
                     readers: [
                         'code_128_reader',
@@ -128,9 +142,15 @@ class CameraHandler {
                         'codabar_reader',
                         'upc_reader',
                         'upc_e_reader',
-                        'i2of5_reader'
+                        'i2of5_reader',
+                        '2of5_reader'
                     ],
-                    multiple: false
+                    debug: {
+                        drawBoundingBox: true,
+                        showFrequency: false,
+                        drawScanline: true,
+                        showPattern: false
+                    }
                 },
                 locate: true,
                 locator: {
@@ -139,17 +159,24 @@ class CameraHandler {
                 }
             });
 
+            console.log('QuaggaJS initialized, starting scanner...');
             Quagga.start();
 
             // Listen for barcode detection
             Quagga.onDetected((result) => {
                 if (result && result.codeResult && result.codeResult.code) {
                     const code = result.codeResult.code;
+                    console.log('Barcode detected:', code);
+
                     const numbers = code.replace(/\D/g, '');
 
                     // Check if it's a valid IMEI (15 digits) or similar
                     if (numbers.length >= 14) {
                         const imei = numbers.substring(0, 15);
+
+                        // Stop scanning immediately
+                        Quagga.stop();
+
                         imeiInput.value = imei;
 
                         // Visual feedback
@@ -158,7 +185,7 @@ class CameraHandler {
                             imeiInput.classList.remove('border-emerald-500', 'border-2');
                         }, 2000);
 
-                        // Stop scanning and close
+                        // Close camera
                         this.closeCamera();
 
                         // Show success message
@@ -168,6 +195,13 @@ class CameraHandler {
                         imeiInput.scrollIntoView({ behavior: 'smooth', block: 'center' });
                         setTimeout(() => imeiInput.focus(), 500);
                     }
+                }
+            });
+
+            // Debug: Log processing events
+            Quagga.onProcessed((result) => {
+                if (result && result.boxes) {
+                    console.log('Processing frame, boxes found:', result.boxes.length);
                 }
             });
 
@@ -233,11 +267,14 @@ class CameraHandler {
     closeCamera() {
         // Stop Quagga if running
         try {
-            if (typeof Quagga !== 'undefined' && Quagga.CameraAccess && Quagga.CameraAccess.getActiveStreamLabel()) {
+            if (typeof Quagga !== 'undefined') {
+                Quagga.offDetected();
+                Quagga.offProcessed();
                 Quagga.stop();
+                console.log('Quagga stopped');
             }
         } catch (e) {
-            console.log('Quagga cleanup:', e);
+            console.log('Quagga cleanup error:', e);
         }
 
         // Stop regular video stream
@@ -253,9 +290,11 @@ class CameraHandler {
         const barcodeScanArea = document.getElementById('barcodeScanArea');
         if (barcodeScanArea) barcodeScanArea.style.display = 'none';
 
-        // Reset button text
+        // Reset button text and visibility
         const scanText = document.getElementById('scanImeiText');
         if (scanText) scanText.textContent = 'IMEI-Barcode scannen';
+
+        if (this.captureBtn) this.captureBtn.style.display = 'block';
     }
 }
 
