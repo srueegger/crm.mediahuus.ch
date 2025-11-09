@@ -6,6 +6,7 @@ use App\Controllers\AuthController;
 use App\Controllers\UserController;
 use App\Controllers\EstimateController;
 use App\Controllers\ReceiptController;
+use App\Controllers\PurchaseController;
 use App\Middleware\AuthMiddleware;
 use Slim\App;
 
@@ -40,12 +41,15 @@ $app->group('', function () use ($app) {
     $app->post('/receipts', [ReceiptController::class, 'store'])->setName('receipts.store');
     $app->get('/receipts/{id:[0-9]+}', [ReceiptController::class, 'show'])->setName('receipts.show');
     $app->get('/receipts/{id:[0-9]+}/pdf', [ReceiptController::class, 'generatePdf'])->setName('receipts.pdf');
+
+    // Purchases (Ankauf)
+    $app->get('/purchases', [PurchaseController::class, 'index'])->setName('purchases.index');
+    $app->get('/purchases/create', [PurchaseController::class, 'create'])->setName('purchases.create');
+    $app->post('/purchases', [PurchaseController::class, 'store'])->setName('purchases.store');
+    $app->get('/purchases/{id:[0-9]+}', [PurchaseController::class, 'show'])->setName('purchases.show');
+    $app->get('/purchases/{id:[0-9]+}/pdf', [PurchaseController::class, 'generatePdf'])->setName('purchases.pdf');
+
     // Placeholder routes
-    
-    $app->get('/purchase/new', function ($request, $response) {
-        return $response->withHeader('Location', '/')->withStatus(302);
-    })->setName('purchase.new');
-    
     $app->get('/insurance/new', function ($request, $response) {
         return $response->withHeader('Location', '/')->withStatus(302);
     })->setName('insurance.new');

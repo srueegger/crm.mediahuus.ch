@@ -1,11 +1,19 @@
 <svg width="180" height="180" viewBox="0 0 180 180" fill="none" xmlns="http://www.w3.org/2000/svg">
-  <!-- Background with Mediahuus green -->
-  <rect width="180" height="180" rx="20" fill="#2d8f3e"/>
-  
-  <!-- Stylized "M" for Mediahuus - larger for 180x180 -->
-  <path d="M45 65v50h12v-35l18 25h10l18-25v35h12v-50h-14L90 92 75 65H45z" fill="white" stroke="white" stroke-width="1"/>
-  
-  <!-- Decorative element -->
-  <circle cx="140" cy="50" r="12" fill="white" opacity="0.9"/>
-  <circle cx="140" cy="50" r="6" fill="#2d8f3e"/>
+  <!-- Background with Emerald gradient -->
+  <defs>
+    <linearGradient id="grad1" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#10b981;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#059669;stop-opacity:1" />
+    </linearGradient>
+  </defs>
+  <rect width="180" height="180" rx="40" fill="url(#grad1)"/>
+
+  <!-- Stylized "M" for Mediahuus - larger and centered -->
+  <path d="M45 67.5v45h11.25v-33.75l16.875 22.5h11.25l16.875-22.5v33.75H135v-45h-14.0625L90 93.75 71.0625 67.5H45z" fill="white"/>
+
+  <!-- Small decorative element -->
+  <circle cx="135" cy="56.25" r="11.25" fill="white" opacity="0.9"/>
+
+  <!-- Subtle "CRM" text below -->
+  <text x="90" y="135" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif" font-size="20" font-weight="600" fill="white" opacity="0.85" text-anchor="middle">CRM</text>
 </svg>

@@ -6,6 +6,7 @@ namespace App\Services;
 use App\Models\Document;
 use App\Models\Estimate;
 use App\Models\Receipt;
+use App\Models\Purchase;
 use App\Models\Branch;
 use TCPDF;
 use Psr\Log\LoggerInterface;
@@ -390,6 +391,56 @@ class PdfService
         return 'Quittung_' . $document->getDocNumber() . '.pdf';
     }
 
+    public function generatePurchasePdf(Document $document, Purchase $purchase, Branch $branch): string
+    {
+        try {
+            // Create new PDF document
+            $pdf = new TCPDF(PDF_PAGE_ORIENTATION, PDF_UNIT, PDF_PAGE_FORMAT, true, 'UTF-8', false);
+
+            // Set document information
+            $pdf->SetCreator('Mediahuus CRM');
+            $pdf->SetAuthor('Mediahuus');
+            $pdf->SetTitle('Ankauf ' . $document->getDocNumber());
+            $pdf->SetSubject('Ankaufsbeleg');
+
+            // Remove default header/footer
+            $pdf->setPrintHeader(false);
+            $pdf->setPrintFooter(false);
+
+            // Set margins with proper bottom margin for page breaks
+            $pdf->SetMargins(20, 15, 20);
+            $pdf->SetAutoPageBreak(true, 25);
+
+            // Add a page
+            $pdf->AddPage();
+
+            // Set font
+            $pdf->SetFont('helvetica', '', 10);
+
+            // Add content
+            $this->addPurchaseContent($pdf, $document, $purchase, $branch);
+
+            $this->logger->info('Purchase PDF generated successfully', [
+                'document_id' => $document->getId(),
+                'doc_number' => $document->getDocNumber()
+            ]);
+
+            return $pdf->Output('', 'S');
+
+        } catch (\Exception $e) {
+            $this->logger->error('Purchase PDF generation failed', [
+                'document_id' => $document->getId(),
+                'error' => $e->getMessage()
+            ]);
+            throw $e;
+        }
+    }
+
+    public function getPurchasePdfFilename(Document $document): string
+    {
+        return 'Ankauf_' . $document->getDocNumber() . '.pdf';
+    }
+
     private function addReceiptContent(TCPDF $pdf, Document $document, Receipt $receipt, Branch $branch): void
     {
         $currentY = 15;
@@ -582,27 +633,366 @@ class PdfService
         return $currentY + 10;
     }
 
+    private function addPurchaseContent(TCPDF $pdf, Document $document, Purchase $purchase, Branch $branch): void
+    {
+        $currentY = 15;
+
+        // Header with Logo and Branch Info
+        $currentY = $this->addHeader($pdf, $branch, $currentY);
+
+        // Document Title and Number
+        $currentY = $this->addPurchaseTitle($pdf, $document, $currentY);
+
+        // Seller (Customer) Information
+        $currentY = $this->addSellerInfo($pdf, $document, $purchase, $currentY);
+
+        // Device Information
+        $currentY = $this->addDeviceInfo($pdf, $purchase, $currentY);
+
+        // Purchase Price
+        $currentY = $this->addPurchasePrice($pdf, $purchase, $currentY);
+
+        // Legal Notice with Signature Lines
+        $currentY = $this->addPurchaseLegalNotice($pdf, $currentY);
+
+        // ID Document Images
+        $currentY = $this->addIdDocumentImages($pdf, $purchase, $currentY);
+
+        // No footer needed for purchase documents
+    }
+
+    private function addPurchaseTitle(TCPDF $pdf, Document $document, float $currentY): float
+    {
+        // Line separator
+        $pdf->SetLineWidth(0.3);
+        $pdf->SetDrawColor(200, 200, 200);
+        $pdf->Line(20, $currentY, 190, $currentY);
+
+        $currentY += 10;
+
+        // Title
+        $pdf->SetFont('helvetica', 'B', 16);
+        $pdf->SetXY(20, $currentY);
+        $pdf->Cell(0, 8, 'ANKAUFSBELEG', 0, 1, 'L');
+
+        $currentY += 12;
+
+        // Document number and date
+        $pdf->SetFont('helvetica', '', 10);
+        $pdf->SetXY(20, $currentY);
+        $pdf->Cell(60, 6, 'Beleg-Nummer:', 0, 0, 'L');
+        $pdf->SetFont('helvetica', 'B', 10);
+        $pdf->Cell(0, 6, $document->getDocNumber(), 0, 1, 'L');
+
+        $pdf->SetFont('helvetica', '', 10);
+        $pdf->SetXY(20, $currentY + 6);
+        $pdf->Cell(60, 6, 'Datum:', 0, 0, 'L');
+        $pdf->Cell(0, 6, $document->getCreatedAt()->format('d.m.Y'), 0, 1, 'L');
+
+        return $currentY + 20;
+    }
+
+    private function addSellerInfo(TCPDF $pdf, Document $document, Purchase $purchase, float $currentY): float
+    {
+        // Section title
+        $pdf->SetFont('helvetica', 'B', 12);
+        $pdf->SetXY(20, $currentY);
+        $pdf->Cell(0, 6, 'Verkäufer', 0, 1, 'L');
+
+        $currentY += 8;
+
+        // Seller details
+        $pdf->SetFont('helvetica', '', 10);
+        $pdf->SetXY(20, $currentY);
+        $pdf->Cell(0, 6, $document->getCustomerName(), 0, 1, 'L');
+        $currentY += 6;
+
+        $pdf->SetXY(20, $currentY);
+        $pdf->Cell(0, 5, $purchase->getSellerAddress(), 0, 1, 'L');
+        $currentY += 5;
+
+        if ($document->getCustomerPhone()) {
+            $pdf->SetXY(20, $currentY);
+            $pdf->Cell(0, 5, 'Tel: ' . $document->getCustomerPhone(), 0, 1, 'L');
+            $currentY += 5;
+        }
+
+        if ($document->getCustomerEmail()) {
+            $pdf->SetXY(20, $currentY);
+            $pdf->Cell(0, 5, 'E-Mail: ' . $document->getCustomerEmail(), 0, 1, 'L');
+            $currentY += 5;
+        }
+
+        return $currentY + 10;
+    }
+
+    private function addDeviceInfo(TCPDF $pdf, Purchase $purchase, float $currentY): float
+    {
+        // Section title
+        $pdf->SetFont('helvetica', 'B', 12);
+        $pdf->SetXY(20, $currentY);
+        $pdf->Cell(0, 6, 'Angekauftes Gerät', 0, 1, 'L');
+
+        $currentY += 10;
+
+        // Device information in a styled box
+        $pdf->SetFillColor(248, 249, 250);
+        $pdf->SetDrawColor(229, 231, 235);
+
+        // Calculate box height based on content
+        $boxHeight = 50;
+        if ($purchase->getDeviceCondition() || $purchase->getAccessories()) {
+            $boxHeight = 70;
+        }
+
+        $pdf->Rect(20, $currentY, 170, $boxHeight, 'DF', array(), array(248, 249, 250));
+
+        $contentY = $currentY + 5;
+
+        // Device type and model
+        $pdf->SetFont('helvetica', 'B', 11);
+        $pdf->SetXY(25, $contentY);
+        $pdf->Cell(0, 6, $purchase->getDeviceFullName(), 0, 1, 'L');
+        $contentY += 8;
+
+        $pdf->SetFont('helvetica', '', 10);
+
+        // Device type
+        $pdf->SetXY(25, $contentY);
+        $pdf->Cell(60, 5, 'Gerätetyp:', 0, 0, 'L');
+        $pdf->Cell(0, 5, $purchase->getDeviceTypeName(), 0, 1, 'L');
+        $contentY += 5;
+
+        // IMEI
+        if ($purchase->getImei()) {
+            $pdf->SetXY(25, $contentY);
+            $pdf->Cell(60, 5, 'IMEI:', 0, 0, 'L');
+            $pdf->SetFont('courier', '', 10);
+            $pdf->Cell(0, 5, $purchase->getImei(), 0, 1, 'L');
+            $pdf->SetFont('helvetica', '', 10);
+            $contentY += 5;
+        }
+
+        // Serial Number
+        if ($purchase->getSerialNumber()) {
+            $pdf->SetXY(25, $contentY);
+            $pdf->Cell(60, 5, 'Seriennummer:', 0, 0, 'L');
+            $pdf->SetFont('courier', '', 10);
+            $pdf->Cell(0, 5, $purchase->getSerialNumber(), 0, 1, 'L');
+            $pdf->SetFont('helvetica', '', 10);
+            $contentY += 5;
+        }
+
+        // Condition
+        if ($purchase->getDeviceCondition()) {
+            $contentY += 3;
+            $pdf->SetXY(25, $contentY);
+            $pdf->Cell(60, 5, 'Zustand:', 0, 0, 'L');
+            $conditionText = substr($purchase->getDeviceCondition(), 0, 80);
+            if (strlen($purchase->getDeviceCondition()) > 80) {
+                $conditionText .= '...';
+            }
+            $pdf->MultiCell(100, 5, $conditionText, 0, 'L');
+            $contentY = $pdf->GetY();
+        }
+
+        // Accessories
+        if ($purchase->getAccessories()) {
+            $contentY += 3;
+            $pdf->SetXY(25, $contentY);
+            $pdf->Cell(60, 5, 'Zubehör:', 0, 0, 'L');
+            $accessoriesText = substr($purchase->getAccessories(), 0, 80);
+            if (strlen($purchase->getAccessories()) > 80) {
+                $accessoriesText .= '...';
+            }
+            $pdf->MultiCell(100, 5, $accessoriesText, 0, 'L');
+        }
+
+        $currentY += $boxHeight + 10;
+
+        return $currentY;
+    }
+
+    private function addPurchasePrice(TCPDF $pdf, Purchase $purchase, float $currentY): float
+    {
+        $priceBoxHeight = 15;
+
+        // Price box - Green color #10b981 (emerald-500)
+        $pdf->SetFillColor(16, 185, 129);
+        $pdf->SetTextColor(255, 255, 255);
+        $pdf->Rect(20, $currentY, 170, $priceBoxHeight, 'F');
+
+        $pdf->SetFont('helvetica', 'B', 14);
+        $pdf->SetXY(25, $currentY + 4);
+        $pdf->Cell(80, 8, 'Ankaufspreis:', 0, 0, 'L');
+
+        $pdf->SetFont('helvetica', 'B', 16);
+        $pdf->SetXY(110, $currentY + 4);
+        $pdf->Cell(75, 8, $purchase->getFormattedPrice(), 0, 0, 'R');
+
+        // Reset text color
+        $pdf->SetTextColor(0, 0, 0);
+
+        return $currentY + 20;
+    }
+
+    private function addPurchaseLegalNotice(TCPDF $pdf, float $currentY): float
+    {
+        $currentY += 5;
+
+        // Section title
+        $pdf->SetFont('helvetica', 'B', 11);
+        $pdf->SetXY(20, $currentY);
+        $pdf->Cell(0, 6, 'Bestätigung', 0, 1, 'L');
+
+        $currentY += 8;
+
+        // Legal text - kompakter
+        $pdf->SetFont('helvetica', '', 8);
+        $legalText = "Mit meiner Unterschrift bestätige ich:\n";
+        $legalText .= "• Dass ich der rechtmässige Eigentümer des oben genannten Geräts bin\n";
+        $legalText .= "• Dass das Gerät nicht gestohlen ist und keine Rechte Dritter verletzt\n";
+        $legalText .= "• Dass ich den vereinbarten Ankaufspreis vollständig erhalten habe\n";
+        $legalText .= "• Dass ich meine Personalien wahrheitsgemäss angegeben habe";
+
+        $pdf->SetXY(20, $currentY);
+        $pdf->MultiCell(170, 3.5, $legalText, 0, 'L', false);
+
+        $currentY = $pdf->GetY() + 8;
+
+        // Signature lines
+        $pdf->SetLineWidth(0.3);
+        $pdf->SetDrawColor(0, 0, 0);
+
+        // Verkäufer Unterschrift
+        $pdf->Line(20, $currentY, 90, $currentY);
+        $pdf->SetXY(20, $currentY + 2);
+        $pdf->SetFont('helvetica', '', 8);
+        $pdf->Cell(70, 4, 'Unterschrift Verkäufer', 0, 0, 'L');
+
+        // Datum
+        $pdf->SetXY(95, $currentY + 2);
+        $pdf->Cell(25, 4, 'Datum', 0, 0, 'L');
+
+        // Mediahuus Unterschrift
+        $pdf->Line(125, $currentY, 190, $currentY);
+        $pdf->SetXY(125, $currentY + 2);
+        $pdf->Cell(65, 4, 'Unterschrift Mediahuus', 0, 0, 'L');
+
+        return $currentY + 10;
+    }
+
+    private function addIdDocumentImages(TCPDF $pdf, Purchase $purchase, float $currentY): float
+    {
+        $currentY += 5;
+
+        $uploadDir = __DIR__ . '/../../public/uploads/id_documents';
+        $imageWidth = 80; // Width of each image
+        $imageX = 20;
+        $estimatedImageHeight = 60; // Estimated height needed for image
+
+        // Check if we have enough space for title + at least one image
+        // If not, start on a new page
+        if ($currentY + $estimatedImageHeight + 15 > 270) {
+            $pdf->AddPage();
+            $currentY = 15;
+        }
+
+        // Section title - now on same page as images
+        $pdf->SetFont('helvetica', 'B', 11);
+        $pdf->SetXY(20, $currentY);
+        $pdf->Cell(0, 6, 'Ausweis-Dokumentation', 0, 1, 'L');
+
+        $currentY += 8;
+
+        // Front ID Document
+        $frontPath = $uploadDir . '/' . $purchase->getIdDocumentFront();
+        if (file_exists($frontPath)) {
+            $pdf->SetFont('helvetica', '', 9);
+            $pdf->SetXY($imageX, $currentY);
+            $pdf->Cell($imageWidth, 4, 'Vorderseite / Pass', 0, 1, 'L');
+
+            try {
+                $pdf->Image($frontPath, $imageX, $currentY + 5, $imageWidth, 0, '', '', '', false, 300, '', false, false, 1);
+                $currentY += 55; // Estimated height for image + spacing
+            } catch (\Exception $e) {
+                $this->logger->warning('Failed to add front ID image to PDF', ['error' => $e->getMessage()]);
+            }
+        }
+
+        // Back ID Document (if exists)
+        if ($purchase->getIdDocumentBack()) {
+            $backPath = $uploadDir . '/' . $purchase->getIdDocumentBack();
+            if (file_exists($backPath)) {
+                // Check if we need a new page
+                if ($currentY + 60 > 270) {
+                    $pdf->AddPage();
+                    $currentY = 15;
+                } else {
+                    $currentY += 5;
+                }
+
+                $pdf->SetFont('helvetica', '', 9);
+                $pdf->SetXY($imageX, $currentY);
+                $pdf->Cell($imageWidth, 4, 'Rückseite', 0, 1, 'L');
+
+                try {
+                    $pdf->Image($backPath, $imageX, $currentY + 5, $imageWidth, 0, '', '', '', false, 300, '', false, false, 1);
+                    $currentY += 55;
+                } catch (\Exception $e) {
+                    $this->logger->warning('Failed to add back ID image to PDF', ['error' => $e->getMessage()]);
+                }
+            }
+        }
+
+        return $currentY + 5;
+    }
+
+    private function addPurchaseFooter(TCPDF $pdf, Branch $branch, Document $document, float $currentY): void
+    {
+        // Add space before footer - use passed currentY position
+        $currentY += 10;
+
+        // Check if we need a new page for footer
+        if ($currentY + 20 > 270) {
+            $pdf->AddPage();
+            $currentY = 15;
+        }
+
+        // Simple footer
+        $pdf->SetY($currentY);
+        $pdf->SetFont('helvetica', '', 8);
+        $pdf->SetTextColor(100, 100, 100);
+
+        $pdf->Cell(0, 5, 'Vielen Dank für Ihren Verkauf an ' . $branch->getName() . '!', 0, 1, 'C');
+        $pdf->Cell(0, 4, 'Alle Preise verstehen sich in CHF.', 0, 1, 'C');
+        $pdf->Cell(0, 4, 'Erstellt am ' . $document->getCreatedAt()->format('d.m.Y H:i') . ' • ' . $branch->getName(), 0, 1, 'C');
+
+        // Reset text color
+        $pdf->SetTextColor(0, 0, 0);
+    }
+
     private function convertHtmlToText(string $html): string
     {
         // Replace HTML formatting with text equivalents
         $text = $html;
-        
+
         // Convert line breaks
         $text = str_replace(['<br>', '<br/>', '<br />'], "\n", $text);
         $text = str_replace('</p>', "\n\n", $text);
-        
+
         // Convert lists with bullet points
         $text = preg_replace('/<li[^>]*>/i', '• ', $text);
         $text = str_replace('</li>', "\n", $text);
         $text = preg_replace('/<\/?(ul|ol)[^>]*>/i', "\n", $text);
-        
+
         // Remove other HTML tags but keep their content
         $text = strip_tags($text);
-        
+
         // Clean up extra whitespace and line breaks
         $text = preg_replace('/\n\s*\n\s*\n/', "\n\n", $text); // Max 2 consecutive line breaks
         $text = trim($text);
-        
+
         return $text;
     }
 }
