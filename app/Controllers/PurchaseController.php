@@ -112,10 +112,19 @@ class PurchaseController extends BaseController
         $currentUser = $request->getAttribute('current_user');
         $data = $request->getParsedBody();
 
+        $this->logger->info('Purchase form submitted', [
+            'user_id' => $currentUser->getId(),
+            'has_id_front' => !empty($data['id_document_front'] ?? ''),
+            'has_id_back' => !empty($data['id_document_back'] ?? ''),
+            'branch_id' => $data['branch_id'] ?? 'missing',
+            'device_type' => $data['device_type'] ?? 'missing'
+        ]);
+
         // Validate input
         $errors = $this->validatePurchaseInput($data);
 
         if (!empty($errors)) {
+            $this->logger->warning('Purchase validation failed', ['errors' => $errors]);
             try {
                 $branches = $this->branchRepository->findAll();
                 return $this->render($response, 'purchases/create.html.twig', [

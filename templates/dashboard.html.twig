@@ -146,8 +146,16 @@
                                                 {{ item.document.doc_number }}
                                             </p>
                                             {% if item.document.doc_type == 'estimate' %}
-                                                <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                                                <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
                                                     Kostenvoranschlag
+                                                </span>
+                                            {% elseif item.document.doc_type == 'receipt' %}
+                                                <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                                                    Quittung
+                                                </span>
+                                            {% elseif item.document.doc_type == 'purchase' %}
+                                                <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-emerald-100 text-emerald-800">
+                                                    Ankauf
                                                 </span>
                                             {% endif %}
                                         </div>
@@ -158,9 +166,22 @@
                                             <p class="text-sm text-gray-600 font-medium">
                                                 {{ item.estimate.device_name }}
                                             </p>
+                                        {% elseif item.purchase %}
+                                            <p class="text-sm text-gray-600 font-medium">
+                                                {{ item.purchase.device_full_name }}
+                                            </p>
+                                        {% elseif item.receipt %}
+                                            <p class="text-sm text-gray-600 font-medium">
+                                                {{ item.receipt.item_count }} Artikel
+                                            </p>
                                         {% endif %}
                                         <div class="text-sm text-gray-500 space-y-1">
-                                            <p>{{ item.branch.name }}{% if item.estimate %} • {{ item.estimate.formatted_price }}{% endif %}</p>
+                                            <p>{{ item.branch.name }}
+                                                {% if item.estimate %} • {{ item.estimate.formatted_price }}
+                                                {% elseif item.purchase %} • {{ item.purchase.formatted_price }}
+                                                {% elseif item.receipt %} • {{ item.receipt.formatted_total }}
+                                                {% endif %}
+                                            </p>
                                             <p>Erstellt: {{ item.document.created_at|date('d.m.Y H:i') }}</p>
                                         </div>
                                     </div>
@@ -169,13 +190,37 @@
                                 <div class="flex items-center space-x-2">
                                     {% if item.document.doc_type == 'estimate' %}
                                         <!-- View Button -->
-                                        <a href="{{ url_for('estimates.show', {id: item.document.id}) }}" 
+                                        <a href="{{ url_for('estimates.show', {id: item.document.id}) }}"
                                            class="bg-gray-100 text-gray-700 px-3 py-1 rounded text-sm hover:bg-gray-200 transition-colors">
                                             Anzeigen
                                         </a>
                                         <!-- PDF Button -->
-                                        <a href="{{ url_for('estimates.pdf', {id: item.document.id}) }}" 
-                                           class="bg-green-100 text-green-800 px-3 py-1 rounded text-sm hover:bg-green-200 transition-colors"
+                                        <a href="{{ url_for('estimates.pdf', {id: item.document.id}) }}"
+                                           class="bg-emerald-100 text-emerald-800 px-3 py-1 rounded text-sm hover:bg-emerald-200 transition-colors"
+                                           title="PDF herunterladen">
+                                            PDF
+                                        </a>
+                                    {% elseif item.document.doc_type == 'receipt' %}
+                                        <!-- View Button -->
+                                        <a href="{{ url_for('receipts.show', {id: item.document.id}) }}"
+                                           class="bg-gray-100 text-gray-700 px-3 py-1 rounded text-sm hover:bg-gray-200 transition-colors">
+                                            Anzeigen
+                                        </a>
+                                        <!-- PDF Button -->
+                                        <a href="{{ url_for('receipts.pdf', {id: item.document.id}) }}"
+                                           class="bg-emerald-100 text-emerald-800 px-3 py-1 rounded text-sm hover:bg-emerald-200 transition-colors"
+                                           title="PDF herunterladen">
+                                            PDF
+                                        </a>
+                                    {% elseif item.document.doc_type == 'purchase' %}
+                                        <!-- View Button -->
+                                        <a href="{{ url_for('purchases.show', {id: item.document.id}) }}"
+                                           class="bg-gray-100 text-gray-700 px-3 py-1 rounded text-sm hover:bg-gray-200 transition-colors">
+                                            Anzeigen
+                                        </a>
+                                        <!-- PDF Button -->
+                                        <a href="{{ url_for('purchases.pdf', {id: item.document.id}) }}"
+                                           class="bg-emerald-100 text-emerald-800 px-3 py-1 rounded text-sm hover:bg-emerald-200 transition-colors"
                                            title="PDF herunterladen">
                                             PDF
                                         </a>
@@ -195,10 +240,18 @@
                     {% endfor %}
                 </ul>
                 <div class="px-6 py-3 bg-gray-50 border-t border-gray-200">
-                    <div class="flex justify-center">
-                        <a href="{{ url_for('estimates.index') }}" 
-                           class="text-sm text-green-600 hover:text-green-500">
-                            Alle Dokumente anzeigen →
+                    <div class="flex justify-center gap-6">
+                        <a href="{{ url_for('estimates.index') }}"
+                           class="text-sm text-emerald-600 hover:text-emerald-500 font-medium">
+                            Alle Kostenvoranschläge →
+                        </a>
+                        <a href="{{ url_for('receipts.index') }}"
+                           class="text-sm text-emerald-600 hover:text-emerald-500 font-medium">
+                            Alle Quittungen →
+                        </a>
+                        <a href="{{ url_for('purchases.index') }}"
+                           class="text-sm text-emerald-600 hover:text-emerald-500 font-medium">
+                            Alle Ankäufe →
                         </a>
                     </div>
                 </div>

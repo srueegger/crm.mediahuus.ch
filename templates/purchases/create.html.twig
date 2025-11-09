@@ -428,8 +428,9 @@
 
             <!-- Barcode Scan Area Overlay -->
             <div id="barcodeScanArea" style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
-                                            width: 80%; height: 40%; border: 2px solid #10b981; border-radius: 0.5rem;
-                                            box-shadow: 0 0 0 9999px rgba(0,0,0,0.5); display: none; z-index: 100;">
+                                            width: 85%; height: 25%; border: 3px solid #10b981; border-radius: 0.75rem;
+                                            box-shadow: 0 0 0 9999px rgba(0,0,0,0.5), 0 0 20px rgba(16, 185, 129, 0.5);
+                                            display: none; z-index: 100;">
                 <!-- Animated Scan Line -->
                 <div id="scanLine" style="position: absolute; left: 0; right: 0; height: 2px;
                                           background: linear-gradient(90deg, transparent, #10b981, transparent);
@@ -502,5 +503,5 @@
 
 <!-- QuaggaJS for Barcode Scanning -->
 <script src="https://cdn.jsdelivr.net/npm/@ericblade/quagga2@1.8.4/dist/quagga.min.js"></script>
-<script src="/assets/js/camera-handler.js?v=2.1"></script>
+<script src="/assets/js/camera-handler.js?v=2.2"></script>
 {% endblock %}

@@ -247,16 +247,28 @@ class CameraHandler {
     capturePhoto() {
         if (!this.stream) return;
 
-        // Set canvas dimensions to match video
-        this.canvas.width = this.video.videoWidth;
-        this.canvas.height = this.video.videoHeight;
+        // Set canvas dimensions to match video (max 1920x1080 for file size)
+        const maxWidth = 1920;
+        const maxHeight = 1080;
+        let width = this.video.videoWidth;
+        let height = this.video.videoHeight;
+
+        // Scale down if needed
+        if (width > maxWidth || height > maxHeight) {
+            const ratio = Math.min(maxWidth / width, maxHeight / height);
+            width = Math.floor(width * ratio);
+            height = Math.floor(height * ratio);
+        }
+
+        this.canvas.width = width;
+        this.canvas.height = height;
 
         // Draw video frame to canvas
         const ctx = this.canvas.getContext('2d');
-        ctx.drawImage(this.video, 0, 0);
+        ctx.drawImage(this.video, 0, 0, width, height);
 
-        // Convert to base64
-        const imageDataUrl = this.canvas.toDataURL('image/jpeg', 0.85);
+        // Convert to base64 with reduced quality (0.6 instead of 0.85 to reduce size)
+        const imageDataUrl = this.canvas.toDataURL('image/jpeg', 0.6);
 
         // Handle ID document capture
         this.handleIdDocumentCapture(imageDataUrl);
@@ -342,6 +354,13 @@ const purchaseForm = document.getElementById('purchaseForm');
 if (purchaseForm) {
     purchaseForm.addEventListener('submit', (e) => {
         const idFront = document.getElementById('id_document_front').value;
+        const idBack = document.getElementById('id_document_back').value;
+
+        console.log('=== Form Submit ===');
+        console.log('ID Front exists:', !!idFront);
+        console.log('ID Front size:', idFront ? idFront.length : 0, 'chars');
+        console.log('ID Back exists:', !!idBack);
+        console.log('ID Back size:', idBack ? idBack.length : 0, 'chars');
 
         if (!idFront) {
             e.preventDefault();
@@ -356,7 +375,20 @@ if (purchaseForm) {
                     idSection.classList.remove('ring-4', 'ring-red-500');
                 }, 2000);
             }
+            return;
         }
+
+        // Check if data is too large (rough estimate: base64 adds ~33% overhead)
+        const totalSize = (idFront ? idFront.length : 0) + (idBack ? idBack.length : 0);
+        console.log('Total form data size (estimate):', Math.round(totalSize / 1024), 'KB');
+
+        if (totalSize > 20000000) { // ~20MB limit for safety
+            e.preventDefault();
+            alert('Die Fotos sind zu groß. Bitte versuchen Sie es erneut.');
+            return;
+        }
+
+        console.log('Form validation passed, submitting...');
     });
 }
 
@@ -367,16 +399,25 @@ if (phoneInput) {
         let phone = e.target.value.replace(/\D/g, '');
 
         // Format Swiss mobile numbers: +41 79 123 45 67
-        if (phone.startsWith('0')) {
+        if (phone.startsWith('0') && phone.length >= 10) {
             phone = '41' + phone.substring(1);
         }
+
+        // Format if it's a valid Swiss number (11 digits starting with 41)
         if (phone.length === 11 && phone.startsWith('41')) {
             e.target.value = '+' + phone.substring(0, 2) + ' ' +
                            phone.substring(2, 4) + ' ' +
                            phone.substring(4, 7) + ' ' +
                            phone.substring(7, 9) + ' ' +
                            phone.substring(9);
+        } else if (phone.length === 10 && phone.startsWith('0')) {
+            // Format as 0XX XXX XX XX
+            e.target.value = phone.substring(0, 3) + ' ' +
+                           phone.substring(3, 6) + ' ' +
+                           phone.substring(6, 8) + ' ' +
+                           phone.substring(8);
         }
+        // Otherwise leave as-is (user might be entering international number)
     });
 }
 
