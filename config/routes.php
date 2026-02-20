@@ -29,21 +29,18 @@ $app->group('', function () use ($app) {
     $app->post('/users/{id:[0-9]+}/toggle-status', [UserController::class, 'toggleStatus'])->setName('users.toggle');
     
     // Estimates
-    $app->get('/estimates', [EstimateController::class, 'index'])->setName('estimates.index');
     $app->get('/estimates/create', [EstimateController::class, 'create'])->setName('estimates.create');
     $app->post('/estimates', [EstimateController::class, 'store'])->setName('estimates.store');
     $app->get('/estimates/{id:[0-9]+}', [EstimateController::class, 'show'])->setName('estimates.show');
     $app->get('/estimates/{id:[0-9]+}/pdf', [EstimateController::class, 'generatePdf'])->setName('estimates.pdf');
     
     // Receipts
-    $app->get('/receipts', [ReceiptController::class, 'index'])->setName('receipts.index');
     $app->get('/receipts/create', [ReceiptController::class, 'create'])->setName('receipts.create');
     $app->post('/receipts', [ReceiptController::class, 'store'])->setName('receipts.store');
     $app->get('/receipts/{id:[0-9]+}', [ReceiptController::class, 'show'])->setName('receipts.show');
     $app->get('/receipts/{id:[0-9]+}/pdf', [ReceiptController::class, 'generatePdf'])->setName('receipts.pdf');
 
     // Purchases (Ankauf)
-    $app->get('/purchases', [PurchaseController::class, 'index'])->setName('purchases.index');
     $app->get('/purchases/create', [PurchaseController::class, 'create'])->setName('purchases.create');
     $app->post('/purchases', [PurchaseController::class, 'store'])->setName('purchases.store');
     $app->get('/purchases/{id:[0-9]+}', [PurchaseController::class, 'show'])->setName('purchases.show');

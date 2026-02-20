@@ -7,6 +7,8 @@ use App\Models\User;
 use App\Repositories\DocumentRepository;
 use App\Repositories\BranchRepository;
 use App\Repositories\EstimateRepository;
+use App\Repositories\PurchaseRepository;
+use App\Repositories\ReceiptRepository;
 use Twig\Environment;
 use Psr\Http\Message\ResponseInterface as Response;
 use Psr\Http\Message\ServerRequestInterface as Request;
@@ -16,49 +18,90 @@ class DashboardController extends BaseController
     private DocumentRepository $documentRepository;
     private BranchRepository $branchRepository;
     private EstimateRepository $estimateRepository;
+    private PurchaseRepository $purchaseRepository;
+    private ReceiptRepository $receiptRepository;
 
     public function __construct(
         Environment $twig,
         DocumentRepository $documentRepository,
         BranchRepository $branchRepository,
-        EstimateRepository $estimateRepository
+        EstimateRepository $estimateRepository,
+        PurchaseRepository $purchaseRepository,
+        ReceiptRepository $receiptRepository
     ) {
         parent::__construct($twig);
         $this->documentRepository = $documentRepository;
         $this->branchRepository = $branchRepository;
         $this->estimateRepository = $estimateRepository;
+        $this->purchaseRepository = $purchaseRepository;
+        $this->receiptRepository = $receiptRepository;
     }
 
     public function index(Request $request, Response $response): Response
     {
         /** @var User|null $currentUser */
         $currentUser = $request->getAttribute('current_user');
-        
-        // Get recent documents (limit to 5 most recent)
-        $recentDocuments = [];
+
+        // Get query parameters for filtering
+        $params = $request->getQueryParams();
+        $filterType = $params['type'] ?? '';
+        $filterBranch = $params['branch'] ?? '';
+
+        // Get all documents (sorted by created_at DESC)
         $documents = $this->documentRepository->findAll();
-        
-        // Get the 5 most recent documents with their related data
-        foreach (array_slice($documents, 0, 5) as $document) {
+
+        // Apply filters
+        if ($filterType !== '') {
+            $documents = array_filter($documents, function ($doc) use ($filterType) {
+                return $doc->getDocType() === $filterType;
+            });
+        }
+        if ($filterBranch !== '') {
+            $branchId = (int) $filterBranch;
+            $documents = array_filter($documents, function ($doc) use ($branchId) {
+                return $doc->getBranchId() === $branchId;
+            });
+        }
+
+        // Limit to 50 most recent
+        $documents = array_slice(array_values($documents), 0, 50);
+
+        // Get all branches for filter dropdown
+        $branches = $this->branchRepository->findAll();
+
+        // Enrich documents with type-specific data
+        $allDocuments = [];
+        foreach ($documents as $document) {
             $branch = $this->branchRepository->findById($document->getBranchId());
-            
+
             $itemData = [
                 'document' => $document,
                 'branch' => $branch,
             ];
-            
+
             // Get type-specific data
-            if ($document->getDocType() === 'estimate') {
-                $estimate = $this->estimateRepository->findByDocumentId($document->getId());
-                $itemData['estimate'] = $estimate;
+            switch ($document->getDocType()) {
+                case 'estimate':
+                    $itemData['estimate'] = $this->estimateRepository->findByDocumentId($document->getId());
+                    break;
+                case 'purchase':
+                    $itemData['purchase'] = $this->purchaseRepository->findByDocumentId($document->getId());
+                    break;
+                case 'receipt':
+                    $itemData['receipt'] = $this->receiptRepository->findByDocumentId($document->getId());
+                    break;
             }
-            
-            $recentDocuments[] = $itemData;
+
+            $allDocuments[] = $itemData;
         }
-        
+
         return $this->render($response, 'dashboard.html.twig', [
             'user' => $currentUser ? $currentUser->toArray() : null,
-            'recent_documents' => $recentDocuments,
+            'documents' => $allDocuments,
+            'branches' => $branches,
+            'filter_type' => $filterType,
+            'filter_branch' => $filterBranch,
+            'total_count' => count($allDocuments),
         ]);
     }
 

@@ -12,9 +12,9 @@
                 <p class="text-gray-600">{{ branch.name }}</p>
             </div>
             <div class="flex space-x-3">
-                <a href="{{ url_for('estimates.index') }}" 
+                <a href="/"
                    class="bg-gray-100 text-gray-700 px-4 py-2 rounded-md text-sm hover:bg-gray-200 transition-colors">
-                    ← Zurück zur Liste
+                    ← Zurück zum Dashboard
                 </a>
                 <a href="{{ url_for('estimates.pdf', {id: document.id}) }}" 
                    class="mediahuus-button-primary">

@@ -5,335 +5,223 @@
 {% block content %}
 <div class="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
     <div class="px-4 py-6 sm:px-0">
-        <div class="mb-8 flex justify-between items-center">
-            <div>
-                <h2 class="text-2xl font-bold text-gray-900 mb-2">Dashboard</h2>
-                <p class="text-gray-600">Willkommen im Mediahuus CRM-System</p>
-            </div>
-            <div>
-                <button id="clearCacheBtn" 
-                        class="bg-yellow-100 text-yellow-800 px-4 py-2 rounded-md text-sm hover:bg-yellow-200 transition-colors">
-                    🧹 Cache leeren
-                </button>
-            </div>
+        <div class="mb-8">
+            <h2 class="text-2xl font-bold text-gray-900 mb-2">Dashboard</h2>
+            <p class="text-gray-600">Willkommen im Mediahuus CRM-System</p>
         </div>
 
         <!-- Action Cards -->
-        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-            <!-- Kostenvoranschlag Card -->
-            <div class="bg-white overflow-hidden shadow rounded-lg hover:shadow-lg transition-shadow">
-                <div class="p-6">
-                    <div class="flex items-center">
-                        <div class="flex-shrink-0">
-                            <svg class="h-8 w-8 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-                            </svg>
-                        </div>
-                        <div class="ml-4 flex-1">
-                            <h3 class="text-lg font-medium text-gray-900">Kostenvoranschlag</h3>
-                            <p class="text-sm text-gray-500 mb-4">Neuen Kostenvoranschlag erstellen</p>
-                            <a href="{{ url_for('estimate.new') }}" class="bg-green-600 text-white px-4 py-2 rounded-md text-sm hover:bg-green-700 transition-colors">
-                                Erstellen
-                            </a>
-                        </div>
+        <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
+            <!-- Kostenvoranschlag -->
+            <a href="{{ url_for('estimates.create') }}" class="bg-white shadow rounded-lg p-4 hover:shadow-lg transition-shadow group">
+                <div class="flex items-center space-x-3">
+                    <div class="flex-shrink-0 h-10 w-10 rounded-full bg-emerald-100 flex items-center justify-center">
+                        <svg class="h-5 w-5 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                        </svg>
+                    </div>
+                    <div>
+                        <p class="text-sm font-medium text-gray-900 group-hover:text-emerald-600 transition-colors">Kostenvoranschlag</p>
+                        <p class="text-xs text-gray-500">Erstellen</p>
                     </div>
                 </div>
-            </div>
+            </a>
 
-            <!-- Quittung Card -->
-            <div class="bg-white overflow-hidden shadow rounded-lg hover:shadow-md transition-shadow">
-                <div class="p-6">
-                    <div class="flex items-center">
-                        <div class="flex-shrink-0">
-                            <svg class="h-8 w-8 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 14l6-6m-5.5.5h.01m4.99 5h.01M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16l3.5-2 3.5 2 3.5-2 3.5 2zM13 8.5a1.5 1.5 0 11-3 0 1.5 1.5 0 013 0zm-3 4a1.5 1.5 0 11-3 0 1.5 1.5 0 013 0z" />
-                            </svg>
-                        </div>
-                        <div class="ml-4 flex-1">
-                            <h3 class="text-lg font-medium text-gray-900">Quittung</h3>
-                            <p class="text-sm text-gray-500 mb-4">Kaufquittung für verkaufte Produkte/Dienstleistungen</p>
-                            <a href="/receipts/create" class="bg-green-600 text-white px-4 py-2 rounded-md text-sm hover:bg-green-700 transition-colors">
-                                Erstellen
-                            </a>
-                        </div>
+            <!-- Quittung -->
+            <a href="{{ url_for('receipts.create') }}" class="bg-white shadow rounded-lg p-4 hover:shadow-lg transition-shadow group">
+                <div class="flex items-center space-x-3">
+                    <div class="flex-shrink-0 h-10 w-10 rounded-full bg-emerald-100 flex items-center justify-center">
+                        <svg class="h-5 w-5 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 14l6-6m-5.5.5h.01m4.99 5h.01M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16l3.5-2 3.5 2 3.5-2 3.5 2zM13 8.5a1.5 1.5 0 11-3 0 1.5 1.5 0 013 0zm-3 4a1.5 1.5 0 11-3 0 1.5 1.5 0 013 0z" />
+                        </svg>
+                    </div>
+                    <div>
+                        <p class="text-sm font-medium text-gray-900 group-hover:text-emerald-600 transition-colors">Quittung</p>
+                        <p class="text-xs text-gray-500">Erstellen</p>
                     </div>
                 </div>
-            </div>
+            </a>
 
-            <!-- Ankauf Card -->
-            <div class="bg-white overflow-hidden shadow rounded-lg hover:shadow-lg transition-shadow">
-                <div class="p-6">
-                    <div class="flex items-center">
-                        <div class="flex-shrink-0">
-                            <svg class="h-8 w-8 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                            </svg>
-                        </div>
-                        <div class="ml-4 flex-1">
-                            <h3 class="text-lg font-medium text-gray-900">Ankauf</h3>
-                            <p class="text-sm text-gray-500 mb-4">Ankaufsbeleg erstellen</p>
-                            <a href="{{ url_for('purchases.create') }}" class="bg-emerald-600 text-white px-4 py-2 rounded-md text-sm hover:bg-emerald-700 transition-colors">
-                                Erstellen
-                            </a>
-                        </div>
+            <!-- Ankauf -->
+            <a href="{{ url_for('purchases.create') }}" class="bg-white shadow rounded-lg p-4 hover:shadow-lg transition-shadow group">
+                <div class="flex items-center space-x-3">
+                    <div class="flex-shrink-0 h-10 w-10 rounded-full bg-emerald-100 flex items-center justify-center">
+                        <svg class="h-5 w-5 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                        </svg>
+                    </div>
+                    <div>
+                        <p class="text-sm font-medium text-gray-900 group-hover:text-emerald-600 transition-colors">Ankauf</p>
+                        <p class="text-xs text-gray-500">Erstellen</p>
                     </div>
                 </div>
-            </div>
+            </a>
 
-            <!-- Versicherungsgutachten Card (Disabled) -->
-            <div class="bg-white overflow-hidden shadow rounded-lg opacity-50 cursor-not-allowed">
-                <div class="p-6">
-                    <div class="flex items-center">
-                        <div class="flex-shrink-0">
-                            <svg class="h-8 w-8 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
-                            </svg>
-                        </div>
-                        <div class="ml-4 flex-1">
-                            <h3 class="text-lg font-medium text-gray-900">Versicherungsgutachten</h3>
-                            <p class="text-sm text-gray-500 mb-4">Gutachten für Versicherung</p>
-                            <span class="bg-gray-300 text-gray-500 px-4 py-2 rounded-md text-sm cursor-not-allowed">
-                                Bald verfügbar
-                            </span>
-                        </div>
+            <!-- Benutzerverwaltung -->
+            <a href="{{ url_for('users.index') }}" class="bg-white shadow rounded-lg p-4 hover:shadow-lg transition-shadow group">
+                <div class="flex items-center space-x-3">
+                    <div class="flex-shrink-0 h-10 w-10 rounded-full bg-emerald-100 flex items-center justify-center">
+                        <svg class="h-5 w-5 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197m13.5-9a2.5 2.5 0 11-5 0 2.5 2.5 0 015 0z" />
+                        </svg>
+                    </div>
+                    <div>
+                        <p class="text-sm font-medium text-gray-900 group-hover:text-emerald-600 transition-colors">Benutzer</p>
+                        <p class="text-xs text-gray-500">Verwalten</p>
                     </div>
                 </div>
-            </div>
-
-            <!-- Benutzerverwaltung Card -->
-            <div class="bg-white overflow-hidden shadow rounded-lg hover:shadow-lg transition-shadow">
-                <div class="p-6">
-                    <div class="flex items-center">
-                        <div class="flex-shrink-0">
-                            <svg class="h-8 w-8 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197m13.5-9a2.5 2.5 0 11-5 0 2.5 2.5 0 015 0z" />
-                            </svg>
-                        </div>
-                        <div class="ml-4 flex-1">
-                            <h3 class="text-lg font-medium text-gray-900">Benutzerverwaltung</h3>
-                            <p class="text-sm text-gray-500 mb-4">Benutzer verwalten</p>
-                            <a href="{{ url_for('users.index') }}" class="bg-green-600 text-white px-4 py-2 rounded-md text-sm hover:bg-green-700 transition-colors">
-                                Verwalten
-                            </a>
-                        </div>
-                    </div>
-                </div>
-            </div>
+            </a>
         </div>
 
-        <!-- Recent Documents Section -->
+        <!-- Documents Section -->
         <div class="bg-white shadow overflow-hidden sm:rounded-md">
-            <div class="px-4 py-5 sm:px-6">
-                <h3 class="text-lg leading-6 font-medium text-gray-900">Zuletzt erstellt</h3>
-                <p class="mt-1 max-w-2xl text-sm text-gray-500">Ihre neuesten Dokumente</p>
+            <!-- Header with Filters -->
+            <div class="px-4 py-4 sm:px-6 border-b border-gray-200">
+                <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+                    <div>
+                        <h3 class="text-lg leading-6 font-medium text-gray-900">Alle Dokumente</h3>
+                        <p class="mt-1 text-sm text-gray-500">{{ total_count }} Dokumente{% if filter_type or filter_branch %} (gefiltert){% endif %}</p>
+                    </div>
+                    <form method="get" action="/" class="flex flex-wrap items-center gap-3">
+                        <select name="type" onchange="this.form.submit()" class="text-sm border-gray-300 rounded-md shadow-sm focus:ring-emerald-500 focus:border-emerald-500">
+                            <option value="">Alle Typen</option>
+                            <option value="estimate" {{ filter_type == 'estimate' ? 'selected' : '' }}>Kostenvoranschlag</option>
+                            <option value="receipt" {{ filter_type == 'receipt' ? 'selected' : '' }}>Quittung</option>
+                            <option value="purchase" {{ filter_type == 'purchase' ? 'selected' : '' }}>Ankauf</option>
+                        </select>
+                        <select name="branch" onchange="this.form.submit()" class="text-sm border-gray-300 rounded-md shadow-sm focus:ring-emerald-500 focus:border-emerald-500">
+                            <option value="">Alle Filialen</option>
+                            {% for branch in branches %}
+                                <option value="{{ branch.id }}" {{ filter_branch == branch.id ? 'selected' : '' }}>{{ branch.name }}</option>
+                            {% endfor %}
+                        </select>
+                        {% if filter_type or filter_branch %}
+                            <a href="/" class="text-sm text-gray-500 hover:text-gray-700">Filter zurücksetzen</a>
+                        {% endif %}
+                    </form>
+                </div>
             </div>
-            {% if recent_documents|length > 0 %}
+
+            {% if documents|length > 0 %}
                 <ul class="divide-y divide-gray-200">
-                    {% for item in recent_documents %}
-                        <li class="px-6 py-4 hover:bg-gray-50">
+                    {% for item in documents %}
+                        <li class="px-4 sm:px-6 py-4 hover:bg-gray-50">
                             <div class="flex items-center justify-between">
-                                <div class="flex items-center space-x-4">
+                                <div class="flex items-center space-x-4 min-w-0 flex-1">
+                                    <!-- Type Icon -->
                                     <div class="flex-shrink-0">
-                                        <div class="h-10 w-10 rounded-full bg-green-100 flex items-center justify-center">
-                                            <svg class="h-5 w-5 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-                                            </svg>
-                                        </div>
+                                        {% if item.document.doc_type == 'estimate' %}
+                                            <div class="h-10 w-10 rounded-full bg-blue-100 flex items-center justify-center">
+                                                <svg class="h-5 w-5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                                                </svg>
+                                            </div>
+                                        {% elseif item.document.doc_type == 'receipt' %}
+                                            <div class="h-10 w-10 rounded-full bg-emerald-100 flex items-center justify-center">
+                                                <svg class="h-5 w-5 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 14l6-6m-5.5.5h.01m4.99 5h.01M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16l3.5-2 3.5 2 3.5-2 3.5 2z" />
+                                                </svg>
+                                            </div>
+                                        {% elseif item.document.doc_type == 'purchase' %}
+                                            <div class="h-10 w-10 rounded-full bg-amber-100 flex items-center justify-center">
+                                                <svg class="h-5 w-5 text-amber-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                                </svg>
+                                            </div>
+                                        {% endif %}
                                     </div>
+
+                                    <!-- Content -->
                                     <div class="flex-1 min-w-0">
-                                        <div class="flex items-center space-x-3">
-                                            <p class="text-sm font-medium text-gray-900">
-                                                {{ item.document.doc_number }}
-                                            </p>
+                                        <div class="flex items-center space-x-2 flex-wrap">
+                                            <p class="text-sm font-medium text-gray-900">{{ item.document.doc_number }}</p>
                                             {% if item.document.doc_type == 'estimate' %}
-                                                <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
-                                                    Kostenvoranschlag
-                                                </span>
+                                                <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">Kostenvoranschlag</span>
                                             {% elseif item.document.doc_type == 'receipt' %}
-                                                <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
-                                                    Quittung
-                                                </span>
+                                                <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-emerald-100 text-emerald-800">Quittung</span>
                                             {% elseif item.document.doc_type == 'purchase' %}
-                                                <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-emerald-100 text-emerald-800">
-                                                    Ankauf
-                                                </span>
+                                                <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-amber-100 text-amber-800">Ankauf</span>
                                             {% endif %}
                                         </div>
-                                        <p class="text-sm text-gray-900 font-medium">
-                                            {{ item.document.customer_name }}
-                                        </p>
-                                        {% if item.estimate %}
-                                            <p class="text-sm text-gray-600 font-medium">
-                                                {{ item.estimate.device_name }}
-                                            </p>
-                                        {% elseif item.purchase %}
-                                            <p class="text-sm text-gray-600 font-medium">
-                                                {{ item.purchase.device_full_name }}
-                                            </p>
-                                        {% elseif item.receipt %}
-                                            <p class="text-sm text-gray-600 font-medium">
-                                                {{ item.receipt.item_count }} Artikel
-                                            </p>
-                                        {% endif %}
-                                        <div class="text-sm text-gray-500 space-y-1">
-                                            <p>{{ item.branch.name }}
-                                                {% if item.estimate %} • {{ item.estimate.formatted_price }}
-                                                {% elseif item.purchase %} • {{ item.purchase.formatted_price }}
-                                                {% elseif item.receipt %} • {{ item.receipt.formatted_total }}
-                                                {% endif %}
-                                            </p>
-                                            <p>Erstellt: {{ item.document.created_at|date('d.m.Y H:i') }}</p>
+                                        <p class="text-sm text-gray-900 mt-0.5">{{ item.document.customer_name }}</p>
+                                        <div class="flex items-center space-x-3 text-sm text-gray-500 mt-0.5">
+                                            {% if item.estimate %}
+                                                <span>{{ item.estimate.device_name }}</span>
+                                                <span class="font-medium text-gray-700">{{ item.estimate.formatted_price }}</span>
+                                            {% elseif item.purchase %}
+                                                <span>{{ item.purchase.device_full_name }}</span>
+                                                <span class="font-medium text-gray-700">{{ item.purchase.formatted_price }}</span>
+                                            {% elseif item.receipt %}
+                                                <span>{{ item.receipt.item_count }} Artikel</span>
+                                                <span class="font-medium text-gray-700">{{ item.receipt.formatted_total }}</span>
+                                            {% endif %}
+                                            <span>{{ item.branch.name }}</span>
+                                            <span>{{ item.document.created_at|date('d.m.Y H:i') }}</span>
                                         </div>
                                     </div>
                                 </div>
-                                
-                                <div class="flex items-center space-x-2">
+
+                                <!-- Actions -->
+                                <div class="flex items-center space-x-2 ml-4 flex-shrink-0">
                                     {% if item.document.doc_type == 'estimate' %}
-                                        <!-- View Button -->
                                         <a href="{{ url_for('estimates.show', {id: item.document.id}) }}"
-                                           class="bg-gray-100 text-gray-700 px-3 py-1 rounded text-sm hover:bg-gray-200 transition-colors">
-                                            Anzeigen
+                                           class="text-gray-500 hover:text-gray-700 p-1.5 rounded hover:bg-gray-100 transition-colors" title="Anzeigen">
+                                            <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                                            </svg>
                                         </a>
-                                        <!-- PDF Button -->
                                         <a href="{{ url_for('estimates.pdf', {id: item.document.id}) }}"
-                                           class="bg-emerald-100 text-emerald-800 px-3 py-1 rounded text-sm hover:bg-emerald-200 transition-colors"
-                                           title="PDF herunterladen">
-                                            PDF
+                                           class="text-emerald-600 hover:text-emerald-800 p-1.5 rounded hover:bg-emerald-50 transition-colors" title="PDF herunterladen">
+                                            <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                                            </svg>
                                         </a>
                                     {% elseif item.document.doc_type == 'receipt' %}
-                                        <!-- View Button -->
                                         <a href="{{ url_for('receipts.show', {id: item.document.id}) }}"
-                                           class="bg-gray-100 text-gray-700 px-3 py-1 rounded text-sm hover:bg-gray-200 transition-colors">
-                                            Anzeigen
+                                           class="text-gray-500 hover:text-gray-700 p-1.5 rounded hover:bg-gray-100 transition-colors" title="Anzeigen">
+                                            <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                                            </svg>
                                         </a>
-                                        <!-- PDF Button -->
                                         <a href="{{ url_for('receipts.pdf', {id: item.document.id}) }}"
-                                           class="bg-emerald-100 text-emerald-800 px-3 py-1 rounded text-sm hover:bg-emerald-200 transition-colors"
-                                           title="PDF herunterladen">
-                                            PDF
+                                           class="text-emerald-600 hover:text-emerald-800 p-1.5 rounded hover:bg-emerald-50 transition-colors" title="PDF herunterladen">
+                                            <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                                            </svg>
                                         </a>
                                     {% elseif item.document.doc_type == 'purchase' %}
-                                        <!-- View Button -->
                                         <a href="{{ url_for('purchases.show', {id: item.document.id}) }}"
-                                           class="bg-gray-100 text-gray-700 px-3 py-1 rounded text-sm hover:bg-gray-200 transition-colors">
-                                            Anzeigen
+                                           class="text-gray-500 hover:text-gray-700 p-1.5 rounded hover:bg-gray-100 transition-colors" title="Anzeigen">
+                                            <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                                            </svg>
                                         </a>
-                                        <!-- PDF Button -->
                                         <a href="{{ url_for('purchases.pdf', {id: item.document.id}) }}"
-                                           class="bg-emerald-100 text-emerald-800 px-3 py-1 rounded text-sm hover:bg-emerald-200 transition-colors"
-                                           title="PDF herunterladen">
-                                            PDF
+                                           class="text-emerald-600 hover:text-emerald-800 p-1.5 rounded hover:bg-emerald-50 transition-colors" title="PDF herunterladen">
+                                            <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                                            </svg>
                                         </a>
                                     {% endif %}
                                 </div>
                             </div>
-                            
-                            <!-- Issue Preview -->
-                            {% if item.estimate and item.estimate.issue_text %}
-                                <div class="mt-3 pl-14">
-                                    <p class="text-sm text-gray-600 italic">
-                                        "{{ item.estimate.issue_text|striptags|slice(0, 150) }}{% if item.estimate.issue_text|striptags|length > 150 %}...{% endif %}"
-                                    </p>
-                                </div>
-                            {% endif %}
                         </li>
                     {% endfor %}
                 </ul>
-                <div class="px-6 py-3 bg-gray-50 border-t border-gray-200">
-                    <div class="flex justify-center gap-6">
-                        <a href="{{ url_for('estimates.index') }}"
-                           class="text-sm text-emerald-600 hover:text-emerald-500 font-medium">
-                            Alle Kostenvoranschläge →
-                        </a>
-                        <a href="{{ url_for('receipts.index') }}"
-                           class="text-sm text-emerald-600 hover:text-emerald-500 font-medium">
-                            Alle Quittungen →
-                        </a>
-                        <a href="{{ url_for('purchases.index') }}"
-                           class="text-sm text-emerald-600 hover:text-emerald-500 font-medium">
-                            Alle Ankäufe →
-                        </a>
-                    </div>
-                </div>
             {% else %}
-                <div class="px-4 py-5 sm:p-6">
+                <div class="px-4 py-12 sm:p-12">
                     <div class="text-center text-gray-500">
                         <svg class="mx-auto h-12 w-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
                         </svg>
-                        <p class="mt-2">Noch keine Dokumente erstellt</p>
+                        <p class="mt-2">{% if filter_type or filter_branch %}Keine Dokumente mit diesen Filtern gefunden{% else %}Noch keine Dokumente erstellt{% endif %}</p>
                     </div>
                 </div>
             {% endif %}
         </div>
     </div>
 </div>
-
-<script>
-document.getElementById('clearCacheBtn').addEventListener('click', function() {
-    const btn = this;
-    const originalText = btn.textContent;
-    
-    // Disable button and show loading state
-    btn.disabled = true;
-    btn.textContent = '🔄 Lädt...';
-    btn.classList.add('opacity-50', 'cursor-not-allowed');
-    
-    fetch('/clear-cache', {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json',
-        },
-    })
-    .then(response => response.json())
-    .then(data => {
-        if (data.success) {
-            btn.textContent = '✅ Geleert!';
-            btn.classList.remove('bg-yellow-100', 'text-yellow-800', 'hover:bg-yellow-200');
-            btn.classList.add('bg-green-100', 'text-green-800');
-            
-            // Reset after 2 seconds
-            setTimeout(() => {
-                btn.textContent = originalText;
-                btn.classList.remove('bg-green-100', 'text-green-800');
-                btn.classList.add('bg-yellow-100', 'text-yellow-800', 'hover:bg-yellow-200');
-                btn.disabled = false;
-                btn.classList.remove('opacity-50', 'cursor-not-allowed');
-                
-                // Reload page to see changes
-                window.location.reload();
-            }, 2000);
-        } else {
-            btn.textContent = '❌ Fehler';
-            btn.classList.remove('bg-yellow-100', 'text-yellow-800');
-            btn.classList.add('bg-red-100', 'text-red-800');
-            console.error('Cache clear failed:', data.message);
-            
-            // Reset after 3 seconds
-            setTimeout(() => {
-                btn.textContent = originalText;
-                btn.classList.remove('bg-red-100', 'text-red-800');
-                btn.classList.add('bg-yellow-100', 'text-yellow-800', 'hover:bg-yellow-200');
-                btn.disabled = false;
-                btn.classList.remove('opacity-50', 'cursor-not-allowed');
-            }, 3000);
-        }
-    })
-    .catch(error => {
-        console.error('Cache clear error:', error);
-        btn.textContent = '❌ Fehler';
-        btn.classList.remove('bg-yellow-100', 'text-yellow-800');
-        btn.classList.add('bg-red-100', 'text-red-800');
-        
-        // Reset after 3 seconds
-        setTimeout(() => {
-            btn.textContent = originalText;
-            btn.classList.remove('bg-red-100', 'text-red-800');
-            btn.classList.add('bg-yellow-100', 'text-yellow-800', 'hover:bg-yellow-200');
-            btn.disabled = false;
-            btn.classList.remove('opacity-50', 'cursor-not-allowed');
-        }, 3000);
-    });
-});
-</script>
 {% endblock %}
