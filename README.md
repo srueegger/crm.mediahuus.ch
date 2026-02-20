@@ -2,14 +2,16 @@
 
 Internes CRM-System für die Mediahuus Handy-An-/Verkauf & Reparatur-Shops.
 
-## Features (MVP)
+## Features
 
 - ✅ Login/Logout für Mitarbeitende
 - ✅ Dashboard mit Navigation
-- 🚧 Kostenvoranschlag erstellen (nächste Iteration)
-- 🚧 Dokumenten-Management
-- 🚧 PDF-Generierung
-- ⏳ Ankauf (geplant)
+- ✅ Kostenvoranschläge erstellen & als PDF exportieren
+- ✅ Ankauf (Geräte-Einkauf) mit Ausweis-Fotografie & IMEI-Scanner
+- ✅ Quittungen (Verkaufsbelege) mit Artikelliste
+- ✅ PDF-Generierung für alle Dokumenttypen
+- ✅ Benutzerverwaltung (CRUD)
+- ✅ Filialen-System (Clara & Reinach)
 - ⏳ Versicherungsgutachten (geplant)
 
 ## Tech Stack
@@ -20,15 +22,13 @@ Internes CRM-System für die Mediahuus Handy-An-/Verkauf & Reparatur-Shops.
 - **PDF Generation**: TCPDF
 - **Frontend**: Tailwind CSS + Vanilla JS
 - **DI Container**: PHP-DI
-
-Siehe [ADR-0001](docs/adr/0001-tech-choice.md) für Details zur Stack-Entscheidung.
+- **Barcode Scanner**: QuaggaJS (IMEI-Scan via Kamera)
 
 ## Lokale Entwicklung mit DDEV
 
 ### Voraussetzungen
 
 - DDEV installiert
-- Composer verfügbar
 - Git
 
 ### Setup
@@ -47,8 +47,11 @@ ddev composer install
 # Environment-Datei erstellen
 cp .env.example .env
 
-# Database-Migrations ausführen (wenn vorhanden)
-# ddev composer migrate
+# Database-Migrations ausführen
+ddev composer migrate
+
+# Test-Daten laden
+ddev composer seed
 
 # Browser öffnen
 ddev launch
@@ -57,33 +60,22 @@ ddev launch
 ### Verfügbare Befehle
 
 ```bash
-# Container starten
-ddev start
+# Container-Management
+ddev start              # Container starten
+ddev stop               # Container stoppen
+ddev launch             # Browser öffnen
 
-# Container stoppen
-ddev stop
+# Dependencies
+ddev composer install   # Dependencies installieren
+ddev composer update    # Dependencies aktualisieren
 
-# Composer-Befehle
-ddev composer install
-ddev composer update
+# Database
+ddev composer migrate   # Migrations ausführen
+ddev composer seed      # Test-Daten laden
 
-# Database-Befehle (zukünftig)
-ddev composer migrate
-ddev composer seed
-
-# Code-Quality (zukünftig)
-ddev composer phpcs
-ddev composer phpstan
-ddev composer test
-
-# Browser öffnen
-ddev launch
-
-# Logs anzeigen
-ddev logs -f
-
-# Shell in Container
-ddev ssh
+# System
+ddev logs -f            # Logs anzeigen
+ddev ssh                # Shell in Container
 ```
 
 ## Demo-Zugang
@@ -97,30 +89,45 @@ Passwort: admin123
 
 ```
 app/
-├── Controllers/     # Request-Handler
-├── Models/         # Datenmodelle (zukünftig)
-├── Services/       # Business Logic (zukünftig)
-└── Middleware/     # Request-Middleware
+├── Controllers/        # HTTP Request Handler
+│   ├── AuthController.php
+│   ├── BaseController.php
+│   ├── DashboardController.php
+│   ├── EstimateController.php
+│   ├── PurchaseController.php
+│   ├── ReceiptController.php
+│   └── UserController.php
+├── Models/             # Datenmodelle
+├── Repositories/       # Datenzugriff
+├── Services/           # Business Logic
+│   ├── AuthService.php
+│   ├── DamageTypeService.php
+│   ├── FileUploadService.php
+│   └── PdfService.php
+└── Middleware/
+    └── AuthMiddleware.php
 
 config/
-├── container.php   # DI-Container-Konfiguration
-└── routes.php      # Route-Definitionen
+├── container.php       # DI-Container-Konfiguration
+└── routes.php          # Route-Definitionen
 
 database/
-├── migrations/     # Database-Migrations (zukünftig)
-└── seeds/         # Test-Daten (zukünftig)
+├── migrations/         # SQL Migrations (001-009)
+└── backups/            # SQL Dumps
 
 public/
-├── index.php      # Einsprungspunkt
-└── assets/        # Statische Assets (Logo, CSS, JS)
+├── index.php           # Einsprungspunkt
+├── assets/             # CSS, JS, Images
+└── uploads/            # User Uploads (ID-Dokumente)
 
 templates/
-├── auth/          # Login-Templates
-├── base.html.twig # Layout-Template
+├── auth/               # Login
+├── estimates/          # Kostenvoranschläge
+├── purchases/          # Ankauf
+├── receipts/           # Quittungen
+├── users/              # Benutzerverwaltung
+├── base.html.twig      # Layout-Template
 └── dashboard.html.twig
-
-docs/
-└── adr/          # Architecture Decision Records
 ```
 
 ## Entwicklung
@@ -141,35 +148,9 @@ chore: update dependencies
 docs: improve setup instructions
 ```
 
-## Roadmap
-
-### Sprint 1: Kostenvoranschlag (aktuell)
-- [ ] Database-Migrations (users, branches, documents, estimates)
-- [ ] Kostenvoranschlag-Formular
-- [ ] PDF-Generierung mit Logo & Filial-Adressen
-- [ ] Dokumenten-Liste mit Filtern
-- [ ] Basic Tests
-
-### Sprint 2: Ankauf
-- [ ] Ankauf-Formular
-- [ ] PDF-Templates erweitern
-- [ ] Erweiterte Filiale-Features
-
-### Sprint 3: Versicherungsgutachten
-- [ ] Gutachten-Formular
-- [ ] Spezielle PDF-Layouts
-- [ ] Archivierung
-
 ## Filialen
 
-- **Mediahuus Clara**: Placeholder Adresse
-- **Mediahuus Reinach**: Placeholder Adresse
+- **Mediahuus Clara**: Hauptfiliale
+- **Mediahuus Reinach**: Zweigstelle
 
-(Adressen werden in Database-Seeds definiert)
-
-## Support
-
-Für Fragen und Issues:
-- Interne Dokumentation: `/docs/`
-- Code-Review: Pull Requests
-- Deployment: DDEV → Produktion (TBD)
+(Adressen und Kontaktdaten in database/migrations definiert)

@@ -18,7 +18,7 @@ Internes CRM für einen Handy-An-/Verkauf- & Reparatur-Shop mit 2 Filialen:
 
 ## Projektübersicht
 
-Das Mediahuus CRM ist ein internes Customer Relationship Management System für die Mediahuus Handy-An-/Verkauf & Reparatur-Shops. Es handelt sich um eine PHP-basierte Webanwendung zur Verwaltung von Kostenvoranschlägen, Ankäufen und Versicherungsgutachten.
+Das Mediahuus CRM ist ein internes Customer Relationship Management System für die Mediahuus Handy-An-/Verkauf & Reparatur-Shops. Es handelt sich um eine PHP-basierte Webanwendung zur Verwaltung von Kostenvoranschlägen, Ankäufen, Quittungen und Versicherungsgutachten.
 
 ## Technische Architektur
 
@@ -42,17 +42,32 @@ app/
 │   ├── BaseController.php
 │   ├── DashboardController.php
 │   ├── EstimateController.php
+│   ├── PurchaseController.php
+│   ├── ReceiptController.php
 │   └── UserController.php
 ├── Models/            # Datenmodelle
 │   ├── Branch.php
 │   ├── Document.php
 │   ├── Estimate.php
+│   ├── Purchase.php
+│   ├── Receipt.php
+│   ├── ReceiptItem.php
 │   └── User.php
 ├── Repositories/      # Datenzugriff
+│   ├── BranchRepository.php
+│   ├── DocumentRepository.php
+│   ├── EstimateRepository.php
+│   ├── PurchaseRepository.php
+│   ├── ReceiptItemRepository.php
+│   ├── ReceiptRepository.php
+│   └── UserRepository.php
 ├── Services/          # Business Logic
 │   ├── AuthService.php
+│   ├── DamageTypeService.php
+│   ├── FileUploadService.php
 │   └── PdfService.php
 └── Middleware/        # Request Middleware
+    └── AuthMiddleware.php
 
 config/
 ├── container.php      # DI Container Konfiguration
@@ -65,39 +80,75 @@ database/
 │   ├── 003_create_documents_table.sql
 │   ├── 004_create_estimates_table.sql
 │   ├── 005_add_device_fields_to_estimates.sql
-│   └── 006_update_branch_emails.sql
+│   ├── 006_update_branch_emails.sql
+│   ├── 007_add_damage_type_to_estimates.sql
+│   ├── 007_create_purchases_table.sql
+│   ├── 008_create_receipts_table.sql
+│   └── 009_add_receipt_type_to_documents.sql
 └── backups/          # SQL Dumps
 
 public/
 ├── index.php         # Application Entry Point
-└── assets/           # CSS, JS, Images
+├── assets/           # CSS, JS, Images
+└── uploads/          # User Uploads
+    └── id_documents/ # Ausweis-Fotos (Ankauf)
 
 templates/            # Twig Templates
 ├── auth/
+│   └── login.html.twig
 ├── base.html.twig
-└── dashboard.html.twig
+├── dashboard.html.twig
+├── estimates/
+│   ├── create.html.twig
+│   ├── index.html.twig
+│   └── show.html.twig
+├── purchases/
+│   ├── create.html.twig
+│   ├── index.html.twig
+│   └── show.html.twig
+├── receipts/
+│   ├── create.html.twig
+│   ├── index.html.twig
+│   └── show.html.twig
+└── users/
+    ├── create.html.twig
+    ├── edit.html.twig
+    └── index.html.twig
 ```
 
-## Kernfunktionen (MVP-Status)
+## Kernfunktionen
 
 ### ✅ Vollständig implementiert
 - **Login/Logout**: Authentifizierung für Mitarbeitende (gehashte Passwörter)
-- **Dashboard**: Kacheln für "Kostenvoranschlag", "Ankauf", "Versicherungsgutachten"
+- **Dashboard**: Kacheln für "Kostenvoranschlag", "Ankauf", "Quittung", "Versicherungsgutachten"
 - **Benutzerverwaltung**: CRUD für Mitarbeitende (Admin-Bereich)
-- **Kostenvoranschläge**: 
+- **Kostenvoranschläge**:
   - Formular mit allen Pflichtfeldern (Kunde, Telefon, E-Mail, Schaden, Kosten, Filiale)
+  - Schadenstyp-Klassifikation (Akku, Display, Wasser, etc.) via DamageTypeService
   - PDF-Generation mit Logo & Filial-Adressen
   - Eindeutige Dokumentnummer (Format: KO-YYYY-NNNNNN)
   - Schweizer Standards (CHF, DD.MM.YYYY)
-- **Dokumentenliste**: Tabellarisch mit Filtern (Filiale, Typ, Datum)
+- **Ankauf (Geräte-Einkauf)**:
+  - Formular mit Verkäuferdaten (Name, Adresse, Telefon, E-Mail)
+  - Gerätedaten (Typ, Marke, Modell, IMEI, Seriennummer, Zustand, Zubehör)
+  - IMEI-Barcode-Scanner via Kamera (QuaggaJS)
+  - Ausweis-Fotografie via Kamera (Vorder- & Rückseite)
+  - Ankaufspreis in CHF
+  - PDF-Generierung mit Bestätigungstext & Unterschriftenlinien
+  - Eindeutige Dokumentnummer (Format: AN-YYYY-NNNNNN)
+- **Quittungen (Verkaufsbelege)**:
+  - Formular mit Positions-/Artikelliste (Beschreibung, Menge, Einzelpreis)
+  - Dynamische Zeilen hinzufügen/entfernen
+  - Automatische Summenberechnung
+  - PDF-Generierung mit Artikeltabelle & Gesamtbetrag
+  - Eindeutige Dokumentnummer (Format: QU-YYYY-NNNNNN)
+- **Dokumentenliste**: Tabellarisch mit Filtern (Filiale, Typ, Datum) pro Modul
 - **Filialen-System**: Clara & Reinach mit separaten Adressen
 
 ### 🔗 Placeholder implementiert
-- **Ankauf**: Link führt zurück zum Dashboard
 - **Versicherungsgutachten**: Link führt zurück zum Dashboard
 
-### ⏳ Noch zu implementieren (nächste Sprints)
-- **Ankauf-Modul**: Geräte-Einschätzungs-Formulare
+### ⏳ Noch zu implementieren
 - **Versicherungsgutachten**: Spezielle Assessment-Workflows
 - **Erweiterte Dokumentenverwaltung**: Archive, Export
 - **Tests**: Smoke-Tests für zentrale Use-Cases
@@ -108,15 +159,17 @@ templates/            # Twig Templates
 ```sql
 users (id, name, email [unique], password_hash, is_active, created_at, updated_at)
 branches (id, name, street, zip, city, phone, email, created_at, updated_at)
-documents (id, doc_type ENUM["estimate","purchase","insurance"], doc_number UNIQUE, branch_id FK, user_id FK, customer_name, customer_phone, customer_email, created_at, updated_at)
-estimates (id, document_id FK UNIQUE, issue_text TEXT, price_chf DECIMAL(10,2))
+documents (id, doc_type ENUM["estimate","purchase","insurance","receipt"], doc_number UNIQUE, branch_id FK, user_id FK, customer_name, customer_phone, customer_email, created_at, updated_at)
+estimates (id, document_id FK UNIQUE, device_name, serial_number, damage_type ENUM, issue_text TEXT, price_chf DECIMAL(10,2))
+purchases (id, document_id FK UNIQUE, seller_street, seller_zip, seller_city, device_type, device_brand, device_model, imei, serial_number, device_condition, accessories, purchase_price_chf DECIMAL(10,2), id_document_front, id_document_back)
+receipts (id, document_id FK UNIQUE, notes TEXT, total_amount DECIMAL(10,2))
+receipt_items (id, receipt_id FK, item_description, quantity INT, unit_price DECIMAL(10,2), line_total DECIMAL(10,2))
 ```
 
 ### Design-Prinzip
 - **Generische Dokumente**: `documents` als Basis-Tabelle
-- **Typ-spezifische Details**: `estimates` für Kostenvoranschläge
-- **Erweiterbar**: Zukünftig `purchase`, `insurance` analog
-- **Eindeutige Dokumentnummern**: Format KO-2025-000001
+- **Typ-spezifische Details**: `estimates`, `purchases`, `receipts` je als Detail-Tabelle
+- **Eindeutige Dokumentnummern**: KO-YYYY-NNNNNN, AN-YYYY-NNNNNN, QU-YYYY-NNNNNN
 
 ### Environment Variablen
 ```
@@ -223,6 +276,24 @@ GET  /estimates/{id}         → Detailansicht
 GET  /estimates/{id}/pdf     → PDF-Download
 ```
 
+### Ankauf (Geräte-Einkauf)
+```
+GET  /purchases              → Ankaufsliste (mit Filtern)
+GET  /purchases/create       → Ankauf-Formular
+POST /purchases              → Speichern + Redirect
+GET  /purchases/{id}         → Detailansicht
+GET  /purchases/{id}/pdf     → PDF-Download (Ankaufsbeleg)
+```
+
+### Quittungen (Verkaufsbelege)
+```
+GET  /receipts               → Quittungsliste (mit Filtern)
+GET  /receipts/create        → Quittungs-Formular
+POST /receipts               → Speichern + Redirect
+GET  /receipts/{id}          → Detailansicht
+GET  /receipts/{id}/pdf      → PDF-Download (Quittung)
+```
+
 ### Benutzerverwaltung
 ```
 GET  /users                  → User-Liste
@@ -235,7 +306,6 @@ POST /users/{id}/toggle-status → Aktiv/Inaktiv
 
 ### Placeholder-Routes
 ```
-GET  /purchase/new           → Redirect zu Dashboard
 GET  /insurance/new          → Redirect zu Dashboard
 ```
 
@@ -255,21 +325,29 @@ GET  /insurance/new          → Redirect zu Dashboard
 ## Sprint-Status
 
 ### ✅ Sprint 1: Kostenvoranschlag (ABGESCHLOSSEN)
-- [✅] Database-Migrations (alle 6 Migrations)
+- [✅] Database-Migrations
 - [✅] Kostenvoranschlag-Formular mit Validierung
+- [✅] Schadenstyp-Klassifikation (DamageTypeService)
 - [✅] PDF-Generierung (Logo, Filial-Adressen, CH-Standards)
 - [✅] Dokumenten-Liste mit Filtern (Filiale, Typ, Datum)
 - [✅] Dashboard mit Navigation und letzten Dokumenten
 - [✅] User-Management (CRUD)
-- [⏳] Tests (noch ausstehend)
 
-### 🎯 Sprint 2: Ankauf-Modul (NÄCHSTER)
-- [ ] Ankauf-Formular für Geräte-Bewertung
-- [ ] PDF-Templates für Ankaufs-Belege
-- [ ] Integration mit Document-System
-- [ ] Erweiterte Filiale-Features
+### ✅ Sprint 2: Ankauf-Modul (ABGESCHLOSSEN)
+- [✅] Ankauf-Formular mit Verkäufer- & Gerätedaten
+- [✅] IMEI-Barcode-Scanner (QuaggaJS via Kamera)
+- [✅] Ausweis-Fotografie (Kamera-Capture, Vorder-/Rückseite)
+- [✅] FileUploadService für ID-Dokument-Uploads
+- [✅] PDF-Generierung (Ankaufsbeleg mit Bestätigung & Unterschriften)
+- [✅] Dokumenten-Liste mit Filtern
 
-### 🎯 Sprint 3: Versicherungsgutachten
+### ✅ Sprint 3: Quittungen (ABGESCHLOSSEN)
+- [✅] Quittungs-Formular mit dynamischer Artikelliste
+- [✅] Positions-Management (hinzufügen/entfernen, Menge, Einzelpreis)
+- [✅] PDF-Generierung (Artikeltabelle mit Summen)
+- [✅] Dokumenten-Liste mit Filtern
+
+### 🎯 Sprint 4: Versicherungsgutachten (AUSSTEHEND)
 - [ ] Gutachten-Formulare
 - [ ] Spezielle PDF-Layouts für Versicherungen
 - [ ] Archivierungs-System
@@ -287,23 +365,15 @@ GET  /insurance/new          → Redirect zu Dashboard
 
 (Adressen und Kontaktdaten in database/migrations definiert)
 
-## Demo-Zugang
-```
-E-Mail: admin@mediahuus.ch
-Passwort: admin123
-```
-
 ## Nächste Schritte
-1. **Tests implementieren**: Smoke-Tests für Login, Estimate-Erstellung, PDF-Generation
-2. **Code-Quality**: PHPStan-Setup, PHPCS-Konfiguration
-3. **Sprint 2 starten**: Ankauf-Modul planen und implementieren
-4. **Performance**: Caching-Layer für PDF-Generation
-5. **UX**: Frontend-Verbesserungen, Responsive Design
+1. **Versicherungsgutachten**: Sprint 4 - Gutachten-Formulare & PDF-Layouts
+2. **Tests implementieren**: Smoke-Tests für Login, Dokument-Erstellung, PDF-Generation
+3. **Code-Quality**: PHPStan-Setup, PHPCS-Konfiguration
+4. **Erweiterte Dokumentenverwaltung**: Archive, Export
+5. **Deployment**: Staging/Produktions-Setup definieren
 
 ---
 
-**Status:** MVP vollständig implementiert, Sprint 1 abgeschlossen
-**Nächste Iteration:** Ankauf-Modul (Sprint 2)
-
-Diese Dokumentation wird kontinuierlich mit der Entwicklung aktualisiert.
+**Status:** Sprints 1-3 abgeschlossen (Kostenvoranschläge, Ankauf, Quittungen)
+**Nächste Iteration:** Versicherungsgutachten (Sprint 4)
 - immer das gleiche gürn für icons und buttons verwenden, das wir sonst auch überall bei dem projekt nutzen
