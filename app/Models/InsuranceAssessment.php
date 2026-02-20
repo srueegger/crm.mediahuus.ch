@@ -18,6 +18,9 @@ class InsuranceAssessment
     private string $assessmentResult;
     private ?float $deviceValueChf;
     private ?float $repairCostChf;
+    private string $customerStreet;
+    private string $customerZip;
+    private string $customerCity;
 
     public function __construct(
         int $documentId,
@@ -26,6 +29,9 @@ class InsuranceAssessment
         string $serialNumber,
         string $damageDescription,
         string $assessmentResult,
+        string $customerStreet = '',
+        string $customerZip = '',
+        string $customerCity = '',
         ?float $deviceValueChf = null,
         ?float $repairCostChf = null,
         ?int $id = null
@@ -37,6 +43,9 @@ class InsuranceAssessment
         $this->serialNumber = $serialNumber;
         $this->damageDescription = $damageDescription;
         $this->assessmentResult = $assessmentResult;
+        $this->customerStreet = $customerStreet;
+        $this->customerZip = $customerZip;
+        $this->customerCity = $customerCity;
         $this->deviceValueChf = $deviceValueChf;
         $this->repairCostChf = $repairCostChf;
     }
@@ -69,6 +78,26 @@ class InsuranceAssessment
     public function getDamageDescription(): string
     {
         return $this->damageDescription;
+    }
+
+    public function getCustomerStreet(): string
+    {
+        return $this->customerStreet;
+    }
+
+    public function getCustomerZip(): string
+    {
+        return $this->customerZip;
+    }
+
+    public function getCustomerCity(): string
+    {
+        return $this->customerCity;
+    }
+
+    public function getCustomerAddress(): string
+    {
+        return $this->customerStreet . ', ' . $this->customerZip . ' ' . $this->customerCity;
     }
 
     public function getAssessmentResult(): string
@@ -137,6 +166,10 @@ class InsuranceAssessment
             'damage_description' => $this->damageDescription,
             'assessment_result' => $this->assessmentResult,
             'assessment_result_label' => $this->getAssessmentResultLabel(),
+            'customer_street' => $this->customerStreet,
+            'customer_zip' => $this->customerZip,
+            'customer_city' => $this->customerCity,
+            'customer_address' => $this->getCustomerAddress(),
             'device_value_chf' => $this->deviceValueChf,
             'formatted_device_value' => $this->getFormattedDeviceValue(),
             'repair_cost_chf' => $this->repairCostChf,

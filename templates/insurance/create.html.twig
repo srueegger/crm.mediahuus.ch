@@ -55,6 +55,36 @@
                                 <p class="mt-1 text-sm text-red-600">{{ errors.customer_name }}</p>
                             {% endif %}
                         </div>
+                        <div class="md:col-span-2">
+                            <label for="customer_street" class="mediahuus-label">Strasse *</label>
+                            <input type="text" name="customer_street" id="customer_street" required
+                                   value="{{ formData.customer_street|default('') }}"
+                                   class="mediahuus-input {{ errors.customer_street is defined ? 'error' : '' }}"
+                                   placeholder="Musterstrasse 123">
+                            {% if errors.customer_street is defined %}
+                                <p class="mt-1 text-sm text-red-600">{{ errors.customer_street }}</p>
+                            {% endif %}
+                        </div>
+                        <div>
+                            <label for="customer_zip" class="mediahuus-label">PLZ *</label>
+                            <input type="text" name="customer_zip" id="customer_zip" required
+                                   value="{{ formData.customer_zip|default('') }}"
+                                   class="mediahuus-input {{ errors.customer_zip is defined ? 'error' : '' }}"
+                                   placeholder="4000">
+                            {% if errors.customer_zip is defined %}
+                                <p class="mt-1 text-sm text-red-600">{{ errors.customer_zip }}</p>
+                            {% endif %}
+                        </div>
+                        <div>
+                            <label for="customer_city" class="mediahuus-label">Ort *</label>
+                            <input type="text" name="customer_city" id="customer_city" required
+                                   value="{{ formData.customer_city|default('') }}"
+                                   class="mediahuus-input {{ errors.customer_city is defined ? 'error' : '' }}"
+                                   placeholder="Basel">
+                            {% if errors.customer_city is defined %}
+                                <p class="mt-1 text-sm text-red-600">{{ errors.customer_city }}</p>
+                            {% endif %}
+                        </div>
                         <div>
                             <label for="customer_phone" class="mediahuus-label">Telefon</label>
                             <input type="tel" name="customer_phone" id="customer_phone"

@@ -117,6 +117,9 @@ class InsuranceController extends BaseController
                 serialNumber: trim($data['serial_number']),
                 damageDescription: trim($data['damage_description'] ?? ''),
                 assessmentResult: $data['assessment_result'],
+                customerStreet: trim($data['customer_street'] ?? ''),
+                customerZip: trim($data['customer_zip'] ?? ''),
+                customerCity: trim($data['customer_city'] ?? ''),
                 deviceValueChf: $deviceValue !== '' ? (float) $deviceValue : null,
                 repairCostChf: $repairCost !== '' ? (float) $repairCost : null
             );
@@ -256,6 +259,18 @@ class InsuranceController extends BaseController
 
         if (empty(trim($data['serial_number'] ?? ''))) {
             $errors['serial_number'] = 'Seriennummer ist erforderlich';
+        }
+
+        if (empty(trim($data['customer_street'] ?? ''))) {
+            $errors['customer_street'] = 'Strasse ist erforderlich';
+        }
+
+        if (empty(trim($data['customer_zip'] ?? ''))) {
+            $errors['customer_zip'] = 'PLZ ist erforderlich';
+        }
+
+        if (empty(trim($data['customer_city'] ?? ''))) {
+            $errors['customer_city'] = 'Ort ist erforderlich';
         }
 
         if (empty($data['assessment_result'] ?? '')) {

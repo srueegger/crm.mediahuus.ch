@@ -1094,8 +1094,8 @@ class PdfService
         // Document Title
         $currentY = $this->addInsuranceTitle($pdf, $document, $currentY);
 
-        // Customer Information
-        $currentY = $this->addCustomerInfo($pdf, $document, $currentY);
+        // Customer Information (with address from assessment)
+        $currentY = $this->addInsuranceCustomerInfo($pdf, $document, $assessment, $currentY);
 
         // Device Information
         $currentY = $this->addInsuranceDeviceInfo($pdf, $assessment, $currentY);
@@ -1142,6 +1142,40 @@ class PdfService
         $pdf->Cell(0, 6, $document->getCreatedAt()->format('d.m.Y'), 0, 1, 'L');
 
         return $currentY + 20;
+    }
+
+    private function addInsuranceCustomerInfo(TCPDF $pdf, Document $document, InsuranceAssessment $assessment, float $currentY): float
+    {
+        // Section title
+        $pdf->SetFont('helvetica', 'B', 12);
+        $pdf->SetXY(20, $currentY);
+        $pdf->Cell(0, 6, 'Kunde', 0, 1, 'L');
+
+        $currentY += 8;
+
+        // Customer details
+        $pdf->SetFont('helvetica', '', 10);
+        $pdf->SetXY(20, $currentY);
+        $pdf->Cell(0, 6, $document->getCustomerName(), 0, 1, 'L');
+        $currentY += 6;
+
+        $pdf->SetXY(20, $currentY);
+        $pdf->Cell(0, 5, $assessment->getCustomerAddress(), 0, 1, 'L');
+        $currentY += 5;
+
+        if ($document->getCustomerPhone()) {
+            $pdf->SetXY(20, $currentY);
+            $pdf->Cell(0, 5, 'Tel: ' . $document->getCustomerPhone(), 0, 1, 'L');
+            $currentY += 5;
+        }
+
+        if ($document->getCustomerEmail()) {
+            $pdf->SetXY(20, $currentY);
+            $pdf->Cell(0, 5, 'E-Mail: ' . $document->getCustomerEmail(), 0, 1, 'L');
+            $currentY += 5;
+        }
+
+        return $currentY + 10;
     }
 
     private function addInsuranceDeviceInfo(TCPDF $pdf, InsuranceAssessment $assessment, float $currentY): float

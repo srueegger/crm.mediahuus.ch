@@ -24,6 +24,9 @@ class InsuranceAssessmentRepository
             'serial_number' => $assessment->getSerialNumber(),
             'damage_description' => $assessment->getDamageDescription(),
             'assessment_result' => $assessment->getAssessmentResult(),
+            'customer_street' => $assessment->getCustomerStreet(),
+            'customer_zip' => $assessment->getCustomerZip(),
+            'customer_city' => $assessment->getCustomerCity(),
             'device_value_chf' => $assessment->getDeviceValueChf(),
             'repair_cost_chf' => $assessment->getRepairCostChf(),
         ]);
@@ -71,6 +74,9 @@ class InsuranceAssessmentRepository
             'serial_number' => $assessment->getSerialNumber(),
             'damage_description' => $assessment->getDamageDescription(),
             'assessment_result' => $assessment->getAssessmentResult(),
+            'customer_street' => $assessment->getCustomerStreet(),
+            'customer_zip' => $assessment->getCustomerZip(),
+            'customer_city' => $assessment->getCustomerCity(),
             'device_value_chf' => $assessment->getDeviceValueChf(),
             'repair_cost_chf' => $assessment->getRepairCostChf(),
         ], [
@@ -89,6 +95,9 @@ class InsuranceAssessmentRepository
             serialNumber: $row['serial_number'],
             damageDescription: $row['damage_description'] ?? '',
             assessmentResult: $row['assessment_result'] ?? 'total_loss',
+            customerStreet: $row['customer_street'] ?? '',
+            customerZip: $row['customer_zip'] ?? '',
+            customerCity: $row['customer_city'] ?? '',
             deviceValueChf: $row['device_value_chf'] !== null ? (float) $row['device_value_chf'] : null,
             repairCostChf: $row['repair_cost_chf'] !== null ? (float) $row['repair_cost_chf'] : null,
             id: (int) $row['id']
