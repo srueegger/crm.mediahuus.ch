@@ -7,6 +7,7 @@ use App\Controllers\UserController;
 use App\Controllers\EstimateController;
 use App\Controllers\ReceiptController;
 use App\Controllers\PurchaseController;
+use App\Controllers\InsuranceController;
 use App\Middleware\AuthMiddleware;
 use Slim\App;
 
@@ -46,9 +47,10 @@ $app->group('', function () use ($app) {
     $app->get('/purchases/{id:[0-9]+}', [PurchaseController::class, 'show'])->setName('purchases.show');
     $app->get('/purchases/{id:[0-9]+}/pdf', [PurchaseController::class, 'generatePdf'])->setName('purchases.pdf');
 
-    // Placeholder routes
-    $app->get('/insurance/new', function ($request, $response) {
-        return $response->withHeader('Location', '/')->withStatus(302);
-    })->setName('insurance.new');
-    
+    // Insurance (Versicherungsgutachten)
+    $app->get('/insurance/create', [InsuranceController::class, 'create'])->setName('insurance.create');
+    $app->post('/insurance', [InsuranceController::class, 'store'])->setName('insurance.store');
+    $app->get('/insurance/{id:[0-9]+}', [InsuranceController::class, 'show'])->setName('insurance.show');
+    $app->get('/insurance/{id:[0-9]+}/pdf', [InsuranceController::class, 'generatePdf'])->setName('insurance.pdf');
+
 })->add(AuthMiddleware::class);

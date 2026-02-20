@@ -7,6 +7,7 @@ use App\Models\Document;
 use App\Models\Estimate;
 use App\Models\Receipt;
 use App\Models\Purchase;
+use App\Models\InsuranceAssessment;
 use App\Models\Branch;
 use TCPDF;
 use Psr\Log\LoggerInterface;
@@ -1038,6 +1039,298 @@ class PdfService
         $pdf->Cell(0, 4, 'Erstellt am ' . $document->getCreatedAt()->format('d.m.Y H:i') . ' • ' . $branch->getName(), 0, 1, 'C');
 
         // Reset text color
+        $pdf->SetTextColor(0, 0, 0);
+    }
+
+    public function generateInsurancePdf(Document $document, InsuranceAssessment $assessment, Branch $branch): string
+    {
+        try {
+            $pdf = new TCPDF(PDF_PAGE_ORIENTATION, PDF_UNIT, PDF_PAGE_FORMAT, true, 'UTF-8', false);
+
+            $pdf->SetCreator('Mediahuus CRM');
+            $pdf->SetAuthor('Mediahuus');
+            $pdf->SetTitle('Versicherungsgutachten ' . $document->getDocNumber());
+            $pdf->SetSubject('Versicherungsgutachten');
+
+            $pdf->setPrintHeader(false);
+            $pdf->setPrintFooter(false);
+
+            $pdf->SetMargins(20, 15, 20);
+            $pdf->SetAutoPageBreak(true, 25);
+
+            $pdf->AddPage();
+            $pdf->SetFont('helvetica', '', 10);
+
+            $this->addInsuranceContent($pdf, $document, $assessment, $branch);
+
+            $this->logger->info('Insurance PDF generated successfully', [
+                'document_id' => $document->getId(),
+                'doc_number' => $document->getDocNumber()
+            ]);
+
+            return $pdf->Output('', 'S');
+
+        } catch (\Exception $e) {
+            $this->logger->error('Insurance PDF generation failed', [
+                'document_id' => $document->getId(),
+                'error' => $e->getMessage()
+            ]);
+            throw $e;
+        }
+    }
+
+    public function getInsurancePdfFilename(Document $document): string
+    {
+        return 'Versicherungsgutachten_' . $document->getDocNumber() . '.pdf';
+    }
+
+    private function addInsuranceContent(TCPDF $pdf, Document $document, InsuranceAssessment $assessment, Branch $branch): void
+    {
+        $currentY = 15;
+
+        // Header with Logo and Branch Info
+        $currentY = $this->addHeader($pdf, $branch, $currentY);
+
+        // Document Title
+        $currentY = $this->addInsuranceTitle($pdf, $document, $currentY);
+
+        // Customer Information
+        $currentY = $this->addCustomerInfo($pdf, $document, $currentY);
+
+        // Device Information
+        $currentY = $this->addInsuranceDeviceInfo($pdf, $assessment, $currentY);
+
+        // Damage Description
+        $currentY = $this->addInsuranceDamageDescription($pdf, $assessment, $currentY);
+
+        // Assessment Result Box
+        $currentY = $this->addInsuranceResultBox($pdf, $assessment, $currentY);
+
+        // Signature Lines
+        $currentY = $this->addInsuranceSignature($pdf, $currentY);
+
+        // Footer
+        $this->addInsuranceFooter($pdf, $branch, $document);
+    }
+
+    private function addInsuranceTitle(TCPDF $pdf, Document $document, float $currentY): float
+    {
+        // Line separator
+        $pdf->SetLineWidth(0.3);
+        $pdf->SetDrawColor(200, 200, 200);
+        $pdf->Line(20, $currentY, 190, $currentY);
+
+        $currentY += 10;
+
+        // Title
+        $pdf->SetFont('helvetica', 'B', 16);
+        $pdf->SetXY(20, $currentY);
+        $pdf->Cell(0, 8, 'VERSICHERUNGSGUTACHTEN', 0, 1, 'L');
+
+        $currentY += 12;
+
+        // Document number and date
+        $pdf->SetFont('helvetica', '', 10);
+        $pdf->SetXY(20, $currentY);
+        $pdf->Cell(60, 6, 'Gutachten-Nummer:', 0, 0, 'L');
+        $pdf->SetFont('helvetica', 'B', 10);
+        $pdf->Cell(0, 6, $document->getDocNumber(), 0, 1, 'L');
+
+        $pdf->SetFont('helvetica', '', 10);
+        $pdf->SetXY(20, $currentY + 6);
+        $pdf->Cell(60, 6, 'Datum:', 0, 0, 'L');
+        $pdf->Cell(0, 6, $document->getCreatedAt()->format('d.m.Y'), 0, 1, 'L');
+
+        return $currentY + 20;
+    }
+
+    private function addInsuranceDeviceInfo(TCPDF $pdf, InsuranceAssessment $assessment, float $currentY): float
+    {
+        // Section title
+        $pdf->SetFont('helvetica', 'B', 12);
+        $pdf->SetXY(20, $currentY);
+        $pdf->Cell(0, 6, 'Geräteinformationen', 0, 1, 'L');
+
+        $currentY += 10;
+
+        // Device info box
+        $boxHeight = 30;
+        $pdf->SetFillColor(248, 249, 250);
+        $pdf->SetDrawColor(229, 231, 235);
+        $pdf->Rect(20, $currentY, 170, $boxHeight, 'DF', array(), array(248, 249, 250));
+
+        $contentY = $currentY + 5;
+
+        $pdf->SetFont('helvetica', '', 10);
+        $pdf->SetXY(25, $contentY);
+        $pdf->Cell(60, 6, 'Gerät:', 0, 0, 'L');
+        $pdf->SetFont('helvetica', 'B', 10);
+        $pdf->Cell(0, 6, $assessment->getDeviceName(), 0, 1, 'L');
+
+        $contentY += 8;
+
+        $pdf->SetFont('helvetica', '', 10);
+        $pdf->SetXY(25, $contentY);
+        $pdf->Cell(60, 6, 'Seriennummer / IMEI:', 0, 0, 'L');
+        $pdf->SetFont('courier', 'B', 10);
+        $pdf->Cell(0, 6, $assessment->getSerialNumber(), 0, 1, 'L');
+
+        $pdf->SetFont('helvetica', '', 10);
+
+        return $currentY + $boxHeight + 10;
+    }
+
+    private function addInsuranceDamageDescription(TCPDF $pdf, InsuranceAssessment $assessment, float $currentY): float
+    {
+        // Section title
+        $pdf->SetFont('helvetica', 'B', 12);
+        $pdf->SetXY(20, $currentY);
+        $pdf->Cell(0, 6, 'Schadensbeschreibung', 0, 1, 'L');
+
+        $currentY += 10;
+
+        // Get combined text from damage template + custom description
+        $combinedText = DamageTypeService::getCombinedIssueText(
+            $assessment->getDamageType(),
+            $assessment->getDamageDescription()
+        );
+
+        $cleanText = $this->convertHtmlToText($combinedText);
+
+        // Check if we need a new page
+        $pageHeight = $pdf->getPageHeight();
+        $bottomMargin = 25;
+        $estimatedTextHeight = $pdf->getStringHeight(165, $cleanText) + 10;
+
+        if (($currentY + $estimatedTextHeight) > ($pageHeight - $bottomMargin)) {
+            $pdf->AddPage();
+            $currentY = 15;
+        }
+
+        // Text box
+        $pdf->SetFillColor(248, 249, 250);
+        $pdf->SetDrawColor(229, 231, 235);
+        $pdf->SetFont('helvetica', '', 10);
+
+        $textHeight = $pdf->getStringHeight(165, $cleanText);
+        $boxHeight = max(20, $textHeight + 10);
+
+        $pdf->Rect(20, $currentY, 170, $boxHeight, 'DF', array(), array(248, 249, 250));
+
+        $pdf->SetXY(25, $currentY + 5);
+        $pdf->MultiCell(165, 5, $cleanText, 0, 'L', false);
+
+        return $pdf->GetY() + 15;
+    }
+
+    private function addInsuranceResultBox(TCPDF $pdf, InsuranceAssessment $assessment, float $currentY): float
+    {
+        // Check if result box fits on current page
+        $resultBoxHeight = 45;
+        $pageHeight = $pdf->getPageHeight();
+        $bottomMargin = 25;
+
+        if (($currentY + $resultBoxHeight + 10) > ($pageHeight - $bottomMargin)) {
+            $pdf->AddPage();
+            $currentY = 15;
+        }
+
+        // Result box color based on assessment result
+        switch ($assessment->getAssessmentResult()) {
+            case InsuranceAssessment::RESULT_TOTAL_LOSS:
+                $pdf->SetFillColor(220, 38, 38); // Red
+                break;
+            case InsuranceAssessment::RESULT_REPAIR_RECOMMENDED:
+                $pdf->SetFillColor(45, 143, 62); // Green (#2d8f3e)
+                break;
+            case InsuranceAssessment::RESULT_NOT_REPAIRABLE:
+                $pdf->SetFillColor(107, 114, 128); // Gray
+                break;
+            default:
+                $pdf->SetFillColor(107, 114, 128);
+        }
+
+        $pdf->SetTextColor(255, 255, 255);
+        $pdf->Rect(20, $currentY, 170, $resultBoxHeight, 'F');
+
+        // Assessment result label
+        $pdf->SetFont('helvetica', '', 10);
+        $pdf->SetXY(25, $currentY + 4);
+        $pdf->Cell(160, 5, 'Bewertungsergebnis', 0, 1, 'C');
+
+        $pdf->SetFont('helvetica', 'B', 16);
+        $pdf->SetXY(25, $currentY + 10);
+        $pdf->Cell(160, 8, $assessment->getAssessmentResultLabel(), 0, 1, 'C');
+
+        // Separator line
+        $pdf->SetDrawColor(255, 255, 255);
+        $pdf->SetLineWidth(0.2);
+        $pdf->Line(30, $currentY + 22, 180, $currentY + 22);
+
+        // Zeitwert and Reparaturkosten side by side
+        $pdf->SetFont('helvetica', '', 9);
+        $pdf->SetXY(25, $currentY + 25);
+        $pdf->Cell(80, 5, 'Geschätzter Zeitwert', 0, 0, 'C');
+        $pdf->Cell(80, 5, 'Reparaturkosten', 0, 1, 'C');
+
+        $pdf->SetFont('helvetica', 'B', 14);
+        $pdf->SetXY(25, $currentY + 31);
+        $pdf->Cell(80, 8, $assessment->getFormattedDeviceValue(), 0, 0, 'C');
+        $pdf->Cell(80, 8, $assessment->getFormattedRepairCost(), 0, 1, 'C');
+
+        // Reset text color
+        $pdf->SetTextColor(0, 0, 0);
+
+        return $currentY + $resultBoxHeight + 15;
+    }
+
+    private function addInsuranceSignature(TCPDF $pdf, float $currentY): float
+    {
+        // Check if signature fits
+        $requiredHeight = 30;
+        $pageHeight = $pdf->getPageHeight();
+        $bottomMargin = 25;
+        if (($currentY + $requiredHeight) > ($pageHeight - $bottomMargin)) {
+            $pdf->AddPage();
+            $currentY = 15;
+        }
+
+        $currentY += 5;
+
+        // Signature lines
+        $pdf->SetLineWidth(0.3);
+        $pdf->SetDrawColor(0, 0, 0);
+
+        // Gutachter
+        $pdf->Line(20, $currentY, 90, $currentY);
+        $pdf->SetFont('helvetica', '', 8);
+        $pdf->SetXY(20, $currentY + 2);
+        $pdf->Cell(70, 4, 'Gutachter / Mediahuus', 0, 0, 'L');
+
+        // Datum
+        $pdf->SetXY(95, $currentY + 2);
+        $pdf->Cell(25, 4, 'Datum', 0, 0, 'L');
+
+        // Kunde
+        $pdf->Line(125, $currentY, 190, $currentY);
+        $pdf->SetXY(125, $currentY + 2);
+        $pdf->Cell(65, 4, 'Unterschrift Kunde', 0, 0, 'L');
+
+        return $currentY + 10;
+    }
+
+    private function addInsuranceFooter(TCPDF $pdf, Branch $branch, Document $document): void
+    {
+        $currentY = $pdf->GetY() + 20;
+
+        $pdf->SetY($currentY);
+        $pdf->SetFont('helvetica', '', 8);
+        $pdf->SetTextColor(100, 100, 100);
+
+        $pdf->Cell(0, 6, 'Dieses Gutachten dient als Grundlage für die Versicherungsabwicklung.', 0, 1, 'C');
+        $pdf->Cell(0, 6, 'Alle Beträge verstehen sich in CHF inkl. MwSt.', 0, 1, 'C');
+        $pdf->Cell(0, 6, 'Erstellt am ' . $document->getCreatedAt()->format('d.m.Y H:i') . ' • ' . $branch->getName(), 0, 1, 'C');
+
         $pdf->SetTextColor(0, 0, 0);
     }
 

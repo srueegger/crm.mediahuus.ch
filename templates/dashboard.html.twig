@@ -17,7 +17,7 @@
         </div>
 
         <!-- Action Cards -->
-        <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
+        <div class="grid grid-cols-2 md:grid-cols-5 gap-4 mb-8">
             <a href="{{ url_for('estimates.create') }}" class="bg-white shadow rounded-lg p-4 hover:shadow-lg transition-shadow group">
                 <div class="flex items-center space-x-3">
                     <div class="flex-shrink-0 h-10 w-10 rounded-full bg-emerald-100 flex items-center justify-center">
@@ -57,6 +57,19 @@
                     </div>
                 </div>
             </a>
+            <a href="{{ url_for('insurance.create') }}" class="bg-white shadow rounded-lg p-4 hover:shadow-lg transition-shadow group">
+                <div class="flex items-center space-x-3">
+                    <div class="flex-shrink-0 h-10 w-10 rounded-full bg-emerald-100 flex items-center justify-center">
+                        <svg class="h-5 w-5 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
+                        </svg>
+                    </div>
+                    <div>
+                        <p class="text-sm font-medium text-gray-900 group-hover:text-emerald-600 transition-colors">Gutachten</p>
+                        <p class="text-xs text-gray-500">Erstellen</p>
+                    </div>
+                </div>
+            </a>
             <a href="{{ url_for('users.index') }}" class="bg-white shadow rounded-lg p-4 hover:shadow-lg transition-shadow group">
                 <div class="flex items-center space-x-3">
                     <div class="flex-shrink-0 h-10 w-10 rounded-full bg-emerald-100 flex items-center justify-center">
@@ -86,6 +99,7 @@
                             <option value="estimate" {{ filter_type == 'estimate' ? 'selected' : '' }}>Kostenvoranschlag</option>
                             <option value="receipt" {{ filter_type == 'receipt' ? 'selected' : '' }}>Quittung</option>
                             <option value="purchase" {{ filter_type == 'purchase' ? 'selected' : '' }}>Ankauf</option>
+                            <option value="insurance" {{ filter_type == 'insurance' ? 'selected' : '' }}>Versicherungsgutachten</option>
                         </select>
                         <select name="branch" onchange="this.form.submit()" class="text-sm border-gray-300 rounded-md shadow-sm focus:ring-emerald-500 focus:border-emerald-500">
                             <option value="">Alle Filialen</option>
@@ -126,6 +140,12 @@
                                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                                                 </svg>
                                             </div>
+                                        {% elseif item.document.doc_type == 'insurance' %}
+                                            <div class="h-10 w-10 rounded-full bg-red-100 flex items-center justify-center">
+                                                <svg class="h-5 w-5 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
+                                                </svg>
+                                            </div>
                                         {% endif %}
                                     </div>
                                     <div class="flex-1 min-w-0">
@@ -137,6 +157,8 @@
                                                 <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-emerald-100 text-emerald-800">Quittung</span>
                                             {% elseif item.document.doc_type == 'purchase' %}
                                                 <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-amber-100 text-amber-800">Ankauf</span>
+                                            {% elseif item.document.doc_type == 'insurance' %}
+                                                <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800">Gutachten</span>
                                             {% endif %}
                                         </div>
                                         <p class="text-sm text-gray-900 mt-0.5">{{ item.document.customer_name }}</p>
@@ -150,6 +172,9 @@
                                             {% elseif item.receipt %}
                                                 <span>{{ item.receipt.items|length }} Artikel</span>
                                                 <span class="font-medium text-gray-700">{{ item.receipt.formatted_total }}</span>
+                                            {% elseif item.insurance %}
+                                                <span>{{ item.insurance.device_name }}</span>
+                                                <span class="font-medium text-gray-700">{{ item.insurance.assessment_result_label }}</span>
                                             {% endif %}
                                             <span>{{ item.branch.name }}</span>
                                             <span>{{ item.document.created_at|date('d.m.Y H:i') }}</span>
@@ -175,6 +200,14 @@
                                         </a>
                                     {% elseif item.document.doc_type == 'purchase' %}
                                         <a href="{{ url_for('purchases.pdf', {id: item.document.id}) }}"
+                                           onclick="event.stopPropagation()"
+                                           class="text-emerald-600 hover:text-emerald-800 p-1.5 rounded hover:bg-emerald-50 transition-colors" title="PDF herunterladen">
+                                            <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                                            </svg>
+                                        </a>
+                                    {% elseif item.document.doc_type == 'insurance' %}
+                                        <a href="{{ url_for('insurance.pdf', {id: item.document.id}) }}"
                                            onclick="event.stopPropagation()"
                                            class="text-emerald-600 hover:text-emerald-800 p-1.5 rounded hover:bg-emerald-50 transition-colors" title="PDF herunterladen">
                                             <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -221,6 +254,8 @@
                             <span style="background-color: #d1fae5; color: #065f46; padding: 4px 10px; border-radius: 9999px; font-size: 12px; font-weight: 500;">Quittung</span>
                         {% elseif item.document.doc_type == 'purchase' %}
                             <span style="background-color: #fef3c7; color: #92400e; padding: 4px 10px; border-radius: 9999px; font-size: 12px; font-weight: 500;">Ankauf</span>
+                        {% elseif item.document.doc_type == 'insurance' %}
+                            <span style="background-color: #fee2e2; color: #991b1b; padding: 4px 10px; border-radius: 9999px; font-size: 12px; font-weight: 500;">Gutachten</span>
                         {% endif %}
                         <strong style="font-size: 18px; color: #111827;">{{ item.document.doc_number }}</strong>
                     </div>
@@ -358,6 +393,51 @@
                             <span style="font-size: 14px; font-weight: 500; color: #92400e;">Ankaufspreis</span>
                             <span style="font-size: 20px; font-weight: 700; color: #78350f;">{{ item.purchase.formatted_price }}</span>
                         </div>
+
+                    {# ============ VERSICHERUNGSGUTACHTEN ============ #}
+                    {% elseif item.document.doc_type == 'insurance' and item.insurance %}
+                        <div style="margin-bottom: 20px;">
+                            <p style="font-size: 11px; font-weight: 600; color: #9ca3af; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 6px;">Gerät</p>
+                            <div style="background: #f9fafb; border-radius: 8px; padding: 12px;">
+                                <p style="font-size: 14px; font-weight: 500; color: #111827;">{{ item.insurance.device_name }}</p>
+                                <p style="font-size: 14px; color: #4b5563; font-family: monospace;">SN/IMEI: {{ item.insurance.serial_number }}</p>
+                            </div>
+                        </div>
+
+                        {% if item.insurance.damage_description %}
+                        <div style="margin-bottom: 20px;">
+                            <p style="font-size: 11px; font-weight: 600; color: #9ca3af; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 6px;">Schadensbeschreibung</p>
+                            <div style="font-size: 14px; color: #374151; background: #f9fafb; border-radius: 8px; padding: 12px;">{{ item.insurance.damage_description|raw }}</div>
+                        </div>
+                        {% endif %}
+
+                        <div style="margin-bottom: 20px;">
+                            <p style="font-size: 11px; font-weight: 600; color: #9ca3af; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 6px;">Bewertungsergebnis</p>
+                            {% if item.insurance.assessment_result == 'total_loss' %}
+                                <div style="background: #fef2f2; border-radius: 8px; padding: 16px; text-align: center;">
+                                    <p style="font-size: 18px; font-weight: 700; color: #991b1b;">{{ item.insurance.assessment_result_label }}</p>
+                                </div>
+                            {% elseif item.insurance.assessment_result == 'repair_recommended' %}
+                                <div style="background: #ecfdf5; border-radius: 8px; padding: 16px; text-align: center;">
+                                    <p style="font-size: 18px; font-weight: 700; color: #065f46;">{{ item.insurance.assessment_result_label }}</p>
+                                </div>
+                            {% else %}
+                                <div style="background: #f3f4f6; border-radius: 8px; padding: 16px; text-align: center;">
+                                    <p style="font-size: 18px; font-weight: 700; color: #374151;">{{ item.insurance.assessment_result_label }}</p>
+                                </div>
+                            {% endif %}
+                        </div>
+
+                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 24px;">
+                            <div style="background: #f9fafb; border-radius: 8px; padding: 12px; text-align: center;">
+                                <p style="font-size: 12px; color: #6b7280; margin-bottom: 4px;">Geschätzter Zeitwert</p>
+                                <p style="font-size: 18px; font-weight: 700; color: #111827;">{{ item.insurance.formatted_device_value }}</p>
+                            </div>
+                            <div style="background: #f9fafb; border-radius: 8px; padding: 12px; text-align: center;">
+                                <p style="font-size: 12px; color: #6b7280; margin-bottom: 4px;">Reparaturkosten</p>
+                                <p style="font-size: 18px; font-weight: 700; color: #111827;">{{ item.insurance.formatted_repair_cost }}</p>
+                            </div>
+                        </div>
                     {% endif %}
 
                     {# -- Datum -- #}
@@ -395,6 +475,16 @@
                                 PDF herunterladen
                             </a>
                             <a href="{{ url_for('purchases.show', {id: item.document.id}) }}" class="mediahuus-button-secondary" style="text-align: center;">
+                                Detailseite
+                            </a>
+                        {% elseif item.document.doc_type == 'insurance' %}
+                            <a href="{{ url_for('insurance.pdf', {id: item.document.id}) }}" class="mediahuus-button-primary" style="flex: 1; text-align: center; display: flex; align-items: center; justify-content: center; gap: 8px;">
+                                <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                                </svg>
+                                PDF herunterladen
+                            </a>
+                            <a href="{{ url_for('insurance.show', {id: item.document.id}) }}" class="mediahuus-button-secondary" style="text-align: center;">
                                 Detailseite
                             </a>
                         {% endif %}

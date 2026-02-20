@@ -15,6 +15,7 @@ use App\Repositories\BranchRepository;
 use App\Repositories\ReceiptRepository;
 use App\Repositories\ReceiptItemRepository;
 use App\Repositories\PurchaseRepository;
+use App\Repositories\InsuranceAssessmentRepository;
 use App\Services\AuthService;
 use App\Services\PdfService;
 use App\Services\FileUploadService;
@@ -22,6 +23,7 @@ use App\Controllers\UserController;
 use App\Controllers\EstimateController;
 use App\Controllers\ReceiptController;
 use App\Controllers\PurchaseController;
+use App\Controllers\InsuranceController;
 use App\Controllers\DashboardController;
 
 return [
@@ -50,7 +52,9 @@ return [
                 'purchases.create' => '/purchases/create',
                 'purchases.show' => '/purchases/' . ($params['id'] ?? '{id}'),
                 'purchases.pdf' => '/purchases/' . ($params['id'] ?? '{id}') . '/pdf',
-                'insurance.new' => '/insurance/new',
+                'insurance.create' => '/insurance/create',
+                'insurance.show' => '/insurance/' . ($params['id'] ?? '{id}'),
+                'insurance.pdf' => '/insurance/' . ($params['id'] ?? '{id}') . '/pdf',
                 'users.index' => '/users',
                 'users.create' => '/users/create',
                 'users.edit' => '/users/' . ($params['id'] ?? '{id}') . '/edit',
@@ -158,8 +162,18 @@ return [
         return new PurchaseController($twig, $documentRepository, $purchaseRepository, $branchRepository, $pdfService, $fileUploadService, $logger);
     },
 
+    // Insurance Assessment Repository
+    InsuranceAssessmentRepository::class => function (Connection $connection) {
+        return new InsuranceAssessmentRepository($connection);
+    },
+
+    // Insurance Controller
+    InsuranceController::class => function (Environment $twig, DocumentRepository $documentRepository, InsuranceAssessmentRepository $insuranceRepository, BranchRepository $branchRepository, PdfService $pdfService, LoggerInterface $logger) {
+        return new InsuranceController($twig, $documentRepository, $insuranceRepository, $branchRepository, $pdfService, $logger);
+    },
+
     // Dashboard Controller
-    DashboardController::class => function (Environment $twig, DocumentRepository $documentRepository, BranchRepository $branchRepository, EstimateRepository $estimateRepository, PurchaseRepository $purchaseRepository, ReceiptRepository $receiptRepository) {
-        return new DashboardController($twig, $documentRepository, $branchRepository, $estimateRepository, $purchaseRepository, $receiptRepository);
+    DashboardController::class => function (Environment $twig, DocumentRepository $documentRepository, BranchRepository $branchRepository, EstimateRepository $estimateRepository, PurchaseRepository $purchaseRepository, ReceiptRepository $receiptRepository, InsuranceAssessmentRepository $insuranceRepository) {
+        return new DashboardController($twig, $documentRepository, $branchRepository, $estimateRepository, $purchaseRepository, $receiptRepository, $insuranceRepository);
     },
 ];
