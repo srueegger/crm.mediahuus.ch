@@ -41,15 +41,12 @@ return [
             // Simple hardcoded URLs for now
             $urls = [
                 'estimate.new' => '/estimates/create',
-                'estimates.index' => '/estimates',
                 'estimates.create' => '/estimates/create',
                 'estimates.show' => '/estimates/' . ($params['id'] ?? '{id}'),
                 'estimates.pdf' => '/estimates/' . ($params['id'] ?? '{id}') . '/pdf',
-                'receipts.index' => '/receipts',
                 'receipts.create' => '/receipts/create',
                 'receipts.show' => '/receipts/' . ($params['id'] ?? '{id}'),
                 'receipts.pdf' => '/receipts/' . ($params['id'] ?? '{id}') . '/pdf',
-                'purchases.index' => '/purchases',
                 'purchases.create' => '/purchases/create',
                 'purchases.show' => '/purchases/' . ($params['id'] ?? '{id}'),
                 'purchases.pdf' => '/purchases/' . ($params['id'] ?? '{id}') . '/pdf',
@@ -162,7 +159,7 @@ return [
     },
 
     // Dashboard Controller
-    DashboardController::class => function (Environment $twig, DocumentRepository $documentRepository, BranchRepository $branchRepository, EstimateRepository $estimateRepository) {
-        return new DashboardController($twig, $documentRepository, $branchRepository, $estimateRepository);
+    DashboardController::class => function (Environment $twig, DocumentRepository $documentRepository, BranchRepository $branchRepository, EstimateRepository $estimateRepository, PurchaseRepository $purchaseRepository, ReceiptRepository $receiptRepository) {
+        return new DashboardController($twig, $documentRepository, $branchRepository, $estimateRepository, $purchaseRepository, $receiptRepository);
     },
 ];

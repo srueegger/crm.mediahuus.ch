@@ -40,45 +40,6 @@ class EstimateController extends BaseController
         $this->logger = $logger;
     }
 
-    public function index(Request $request, Response $response): Response
-    {
-        /** @var User $currentUser */
-        $currentUser = $request->getAttribute('current_user');
-        
-        try {
-            // Get all estimate documents
-            $documents = $this->documentRepository->findAll(['doc_type' => Document::TYPE_ESTIMATE]);
-            
-            // Fetch associated estimates and branches for each document
-            $estimates = [];
-            foreach ($documents as $document) {
-                $estimate = $this->estimateRepository->findByDocumentId($document->getId());
-                $branch = $this->branchRepository->findById($document->getBranchId());
-                
-                if ($estimate && $branch) {
-                    $estimates[] = [
-                        'document' => $document->toArray(),
-                        'estimate' => $estimate->toArray(),
-                        'branch' => $branch->toArray(),
-                    ];
-                }
-            }
-            
-            return $this->render($response, 'estimates/index.html.twig', [
-                'user' => $currentUser->toArray(),
-                'estimates' => $estimates,
-            ]);
-        } catch (\Exception $e) {
-            $this->logger->error('Failed to fetch estimates', ['error' => $e->getMessage()]);
-            
-            return $this->render($response, 'estimates/index.html.twig', [
-                'user' => $currentUser->toArray(),
-                'estimates' => [],
-                'error' => 'Fehler beim Laden der Kostenvoranschläge'
-            ]);
-        }
-    }
-
     public function create(Request $request, Response $response): Response
     {
         /** @var User $currentUser */

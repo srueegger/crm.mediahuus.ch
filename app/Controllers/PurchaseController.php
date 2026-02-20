@@ -43,45 +43,6 @@ class PurchaseController extends BaseController
         $this->logger = $logger;
     }
 
-    public function index(Request $request, Response $response): Response
-    {
-        /** @var User $currentUser */
-        $currentUser = $request->getAttribute('current_user');
-
-        try {
-            // Get all purchase documents
-            $documents = $this->documentRepository->findAll(['doc_type' => Document::TYPE_PURCHASE]);
-
-            // Fetch associated purchases and branches for each document
-            $purchases = [];
-            foreach ($documents as $document) {
-                $purchase = $this->purchaseRepository->findByDocumentId($document->getId());
-                $branch = $this->branchRepository->findById($document->getBranchId());
-
-                if ($purchase && $branch) {
-                    $purchases[] = [
-                        'document' => $document->toArray(),
-                        'purchase' => $purchase->toArray(),
-                        'branch' => $branch->toArray(),
-                    ];
-                }
-            }
-
-            return $this->render($response, 'purchases/index.html.twig', [
-                'user' => $currentUser->toArray(),
-                'purchases' => $purchases,
-            ]);
-        } catch (\Exception $e) {
-            $this->logger->error('Failed to fetch purchases', ['error' => $e->getMessage()]);
-
-            return $this->render($response, 'purchases/index.html.twig', [
-                'user' => $currentUser->toArray(),
-                'purchases' => [],
-                'error' => 'Fehler beim Laden der Ankäufe'
-            ]);
-        }
-    }
-
     public function create(Request $request, Response $response): Response
     {
         /** @var User $currentUser */

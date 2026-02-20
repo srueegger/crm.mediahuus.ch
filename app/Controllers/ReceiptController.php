@@ -44,45 +44,6 @@ class ReceiptController extends BaseController
         $this->logger = $logger;
     }
 
-    public function index(Request $request, Response $response): Response
-    {
-        /** @var User $currentUser */
-        $currentUser = $request->getAttribute('current_user');
-        
-        try {
-            // Get all receipt documents
-            $documents = $this->documentRepository->findAll(['doc_type' => Document::TYPE_RECEIPT]);
-            
-            // Fetch associated receipts and branches for each document
-            $receipts = [];
-            foreach ($documents as $document) {
-                $receipt = $this->receiptRepository->findByDocumentId($document->getId());
-                $branch = $this->branchRepository->findById($document->getBranchId());
-                
-                if ($receipt && $branch) {
-                    $receipts[] = [
-                        'document' => $document->toArray(),
-                        'receipt' => $receipt->toArray(),
-                        'branch' => $branch->toArray(),
-                    ];
-                }
-            }
-            
-            return $this->render($response, 'receipts/index.html.twig', [
-                'user' => $currentUser->toArray(),
-                'receipts' => $receipts,
-            ]);
-        } catch (\Exception $e) {
-            $this->logger->error('Failed to fetch receipts', ['error' => $e->getMessage()]);
-            
-            return $this->render($response, 'receipts/index.html.twig', [
-                'user' => $currentUser->toArray(),
-                'receipts' => [],
-                'error' => 'Fehler beim Laden der Quittungen'
-            ]);
-        }
-    }
-
     public function create(Request $request, Response $response): Response
     {
         /** @var User $currentUser */

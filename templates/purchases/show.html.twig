@@ -12,9 +12,9 @@
                 <p class="text-gray-600">Erstellt am {{ document.created_at|date('d.m.Y H:i') }} Uhr</p>
             </div>
             <div class="flex gap-3">
-                <a href="{{ url_for('purchases.index') }}"
+                <a href="/"
                    class="px-4 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 transition-colors">
-                    Zurück
+                    Zurück zum Dashboard
                 </a>
                 <a href="{{ url_for('purchases.pdf', {id: document.id}) }}"
                    class="px-4 py-2 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 transition-colors inline-flex items-center gap-2">
