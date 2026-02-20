@@ -407,9 +407,10 @@ class PdfService
             $pdf->setPrintHeader(false);
             $pdf->setPrintFooter(false);
 
-            // Set margins with proper bottom margin for page breaks
+            // Set margins - disable auto page break to prevent empty pages
+            // All sections handle their own page breaks manually
             $pdf->SetMargins(20, 15, 20);
-            $pdf->SetAutoPageBreak(true, 25);
+            $pdf->SetAutoPageBreak(false, 0);
 
             // Add a page
             $pdf->AddPage();
@@ -735,15 +736,42 @@ class PdfService
 
         $currentY += 10;
 
+        // Pre-calculate actual content height for the box
+        $contentHeight = 5; // top padding
+        $contentHeight += 8; // device name
+        $contentHeight += 5; // device type
+
+        if ($purchase->getImei()) {
+            $contentHeight += 5;
+        }
+        if ($purchase->getSerialNumber()) {
+            $contentHeight += 5;
+        }
+        if ($purchase->getDeviceCondition()) {
+            $contentHeight += 3;
+            $pdf->SetFont('helvetica', '', 10);
+            $contentHeight += max(5, $pdf->getStringHeight(100, substr($purchase->getDeviceCondition(), 0, 80)));
+        }
+        if ($purchase->getAccessories()) {
+            $contentHeight += 3;
+            $pdf->SetFont('helvetica', '', 10);
+            $contentHeight += max(5, $pdf->getStringHeight(100, substr($purchase->getAccessories(), 0, 80)));
+        }
+        $contentHeight += 5; // bottom padding
+
+        $boxHeight = max(40, $contentHeight);
+
+        // Check if box fits on current page
+        $pageHeight = $pdf->getPageHeight();
+        $bottomMargin = 25;
+        if (($currentY + $boxHeight) > ($pageHeight - $bottomMargin)) {
+            $pdf->AddPage();
+            $currentY = 15;
+        }
+
         // Device information in a styled box
         $pdf->SetFillColor(248, 249, 250);
         $pdf->SetDrawColor(229, 231, 235);
-
-        // Calculate box height based on content
-        $boxHeight = 50;
-        if ($purchase->getDeviceCondition() || $purchase->getAccessories()) {
-            $boxHeight = 70;
-        }
 
         $pdf->Rect(20, $currentY, 170, $boxHeight, 'DF', array(), array(248, 249, 250));
 
@@ -817,6 +845,14 @@ class PdfService
     {
         $priceBoxHeight = 15;
 
+        // Check if price box fits on current page
+        $pageHeight = $pdf->getPageHeight();
+        $bottomMargin = 25;
+        if (($currentY + $priceBoxHeight + 10) > ($pageHeight - $bottomMargin)) {
+            $pdf->AddPage();
+            $currentY = 15;
+        }
+
         // Price box - Green color #10b981 (emerald-500)
         $pdf->SetFillColor(16, 185, 129);
         $pdf->SetTextColor(255, 255, 255);
@@ -839,6 +875,15 @@ class PdfService
     private function addPurchaseLegalNotice(TCPDF $pdf, float $currentY): float
     {
         $currentY += 5;
+
+        // Legal notice needs approx 60mm (title + text + signature lines)
+        $requiredHeight = 60;
+        $pageHeight = $pdf->getPageHeight();
+        $bottomMargin = 25;
+        if (($currentY + $requiredHeight) > ($pageHeight - $bottomMargin)) {
+            $pdf->AddPage();
+            $currentY = 15;
+        }
 
         // Section title
         $pdf->SetFont('helvetica', 'B', 11);
@@ -887,18 +932,41 @@ class PdfService
         $currentY += 5;
 
         $uploadDir = __DIR__ . '/../../public/uploads/id_documents';
-        $imageWidth = 80; // Width of each image
+        $imageWidth = 80; // Width of each image in mm
+        $maxImageHeight = 100; // Maximum image height in mm to prevent oversized images
         $imageX = 20;
-        $estimatedImageHeight = 60; // Estimated height needed for image
+        $pageHeight = $pdf->getPageHeight();
+        $bottomMargin = 25;
+        $availableHeight = $pageHeight - $bottomMargin;
 
-        // Check if we have enough space for title + at least one image
-        // If not, start on a new page
-        if ($currentY + $estimatedImageHeight + 15 > 270) {
+        // Helper: calculate actual image height based on real dimensions
+        $getImageHeight = function (string $path) use ($imageWidth, $maxImageHeight): float {
+            $imageInfo = @getimagesize($path);
+            if ($imageInfo && $imageInfo[0] > 0 && $imageInfo[1] > 0) {
+                $origWidth = $imageInfo[0];
+                $origHeight = $imageInfo[1];
+                // Calculate proportional height in mm
+                $calculatedHeight = ($origHeight / $origWidth) * $imageWidth;
+                return min($calculatedHeight, $maxImageHeight);
+            }
+            return 60.0; // Fallback estimate
+        };
+
+        // Calculate front image height
+        $frontPath = $uploadDir . '/' . $purchase->getIdDocumentFront();
+        $frontImageHeight = 0.0;
+        if (file_exists($frontPath)) {
+            $frontImageHeight = $getImageHeight($frontPath);
+        }
+
+        // Check if we have enough space for title + front image
+        $titleHeight = 14; // title + label
+        if (($currentY + $titleHeight + $frontImageHeight) > $availableHeight) {
             $pdf->AddPage();
             $currentY = 15;
         }
 
-        // Section title - now on same page as images
+        // Section title
         $pdf->SetFont('helvetica', 'B', 11);
         $pdf->SetXY(20, $currentY);
         $pdf->Cell(0, 6, 'Ausweis-Dokumentation', 0, 1, 'L');
@@ -906,15 +974,14 @@ class PdfService
         $currentY += 8;
 
         // Front ID Document
-        $frontPath = $uploadDir . '/' . $purchase->getIdDocumentFront();
-        if (file_exists($frontPath)) {
+        if (file_exists($frontPath) && $frontImageHeight > 0) {
             $pdf->SetFont('helvetica', '', 9);
             $pdf->SetXY($imageX, $currentY);
             $pdf->Cell($imageWidth, 4, 'Vorderseite / Pass', 0, 1, 'L');
 
             try {
-                $pdf->Image($frontPath, $imageX, $currentY + 5, $imageWidth, 0, '', '', '', false, 300, '', false, false, 1);
-                $currentY += 55; // Estimated height for image + spacing
+                $pdf->Image($frontPath, $imageX, $currentY + 5, $imageWidth, $frontImageHeight, '', '', '', false, 300, '', false, false, 1);
+                $currentY += $frontImageHeight + 10;
             } catch (\Exception $e) {
                 $this->logger->warning('Failed to add front ID image to PDF', ['error' => $e->getMessage()]);
             }
@@ -924,8 +991,10 @@ class PdfService
         if ($purchase->getIdDocumentBack()) {
             $backPath = $uploadDir . '/' . $purchase->getIdDocumentBack();
             if (file_exists($backPath)) {
-                // Check if we need a new page
-                if ($currentY + 60 > 270) {
+                $backImageHeight = $getImageHeight($backPath);
+
+                // Check if we need a new page for back image
+                if (($currentY + $backImageHeight + 10) > $availableHeight) {
                     $pdf->AddPage();
                     $currentY = 15;
                 } else {
@@ -937,8 +1006,8 @@ class PdfService
                 $pdf->Cell($imageWidth, 4, 'Rückseite', 0, 1, 'L');
 
                 try {
-                    $pdf->Image($backPath, $imageX, $currentY + 5, $imageWidth, 0, '', '', '', false, 300, '', false, false, 1);
-                    $currentY += 55;
+                    $pdf->Image($backPath, $imageX, $currentY + 5, $imageWidth, $backImageHeight, '', '', '', false, 300, '', false, false, 1);
+                    $currentY += $backImageHeight + 10;
                 } catch (\Exception $e) {
                     $this->logger->warning('Failed to add back ID image to PDF', ['error' => $e->getMessage()]);
                 }
