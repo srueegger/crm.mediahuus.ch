@@ -217,10 +217,10 @@
     <!-- Modal Panel -->
     <div class="fixed inset-0 overflow-y-auto">
         <div class="flex min-h-full items-center justify-center p-4">
-            <div class="relative bg-white rounded-xl shadow-2xl w-full max-w-2xl max-h-[90vh] overflow-y-auto">
+            <div class="relative bg-white rounded-xl shadow-2xl w-full max-w-2xl flex flex-col" style="max-height: 90vh;">
 
                 {# --- Header --- #}
-                <div class="sticky top-0 bg-white border-b border-gray-200 px-6 py-4 rounded-t-xl flex items-center justify-between z-10">
+                <div class="bg-white border-b border-gray-200 px-6 py-4 rounded-t-xl flex items-center justify-between flex-shrink-0">
                     <div class="flex items-center space-x-3">
                         {% if item.document.doc_type == 'estimate' %}
                             <span class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800">Kostenvoranschlag</span>
@@ -238,8 +238,8 @@
                     </button>
                 </div>
 
-                {# --- Body --- #}
-                <div class="px-6 py-5 space-y-5">
+                {# --- Body (scrollable) --- #}
+                <div class="px-6 py-5 space-y-5 overflow-y-auto flex-1">
 
                     {# -- Kunde -- #}
                     <div>
@@ -375,8 +375,8 @@
                     </div>
                 </div>
 
-                {# --- Footer --- #}
-                <div class="sticky bottom-0 bg-gray-50 border-t border-gray-200 px-6 py-4 rounded-b-xl flex items-center justify-between">
+                {# --- Footer (always visible) --- #}
+                <div class="bg-gray-50 border-t border-gray-200 px-6 py-4 rounded-b-xl flex items-center justify-between flex-shrink-0">
                     <button onclick="closeModal('modal-{{ loop.index }}')" class="text-sm text-gray-600 hover:text-gray-800 transition-colors">
                         Schliessen
                     </button>
@@ -387,7 +387,7 @@
                                 Detailseite
                             </a>
                             <a href="{{ url_for('estimates.pdf', {id: item.document.id}) }}"
-                               class="inline-flex items-center px-4 py-2 text-sm font-medium text-white bg-emerald-600 rounded-lg hover:bg-emerald-700 transition-colors">
+                               class="mediahuus-button-primary inline-flex items-center">
                                 <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
                                 </svg>
@@ -399,7 +399,7 @@
                                 Detailseite
                             </a>
                             <a href="{{ url_for('receipts.pdf', {id: item.document.id}) }}"
-                               class="inline-flex items-center px-4 py-2 text-sm font-medium text-white bg-emerald-600 rounded-lg hover:bg-emerald-700 transition-colors">
+                               class="mediahuus-button-primary inline-flex items-center">
                                 <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
                                 </svg>
@@ -411,7 +411,7 @@
                                 Detailseite
                             </a>
                             <a href="{{ url_for('purchases.pdf', {id: item.document.id}) }}"
-                               class="inline-flex items-center px-4 py-2 text-sm font-medium text-white bg-emerald-600 rounded-lg hover:bg-emerald-700 transition-colors">
+                               class="mediahuus-button-primary inline-flex items-center">
                                 <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
                                 </svg>
