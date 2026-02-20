@@ -105,7 +105,8 @@
             {% if documents|length > 0 %}
                 <ul class="divide-y divide-gray-200">
                     {% for item in documents %}
-                        <li class="px-4 sm:px-6 py-4 hover:bg-gray-50">
+                        <li class="px-4 sm:px-6 py-4 hover:bg-gray-50 cursor-pointer transition-colors"
+                            onclick="openModal('modal-{{ loop.index }}')">
                             <div class="flex items-center justify-between">
                                 <div class="flex items-center space-x-4 min-w-0 flex-1">
                                     <!-- Type Icon -->
@@ -152,7 +153,7 @@
                                                 <span>{{ item.purchase.device_full_name }}</span>
                                                 <span class="font-medium text-gray-700">{{ item.purchase.formatted_price }}</span>
                                             {% elseif item.receipt %}
-                                                <span>{{ item.receipt.item_count }} Artikel</span>
+                                                <span>{{ item.receipt.items|length }} Artikel</span>
                                                 <span class="font-medium text-gray-700">{{ item.receipt.formatted_total }}</span>
                                             {% endif %}
                                             <span>{{ item.branch.name }}</span>
@@ -161,45 +162,27 @@
                                     </div>
                                 </div>
 
-                                <!-- Actions -->
-                                <div class="flex items-center space-x-2 ml-4 flex-shrink-0">
+                                <!-- PDF Quick Action -->
+                                <div class="flex items-center ml-4 flex-shrink-0">
                                     {% if item.document.doc_type == 'estimate' %}
-                                        <a href="{{ url_for('estimates.show', {id: item.document.id}) }}"
-                                           class="text-gray-500 hover:text-gray-700 p-1.5 rounded hover:bg-gray-100 transition-colors" title="Anzeigen">
-                                            <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
-                                            </svg>
-                                        </a>
                                         <a href="{{ url_for('estimates.pdf', {id: item.document.id}) }}"
+                                           onclick="event.stopPropagation()"
                                            class="text-emerald-600 hover:text-emerald-800 p-1.5 rounded hover:bg-emerald-50 transition-colors" title="PDF herunterladen">
                                             <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
                                             </svg>
                                         </a>
                                     {% elseif item.document.doc_type == 'receipt' %}
-                                        <a href="{{ url_for('receipts.show', {id: item.document.id}) }}"
-                                           class="text-gray-500 hover:text-gray-700 p-1.5 rounded hover:bg-gray-100 transition-colors" title="Anzeigen">
-                                            <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
-                                            </svg>
-                                        </a>
                                         <a href="{{ url_for('receipts.pdf', {id: item.document.id}) }}"
+                                           onclick="event.stopPropagation()"
                                            class="text-emerald-600 hover:text-emerald-800 p-1.5 rounded hover:bg-emerald-50 transition-colors" title="PDF herunterladen">
                                             <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
                                             </svg>
                                         </a>
                                     {% elseif item.document.doc_type == 'purchase' %}
-                                        <a href="{{ url_for('purchases.show', {id: item.document.id}) }}"
-                                           class="text-gray-500 hover:text-gray-700 p-1.5 rounded hover:bg-gray-100 transition-colors" title="Anzeigen">
-                                            <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
-                                            </svg>
-                                        </a>
                                         <a href="{{ url_for('purchases.pdf', {id: item.document.id}) }}"
+                                           onclick="event.stopPropagation()"
                                            class="text-emerald-600 hover:text-emerald-800 p-1.5 rounded hover:bg-emerald-50 transition-colors" title="PDF herunterladen">
                                             <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
@@ -224,4 +207,251 @@
         </div>
     </div>
 </div>
+
+{# === Detail Modals === #}
+{% for item in documents %}
+<div id="modal-{{ loop.index }}" class="fixed inset-0 z-50 hidden" aria-modal="true">
+    <!-- Backdrop -->
+    <div class="fixed inset-0 bg-black/50 transition-opacity" onclick="closeModal('modal-{{ loop.index }}')"></div>
+
+    <!-- Modal Panel -->
+    <div class="fixed inset-0 overflow-y-auto">
+        <div class="flex min-h-full items-center justify-center p-4">
+            <div class="relative bg-white rounded-xl shadow-2xl w-full max-w-2xl max-h-[90vh] overflow-y-auto">
+
+                {# --- Header --- #}
+                <div class="sticky top-0 bg-white border-b border-gray-200 px-6 py-4 rounded-t-xl flex items-center justify-between z-10">
+                    <div class="flex items-center space-x-3">
+                        {% if item.document.doc_type == 'estimate' %}
+                            <span class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800">Kostenvoranschlag</span>
+                        {% elseif item.document.doc_type == 'receipt' %}
+                            <span class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium bg-emerald-100 text-emerald-800">Quittung</span>
+                        {% elseif item.document.doc_type == 'purchase' %}
+                            <span class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium bg-amber-100 text-amber-800">Ankauf</span>
+                        {% endif %}
+                        <h3 class="text-lg font-semibold text-gray-900">{{ item.document.doc_number }}</h3>
+                    </div>
+                    <button onclick="closeModal('modal-{{ loop.index }}')" class="text-gray-400 hover:text-gray-600 p-1 rounded-lg hover:bg-gray-100 transition-colors">
+                        <svg class="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                        </svg>
+                    </button>
+                </div>
+
+                {# --- Body --- #}
+                <div class="px-6 py-5 space-y-5">
+
+                    {# -- Kunde -- #}
+                    <div>
+                        <h4 class="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-2">Kunde</h4>
+                        <p class="text-sm font-medium text-gray-900">{{ item.document.customer_name }}</p>
+                        {% if item.document.customer_phone %}
+                            <p class="text-sm text-gray-600">Tel: {{ item.document.customer_phone }}</p>
+                        {% endif %}
+                        {% if item.document.customer_email %}
+                            <p class="text-sm text-gray-600">E-Mail: {{ item.document.customer_email }}</p>
+                        {% endif %}
+                    </div>
+
+                    {# -- Filiale -- #}
+                    <div>
+                        <h4 class="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-2">Filiale</h4>
+                        <p class="text-sm font-medium text-gray-900">{{ item.branch.name }}</p>
+                        <p class="text-sm text-gray-600">{{ item.branch.full_address }}</p>
+                        {% if item.branch.phone %}
+                            <p class="text-sm text-gray-600">Tel: {{ item.branch.phone }}</p>
+                        {% endif %}
+                    </div>
+
+                    {# ============ KOSTENVORANSCHLAG ============ #}
+                    {% if item.document.doc_type == 'estimate' and item.estimate %}
+                        <div>
+                            <h4 class="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-2">Gerät</h4>
+                            <p class="text-sm font-medium text-gray-900">{{ item.estimate.device_name }}</p>
+                            {% if item.estimate.serial_number %}
+                                <p class="text-sm text-gray-600">Seriennummer: {{ item.estimate.serial_number }}</p>
+                            {% endif %}
+                        </div>
+
+                        <div>
+                            <h4 class="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-2">Schadens-/Fehlerbeschreibung</h4>
+                            <div class="text-sm text-gray-700 bg-gray-50 rounded-lg p-3">{{ item.estimate.issue_text|raw }}</div>
+                        </div>
+
+                        <div class="bg-blue-50 rounded-lg p-4 flex items-center justify-between">
+                            <span class="text-sm font-medium text-blue-800">Voraussichtliche Kosten</span>
+                            <span class="text-xl font-bold text-blue-900">{{ item.estimate.formatted_price }}</span>
+                        </div>
+
+                    {# ============ QUITTUNG ============ #}
+                    {% elseif item.document.doc_type == 'receipt' and item.receipt %}
+                        <div>
+                            <h4 class="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-3">Artikel</h4>
+                            <div class="overflow-x-auto">
+                                <table class="min-w-full text-sm">
+                                    <thead>
+                                        <tr class="border-b border-gray-200">
+                                            <th class="text-left py-2 pr-4 font-medium text-gray-500">Beschreibung</th>
+                                            <th class="text-center py-2 px-2 font-medium text-gray-500">Menge</th>
+                                            <th class="text-right py-2 px-2 font-medium text-gray-500">Einzelpreis</th>
+                                            <th class="text-right py-2 pl-2 font-medium text-gray-500">Summe</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody class="divide-y divide-gray-100">
+                                        {% for receiptItem in item.receipt.items %}
+                                            <tr>
+                                                <td class="py-2 pr-4 text-gray-900">{{ receiptItem.item_description }}</td>
+                                                <td class="py-2 px-2 text-center text-gray-700">{{ receiptItem.quantity }}</td>
+                                                <td class="py-2 px-2 text-right text-gray-700">{{ receiptItem.formatted_unit_price }}</td>
+                                                <td class="py-2 pl-2 text-right font-medium text-gray-900">{{ receiptItem.formatted_line_total }}</td>
+                                            </tr>
+                                        {% endfor %}
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+
+                        <div class="bg-emerald-50 rounded-lg p-4 flex items-center justify-between">
+                            <span class="text-sm font-medium text-emerald-800">Gesamtbetrag</span>
+                            <span class="text-xl font-bold text-emerald-900">{{ item.receipt.formatted_total }}</span>
+                        </div>
+
+                    {# ============ ANKAUF ============ #}
+                    {% elseif item.document.doc_type == 'purchase' and item.purchase %}
+                        <div>
+                            <h4 class="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-2">Verkäufer-Adresse</h4>
+                            <p class="text-sm text-gray-700">{{ item.purchase.seller_address }}</p>
+                        </div>
+
+                        <div>
+                            <h4 class="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-2">Angekauftes Gerät</h4>
+                            <div class="bg-gray-50 rounded-lg p-3 space-y-2">
+                                <div class="grid grid-cols-2 gap-3">
+                                    <div>
+                                        <p class="text-xs text-gray-500">Gerät</p>
+                                        <p class="text-sm font-medium text-gray-900">{{ item.purchase.device_full_name }}</p>
+                                    </div>
+                                    <div>
+                                        <p class="text-xs text-gray-500">Gerätetyp</p>
+                                        <p class="text-sm text-gray-900">{{ item.purchase.device_type_name }}</p>
+                                    </div>
+                                </div>
+                                {% if item.purchase.imei %}
+                                    <div>
+                                        <p class="text-xs text-gray-500">IMEI</p>
+                                        <p class="text-sm text-gray-900 font-mono">{{ item.purchase.imei }}</p>
+                                    </div>
+                                {% endif %}
+                                {% if item.purchase.serial_number %}
+                                    <div>
+                                        <p class="text-xs text-gray-500">Seriennummer</p>
+                                        <p class="text-sm text-gray-900 font-mono">{{ item.purchase.serial_number }}</p>
+                                    </div>
+                                {% endif %}
+                                {% if item.purchase.device_condition %}
+                                    <div>
+                                        <p class="text-xs text-gray-500">Zustand</p>
+                                        <p class="text-sm text-gray-900">{{ item.purchase.device_condition }}</p>
+                                    </div>
+                                {% endif %}
+                                {% if item.purchase.accessories %}
+                                    <div>
+                                        <p class="text-xs text-gray-500">Zubehör</p>
+                                        <p class="text-sm text-gray-900">{{ item.purchase.accessories }}</p>
+                                    </div>
+                                {% endif %}
+                            </div>
+                        </div>
+
+                        <div class="bg-amber-50 rounded-lg p-4 flex items-center justify-between">
+                            <span class="text-sm font-medium text-amber-800">Ankaufspreis</span>
+                            <span class="text-xl font-bold text-amber-900">{{ item.purchase.formatted_price }}</span>
+                        </div>
+                    {% endif %}
+
+                    {# -- Datum -- #}
+                    <div class="text-xs text-gray-400 pt-2 border-t border-gray-100">
+                        Erstellt am {{ item.document.created_at|date('d.m.Y') }} um {{ item.document.created_at|date('H:i') }} Uhr
+                    </div>
+                </div>
+
+                {# --- Footer --- #}
+                <div class="sticky bottom-0 bg-gray-50 border-t border-gray-200 px-6 py-4 rounded-b-xl flex items-center justify-between">
+                    <button onclick="closeModal('modal-{{ loop.index }}')" class="text-sm text-gray-600 hover:text-gray-800 transition-colors">
+                        Schliessen
+                    </button>
+                    <div class="flex items-center space-x-3">
+                        {% if item.document.doc_type == 'estimate' %}
+                            <a href="{{ url_for('estimates.show', {id: item.document.id}) }}"
+                               class="inline-flex items-center px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors">
+                                Detailseite
+                            </a>
+                            <a href="{{ url_for('estimates.pdf', {id: item.document.id}) }}"
+                               class="inline-flex items-center px-4 py-2 text-sm font-medium text-white bg-emerald-600 rounded-lg hover:bg-emerald-700 transition-colors">
+                                <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                                </svg>
+                                PDF herunterladen
+                            </a>
+                        {% elseif item.document.doc_type == 'receipt' %}
+                            <a href="{{ url_for('receipts.show', {id: item.document.id}) }}"
+                               class="inline-flex items-center px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors">
+                                Detailseite
+                            </a>
+                            <a href="{{ url_for('receipts.pdf', {id: item.document.id}) }}"
+                               class="inline-flex items-center px-4 py-2 text-sm font-medium text-white bg-emerald-600 rounded-lg hover:bg-emerald-700 transition-colors">
+                                <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                                </svg>
+                                PDF herunterladen
+                            </a>
+                        {% elseif item.document.doc_type == 'purchase' %}
+                            <a href="{{ url_for('purchases.show', {id: item.document.id}) }}"
+                               class="inline-flex items-center px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors">
+                                Detailseite
+                            </a>
+                            <a href="{{ url_for('purchases.pdf', {id: item.document.id}) }}"
+                               class="inline-flex items-center px-4 py-2 text-sm font-medium text-white bg-emerald-600 rounded-lg hover:bg-emerald-700 transition-colors">
+                                <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                                </svg>
+                                PDF herunterladen
+                            </a>
+                        {% endif %}
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </div>
+</div>
+{% endfor %}
+{% endblock %}
+
+{% block scripts %}
+<script>
+function openModal(id) {
+    const modal = document.getElementById(id);
+    if (!modal) return;
+    modal.classList.remove('hidden');
+    document.body.style.overflow = 'hidden';
+}
+
+function closeModal(id) {
+    const modal = document.getElementById(id);
+    if (!modal) return;
+    modal.classList.add('hidden');
+    document.body.style.overflow = '';
+}
+
+// Close modal on Escape key
+document.addEventListener('keydown', function(e) {
+    if (e.key === 'Escape') {
+        document.querySelectorAll('[id^="modal-"]:not(.hidden)').forEach(function(modal) {
+            modal.classList.add('hidden');
+        });
+        document.body.style.overflow = '';
+    }
+});
+</script>
 {% endblock %}
