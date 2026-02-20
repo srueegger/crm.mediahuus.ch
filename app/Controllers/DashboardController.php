@@ -9,6 +9,7 @@ use App\Repositories\BranchRepository;
 use App\Repositories\EstimateRepository;
 use App\Repositories\PurchaseRepository;
 use App\Repositories\ReceiptRepository;
+use App\Repositories\InsuranceAssessmentRepository;
 use Twig\Environment;
 use Psr\Http\Message\ResponseInterface as Response;
 use Psr\Http\Message\ServerRequestInterface as Request;
@@ -20,6 +21,7 @@ class DashboardController extends BaseController
     private EstimateRepository $estimateRepository;
     private PurchaseRepository $purchaseRepository;
     private ReceiptRepository $receiptRepository;
+    private InsuranceAssessmentRepository $insuranceRepository;
 
     public function __construct(
         Environment $twig,
@@ -27,7 +29,8 @@ class DashboardController extends BaseController
         BranchRepository $branchRepository,
         EstimateRepository $estimateRepository,
         PurchaseRepository $purchaseRepository,
-        ReceiptRepository $receiptRepository
+        ReceiptRepository $receiptRepository,
+        InsuranceAssessmentRepository $insuranceRepository
     ) {
         parent::__construct($twig);
         $this->documentRepository = $documentRepository;
@@ -35,6 +38,7 @@ class DashboardController extends BaseController
         $this->estimateRepository = $estimateRepository;
         $this->purchaseRepository = $purchaseRepository;
         $this->receiptRepository = $receiptRepository;
+        $this->insuranceRepository = $insuranceRepository;
     }
 
     public function index(Request $request, Response $response): Response
@@ -89,6 +93,9 @@ class DashboardController extends BaseController
                     break;
                 case 'receipt':
                     $itemData['receipt'] = $this->receiptRepository->findByDocumentId($document->getId());
+                    break;
+                case 'insurance':
+                    $itemData['insurance'] = $this->insuranceRepository->findByDocumentId($document->getId());
                     break;
             }
 

@@ -1,0 +1,304 @@
+{% extends "base.html.twig" %}
+
+{% block title %}Neues Versicherungsgutachten - {{ parent() }}{% endblock %}
+
+{% block content %}
+<div class="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
+    <div class="px-4 py-6 sm:px-0">
+        <!-- Header -->
+        <div class="mb-8">
+            <h2 class="text-2xl font-bold text-gray-900 mb-2">Neues Versicherungsgutachten</h2>
+            <p class="text-gray-600">Erstellen Sie ein Gutachten zur Schadensbewertung für die Versicherung</p>
+        </div>
+
+        {% if error %}
+            <div class="mb-6 bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded">
+                {{ error }}
+            </div>
+        {% endif %}
+
+        <div class="mediahuus-form-section">
+            <form method="POST" action="/insurance" class="space-y-8">
+
+                <!-- Filiale -->
+                <div class="border-b border-gray-200 pb-8">
+                    <h3 class="text-lg font-medium text-gray-900 mb-4">Filiale</h3>
+                    <div>
+                        <label for="branch_id" class="mediahuus-label">Filiale auswählen *</label>
+                        <select name="branch_id" id="branch_id" required
+                                class="mediahuus-select {{ errors.branch_id is defined ? 'error' : '' }}">
+                            <option value="">-- Filiale auswählen --</option>
+                            {% for branch in branches %}
+                                <option value="{{ branch.id }}"
+                                        {% if formData.branch_id|default('') == branch.id %}selected{% endif %}>
+                                    {{ branch.name }} - {{ branch.full_address }}
+                                </option>
+                            {% endfor %}
+                        </select>
+                        {% if errors.branch_id is defined %}
+                            <p class="mt-1 text-sm text-red-600">{{ errors.branch_id }}</p>
+                        {% endif %}
+                    </div>
+                </div>
+
+                <!-- Kundendaten -->
+                <div class="border-b border-gray-200 pb-8">
+                    <h3 class="text-lg font-medium text-gray-900 mb-4">Kundendaten</h3>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div class="md:col-span-2">
+                            <label for="customer_name" class="mediahuus-label">Name des Kunden *</label>
+                            <input type="text" name="customer_name" id="customer_name" required
+                                   value="{{ formData.customer_name|default('') }}"
+                                   class="mediahuus-input {{ errors.customer_name is defined ? 'error' : '' }}"
+                                   placeholder="Max Mustermann">
+                            {% if errors.customer_name is defined %}
+                                <p class="mt-1 text-sm text-red-600">{{ errors.customer_name }}</p>
+                            {% endif %}
+                        </div>
+                        <div class="md:col-span-2">
+                            <label for="customer_street" class="mediahuus-label">Strasse *</label>
+                            <input type="text" name="customer_street" id="customer_street" required
+                                   value="{{ formData.customer_street|default('') }}"
+                                   class="mediahuus-input {{ errors.customer_street is defined ? 'error' : '' }}"
+                                   placeholder="Musterstrasse 123">
+                            {% if errors.customer_street is defined %}
+                                <p class="mt-1 text-sm text-red-600">{{ errors.customer_street }}</p>
+                            {% endif %}
+                        </div>
+                        <div>
+                            <label for="customer_zip" class="mediahuus-label">PLZ *</label>
+                            <input type="text" name="customer_zip" id="customer_zip" required
+                                   value="{{ formData.customer_zip|default('') }}"
+                                   class="mediahuus-input {{ errors.customer_zip is defined ? 'error' : '' }}"
+                                   placeholder="4000">
+                            {% if errors.customer_zip is defined %}
+                                <p class="mt-1 text-sm text-red-600">{{ errors.customer_zip }}</p>
+                            {% endif %}
+                        </div>
+                        <div>
+                            <label for="customer_city" class="mediahuus-label">Ort *</label>
+                            <input type="text" name="customer_city" id="customer_city" required
+                                   value="{{ formData.customer_city|default('') }}"
+                                   class="mediahuus-input {{ errors.customer_city is defined ? 'error' : '' }}"
+                                   placeholder="Basel">
+                            {% if errors.customer_city is defined %}
+                                <p class="mt-1 text-sm text-red-600">{{ errors.customer_city }}</p>
+                            {% endif %}
+                        </div>
+                        <div>
+                            <label for="customer_phone" class="mediahuus-label">Telefon</label>
+                            <input type="tel" name="customer_phone" id="customer_phone"
+                                   value="{{ formData.customer_phone|default('') }}"
+                                   class="mediahuus-input {{ errors.customer_phone is defined ? 'error' : '' }}"
+                                   placeholder="+41 61 123 45 67">
+                            {% if errors.customer_phone is defined %}
+                                <p class="mt-1 text-sm text-red-600">{{ errors.customer_phone }}</p>
+                            {% endif %}
+                        </div>
+                        <div>
+                            <label for="customer_email" class="mediahuus-label">E-Mail</label>
+                            <input type="email" name="customer_email" id="customer_email"
+                                   value="{{ formData.customer_email|default('') }}"
+                                   class="mediahuus-input {{ errors.customer_email is defined ? 'error' : '' }}"
+                                   placeholder="kunde@example.com">
+                            {% if errors.customer_email is defined %}
+                                <p class="mt-1 text-sm text-red-600">{{ errors.customer_email }}</p>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Geräteinformationen -->
+                <div class="border-b border-gray-200 pb-8">
+                    <h3 class="text-lg font-medium text-gray-900 mb-4">Geräteinformationen</h3>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div>
+                            <label for="device_name" class="mediahuus-label">Gerätename / Modell *</label>
+                            <input type="text" name="device_name" id="device_name" required
+                                   value="{{ formData.device_name|default('') }}"
+                                   class="mediahuus-input {{ errors.device_name is defined ? 'error' : '' }}"
+                                   placeholder="z.B. iPhone 15 Pro, Samsung Galaxy S24">
+                            {% if errors.device_name is defined %}
+                                <p class="mt-1 text-sm text-red-600">{{ errors.device_name }}</p>
+                            {% endif %}
+                        </div>
+                        <div>
+                            <label for="serial_number" class="mediahuus-label">Seriennummer / IMEI *</label>
+                            <input type="text" name="serial_number" id="serial_number" required
+                                   value="{{ formData.serial_number|default('') }}"
+                                   class="mediahuus-input {{ errors.serial_number is defined ? 'error' : '' }}"
+                                   placeholder="z.B. IMEI oder Seriennummer">
+                            {% if errors.serial_number is defined %}
+                                <p class="mt-1 text-sm text-red-600">{{ errors.serial_number }}</p>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Schadensbewertung -->
+                <div class="border-b border-gray-200 pb-8">
+                    <h3 class="text-lg font-medium text-gray-900 mb-4">Schadensbewertung</h3>
+                    <div class="space-y-6">
+                        <!-- Schadenstyp -->
+                        <div>
+                            <label for="damage_type" class="mediahuus-label">Art des Schadens *</label>
+                            <select name="damage_type" id="damage_type" required
+                                    class="mediahuus-select {{ errors.damage_type is defined ? 'error' : '' }}">
+                                <option value="">-- Schadenstyp auswählen --</option>
+                                {% for value, label in damageTypes %}
+                                    <option value="{{ value }}"
+                                            {% if formData.damage_type|default('') == value %}selected{% endif %}>
+                                        {{ label }}
+                                    </option>
+                                {% endfor %}
+                            </select>
+                            {% if errors.damage_type is defined %}
+                                <p class="mt-1 text-sm text-red-600">{{ errors.damage_type }}</p>
+                            {% endif %}
+                            <p class="mt-1 text-sm text-gray-500">Wählen Sie den Hauptschadenstyp für automatische Textbausteine</p>
+
+                            <div id="damage_preview" class="mt-4 p-4 bg-blue-50 border border-blue-200 rounded-lg" style="display: none;">
+                                <h4 class="text-sm font-medium text-blue-900 mb-2">Textbaustein-Vorschau:</h4>
+                                <p id="damage_preview_text" class="text-sm text-blue-800 leading-relaxed"></p>
+                            </div>
+                        </div>
+
+                        <!-- Schadensbeschreibung -->
+                        <div>
+                            <label for="damage_description" class="mediahuus-label">Zusätzliche Schadensbeschreibung</label>
+                            <div class="mediahuus-richtext">
+                                <div id="damage_description_editor" style="height: 200px;"></div>
+                                <textarea name="damage_description" id="damage_description" style="display: none;">{{ formData.damage_description|default('') }}</textarea>
+                            </div>
+                            {% if errors.damage_description is defined %}
+                                <p class="mt-1 text-sm text-red-600">{{ errors.damage_description }}</p>
+                            {% endif %}
+                            <p class="mt-1 text-sm text-gray-500">Optional: Ergänzende Details zum Schaden</p>
+                        </div>
+
+                        <!-- Bewertungsergebnis -->
+                        <div>
+                            <label for="assessment_result" class="mediahuus-label">Bewertungsergebnis *</label>
+                            <select name="assessment_result" id="assessment_result" required
+                                    class="mediahuus-select {{ errors.assessment_result is defined ? 'error' : '' }}">
+                                <option value="">-- Bewertung auswählen --</option>
+                                {% for value, label in resultOptions %}
+                                    <option value="{{ value }}"
+                                            {% if formData.assessment_result|default('') == value %}selected{% endif %}>
+                                        {{ label }}
+                                    </option>
+                                {% endfor %}
+                            </select>
+                            {% if errors.assessment_result is defined %}
+                                <p class="mt-1 text-sm text-red-600">{{ errors.assessment_result }}</p>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Finanzielle Bewertung -->
+                <div class="pb-8">
+                    <h3 class="text-lg font-medium text-gray-900 mb-4">Finanzielle Bewertung <span class="text-sm font-normal text-gray-500">(optional)</span></h3>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <!-- Zeitwert -->
+                        <div>
+                            <label for="device_value_chf" class="mediahuus-label">Geschätzter Zeitwert (CHF)</label>
+                            <div class="relative">
+                                <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                    <span class="text-gray-500 sm:text-sm">CHF</span>
+                                </div>
+                                <input type="number" name="device_value_chf" id="device_value_chf" step="0.05" min="0"
+                                       value="{{ formData.device_value_chf|default('') }}"
+                                       class="mediahuus-input {{ errors.device_value_chf is defined ? 'error' : '' }}"
+                                       style="padding-left: 4rem !important;"
+                                       placeholder="0.00">
+                            </div>
+                            {% if errors.device_value_chf is defined %}
+                                <p class="mt-1 text-sm text-red-600">{{ errors.device_value_chf }}</p>
+                            {% endif %}
+                            <p class="mt-1 text-sm text-gray-500">Aktueller Marktwert des Geräts (falls bekannt)</p>
+                        </div>
+
+                        <!-- Reparaturkosten -->
+                        <div>
+                            <label for="repair_cost_chf" class="mediahuus-label">Geschätzte Reparaturkosten (CHF)</label>
+                            <div class="relative">
+                                <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                    <span class="text-gray-500 sm:text-sm">CHF</span>
+                                </div>
+                                <input type="number" name="repair_cost_chf" id="repair_cost_chf" step="0.05" min="0"
+                                       value="{{ formData.repair_cost_chf|default('') }}"
+                                       class="mediahuus-input {{ errors.repair_cost_chf is defined ? 'error' : '' }}"
+                                       style="padding-left: 4rem !important;"
+                                       placeholder="0.00">
+                            </div>
+                            {% if errors.repair_cost_chf is defined %}
+                                <p class="mt-1 text-sm text-red-600">{{ errors.repair_cost_chf }}</p>
+                            {% endif %}
+                            <p class="mt-1 text-sm text-gray-500">Voraussichtliche Kosten für eine Reparatur (falls bekannt)</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Buttons -->
+                <div class="flex justify-end space-x-3 pt-6 border-t">
+                    <a href="/" class="mediahuus-button-secondary">Abbrechen</a>
+                    <button type="submit" class="mediahuus-button-primary">Gutachten erstellen</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+var damageTemplates = {{ damageTemplates|json_encode|raw }};
+
+var quill = new Quill('#damage_description_editor', {
+    theme: 'snow',
+    placeholder: 'Optional: Ergänzende Details zum Schaden...',
+    modules: {
+        toolbar: [
+            ['bold', 'italic', 'underline'],
+            [{ 'list': 'ordered'}, { 'list': 'bullet' }],
+            ['link'],
+            ['clean']
+        ]
+    }
+});
+
+var hiddenTextarea = document.querySelector('#damage_description');
+var initialContent = hiddenTextarea.value;
+if (initialContent) {
+    quill.root.innerHTML = initialContent;
+}
+
+quill.on('text-change', function() {
+    hiddenTextarea.value = quill.root.innerHTML;
+});
+
+document.querySelector('form').addEventListener('submit', function() {
+    hiddenTextarea.value = quill.root.innerHTML;
+});
+
+var damageTypeSelect = document.getElementById('damage_type');
+var damagePreview = document.getElementById('damage_preview');
+var damagePreviewText = document.getElementById('damage_preview_text');
+
+function updateDamagePreview() {
+    var selectedType = damageTypeSelect.value;
+    if (selectedType && damageTemplates[selectedType]) {
+        damagePreviewText.textContent = damageTemplates[selectedType];
+        damagePreview.style.display = 'block';
+    } else {
+        damagePreview.style.display = 'none';
+    }
+}
+
+damageTypeSelect.addEventListener('change', updateDamagePreview);
+document.addEventListener('DOMContentLoaded', function() {
+    updateDamagePreview();
+});
+</script>
+{% endblock %}
