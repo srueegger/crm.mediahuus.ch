@@ -107,6 +107,9 @@ class InsuranceController extends BaseController
 
             $documentId = $this->documentRepository->create($document);
 
+            $deviceValue = trim($data['device_value_chf'] ?? '');
+            $repairCost = trim($data['repair_cost_chf'] ?? '');
+
             $assessment = new InsuranceAssessment(
                 documentId: $documentId,
                 damageType: $data['damage_type'],
@@ -114,8 +117,8 @@ class InsuranceController extends BaseController
                 serialNumber: trim($data['serial_number']),
                 damageDescription: trim($data['damage_description'] ?? ''),
                 assessmentResult: $data['assessment_result'],
-                deviceValueChf: (float) $data['device_value_chf'],
-                repairCostChf: (float) $data['repair_cost_chf']
+                deviceValueChf: $deviceValue !== '' ? (float) $deviceValue : null,
+                repairCostChf: $repairCost !== '' ? (float) $repairCost : null
             );
 
             $assessmentId = $this->insuranceRepository->create($assessment);
@@ -262,16 +265,12 @@ class InsuranceController extends BaseController
         }
 
         $deviceValue = $data['device_value_chf'] ?? '';
-        if ($deviceValue === '') {
-            $errors['device_value_chf'] = 'Zeitwert ist erforderlich';
-        } elseif (!is_numeric($deviceValue) || (float)$deviceValue < 0) {
+        if ($deviceValue !== '' && (!is_numeric($deviceValue) || (float)$deviceValue < 0)) {
             $errors['device_value_chf'] = 'Zeitwert muss eine positive Zahl sein';
         }
 
         $repairCost = $data['repair_cost_chf'] ?? '';
-        if ($repairCost === '') {
-            $errors['repair_cost_chf'] = 'Reparaturkosten sind erforderlich';
-        } elseif (!is_numeric($repairCost) || (float)$repairCost < 0) {
+        if ($repairCost !== '' && (!is_numeric($repairCost) || (float)$repairCost < 0)) {
             $errors['repair_cost_chf'] = 'Reparaturkosten müssen eine positive Zahl sein';
         }
 

@@ -168,16 +168,16 @@
 
                 <!-- Finanzielle Bewertung -->
                 <div class="pb-8">
-                    <h3 class="text-lg font-medium text-gray-900 mb-4">Finanzielle Bewertung</h3>
+                    <h3 class="text-lg font-medium text-gray-900 mb-4">Finanzielle Bewertung <span class="text-sm font-normal text-gray-500">(optional)</span></h3>
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                         <!-- Zeitwert -->
                         <div>
-                            <label for="device_value_chf" class="mediahuus-label">Geschätzter Zeitwert (CHF) *</label>
+                            <label for="device_value_chf" class="mediahuus-label">Geschätzter Zeitwert (CHF)</label>
                             <div class="relative">
                                 <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
                                     <span class="text-gray-500 sm:text-sm">CHF</span>
                                 </div>
-                                <input type="number" name="device_value_chf" id="device_value_chf" step="0.05" min="0" required
+                                <input type="number" name="device_value_chf" id="device_value_chf" step="0.05" min="0"
                                        value="{{ formData.device_value_chf|default('') }}"
                                        class="mediahuus-input {{ errors.device_value_chf is defined ? 'error' : '' }}"
                                        style="padding-left: 4rem !important;"
@@ -186,17 +186,17 @@
                             {% if errors.device_value_chf is defined %}
                                 <p class="mt-1 text-sm text-red-600">{{ errors.device_value_chf }}</p>
                             {% endif %}
-                            <p class="mt-1 text-sm text-gray-500">Aktueller Marktwert des Geräts</p>
+                            <p class="mt-1 text-sm text-gray-500">Aktueller Marktwert des Geräts (falls bekannt)</p>
                         </div>
 
                         <!-- Reparaturkosten -->
                         <div>
-                            <label for="repair_cost_chf" class="mediahuus-label">Geschätzte Reparaturkosten (CHF) *</label>
+                            <label for="repair_cost_chf" class="mediahuus-label">Geschätzte Reparaturkosten (CHF)</label>
                             <div class="relative">
                                 <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
                                     <span class="text-gray-500 sm:text-sm">CHF</span>
                                 </div>
-                                <input type="number" name="repair_cost_chf" id="repair_cost_chf" step="0.05" min="0" required
+                                <input type="number" name="repair_cost_chf" id="repair_cost_chf" step="0.05" min="0"
                                        value="{{ formData.repair_cost_chf|default('') }}"
                                        class="mediahuus-input {{ errors.repair_cost_chf is defined ? 'error' : '' }}"
                                        style="padding-left: 4rem !important;"
@@ -205,7 +205,7 @@
                             {% if errors.repair_cost_chf is defined %}
                                 <p class="mt-1 text-sm text-red-600">{{ errors.repair_cost_chf }}</p>
                             {% endif %}
-                            <p class="mt-1 text-sm text-gray-500">Voraussichtliche Kosten für eine Reparatur</p>
+                            <p class="mt-1 text-sm text-gray-500">Voraussichtliche Kosten für eine Reparatur (falls bekannt)</p>
                         </div>
                     </div>
                 </div>

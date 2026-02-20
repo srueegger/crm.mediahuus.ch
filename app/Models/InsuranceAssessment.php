@@ -16,8 +16,8 @@ class InsuranceAssessment
     private string $serialNumber;
     private string $damageDescription;
     private string $assessmentResult;
-    private float $deviceValueChf;
-    private float $repairCostChf;
+    private ?float $deviceValueChf;
+    private ?float $repairCostChf;
 
     public function __construct(
         int $documentId,
@@ -26,8 +26,8 @@ class InsuranceAssessment
         string $serialNumber,
         string $damageDescription,
         string $assessmentResult,
-        float $deviceValueChf,
-        float $repairCostChf,
+        ?float $deviceValueChf = null,
+        ?float $repairCostChf = null,
         ?int $id = null
     ) {
         $this->id = $id;
@@ -86,23 +86,29 @@ class InsuranceAssessment
         };
     }
 
-    public function getDeviceValueChf(): float
+    public function getDeviceValueChf(): ?float
     {
         return $this->deviceValueChf;
     }
 
-    public function getFormattedDeviceValue(): string
+    public function getFormattedDeviceValue(): ?string
     {
+        if ($this->deviceValueChf === null) {
+            return null;
+        }
         return 'CHF ' . number_format($this->deviceValueChf, 2, '.', "'");
     }
 
-    public function getRepairCostChf(): float
+    public function getRepairCostChf(): ?float
     {
         return $this->repairCostChf;
     }
 
-    public function getFormattedRepairCost(): string
+    public function getFormattedRepairCost(): ?string
     {
+        if ($this->repairCostChf === null) {
+            return null;
+        }
         return 'CHF ' . number_format($this->repairCostChf, 2, '.', "'");
     }
 

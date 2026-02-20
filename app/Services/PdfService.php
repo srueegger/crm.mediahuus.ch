@@ -1225,8 +1225,10 @@ class PdfService
 
     private function addInsuranceResultBox(TCPDF $pdf, InsuranceAssessment $assessment, float $currentY): float
     {
+        $hasFinancials = $assessment->getDeviceValueChf() !== null || $assessment->getRepairCostChf() !== null;
+        $resultBoxHeight = $hasFinancials ? 45 : 22;
+
         // Check if result box fits on current page
-        $resultBoxHeight = 45;
         $pageHeight = $pdf->getPageHeight();
         $bottomMargin = 25;
 
@@ -1262,21 +1264,44 @@ class PdfService
         $pdf->SetXY(25, $currentY + 10);
         $pdf->Cell(160, 8, $assessment->getAssessmentResultLabel(), 0, 1, 'C');
 
-        // Separator line
-        $pdf->SetDrawColor(255, 255, 255);
-        $pdf->SetLineWidth(0.2);
-        $pdf->Line(30, $currentY + 22, 180, $currentY + 22);
+        // Only show financial details if at least one value is present
+        if ($hasFinancials) {
+            // Separator line
+            $pdf->SetDrawColor(255, 255, 255);
+            $pdf->SetLineWidth(0.2);
+            $pdf->Line(30, $currentY + 22, 180, $currentY + 22);
 
-        // Zeitwert and Reparaturkosten side by side
-        $pdf->SetFont('helvetica', '', 9);
-        $pdf->SetXY(25, $currentY + 25);
-        $pdf->Cell(80, 5, 'Geschätzter Zeitwert', 0, 0, 'C');
-        $pdf->Cell(80, 5, 'Reparaturkosten', 0, 1, 'C');
+            // Determine layout based on which values are present
+            $hasValue = $assessment->getDeviceValueChf() !== null;
+            $hasCost = $assessment->getRepairCostChf() !== null;
 
-        $pdf->SetFont('helvetica', 'B', 14);
-        $pdf->SetXY(25, $currentY + 31);
-        $pdf->Cell(80, 8, $assessment->getFormattedDeviceValue(), 0, 0, 'C');
-        $pdf->Cell(80, 8, $assessment->getFormattedRepairCost(), 0, 1, 'C');
+            if ($hasValue && $hasCost) {
+                // Both values - side by side
+                $pdf->SetFont('helvetica', '', 9);
+                $pdf->SetXY(25, $currentY + 25);
+                $pdf->Cell(80, 5, 'Geschätzter Zeitwert', 0, 0, 'C');
+                $pdf->Cell(80, 5, 'Reparaturkosten', 0, 1, 'C');
+
+                $pdf->SetFont('helvetica', 'B', 14);
+                $pdf->SetXY(25, $currentY + 31);
+                $pdf->Cell(80, 8, $assessment->getFormattedDeviceValue(), 0, 0, 'C');
+                $pdf->Cell(80, 8, $assessment->getFormattedRepairCost(), 0, 1, 'C');
+            } elseif ($hasValue) {
+                $pdf->SetFont('helvetica', '', 9);
+                $pdf->SetXY(25, $currentY + 25);
+                $pdf->Cell(160, 5, 'Geschätzter Zeitwert', 0, 1, 'C');
+                $pdf->SetFont('helvetica', 'B', 14);
+                $pdf->SetXY(25, $currentY + 31);
+                $pdf->Cell(160, 8, $assessment->getFormattedDeviceValue(), 0, 1, 'C');
+            } else {
+                $pdf->SetFont('helvetica', '', 9);
+                $pdf->SetXY(25, $currentY + 25);
+                $pdf->Cell(160, 5, 'Reparaturkosten', 0, 1, 'C');
+                $pdf->SetFont('helvetica', 'B', 14);
+                $pdf->SetXY(25, $currentY + 31);
+                $pdf->Cell(160, 8, $assessment->getFormattedRepairCost(), 0, 1, 'C');
+            }
+        }
 
         // Reset text color
         $pdf->SetTextColor(0, 0, 0);

@@ -89,8 +89,8 @@ class InsuranceAssessmentRepository
             serialNumber: $row['serial_number'],
             damageDescription: $row['damage_description'] ?? '',
             assessmentResult: $row['assessment_result'] ?? 'total_loss',
-            deviceValueChf: (float) $row['device_value_chf'],
-            repairCostChf: (float) $row['repair_cost_chf'],
+            deviceValueChf: $row['device_value_chf'] !== null ? (float) $row['device_value_chf'] : null,
+            repairCostChf: $row['repair_cost_chf'] !== null ? (float) $row['repair_cost_chf'] : null,
             id: (int) $row['id']
         );
     }
