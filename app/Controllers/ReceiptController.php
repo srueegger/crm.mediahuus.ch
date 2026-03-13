@@ -106,16 +106,25 @@ class ReceiptController extends BaseController
         try {
             // Generate document number
             $docNumber = $this->documentRepository->generateDocNumber(Document::TYPE_RECEIPT);
-            
+
+            // Customer name: use provided name or default
+            $customerName = trim($data['customer_name'] ?? '');
+            if (empty($customerName)) {
+                $customerName = 'Barkauf';
+            }
+
             // Create document
             $document = new Document(
                 docType: Document::TYPE_RECEIPT,
                 docNumber: $docNumber,
                 branchId: (int) $data['branch_id'],
                 userId: $currentUser->getId(),
-                customerName: 'Barkauf', // Default name for cash purchases
+                customerName: $customerName,
                 customerPhone: null,
-                customerEmail: null
+                customerEmail: null,
+                customerStreet: !empty(trim($data['customer_street'] ?? '')) ? trim($data['customer_street']) : null,
+                customerZip: !empty(trim($data['customer_zip'] ?? '')) ? trim($data['customer_zip']) : null,
+                customerCity: !empty(trim($data['customer_city'] ?? '')) ? trim($data['customer_city']) : null
             );
 
             $documentId = $this->documentRepository->create($document);
@@ -139,7 +148,8 @@ class ReceiptController extends BaseController
                     itemDescription: $itemData['description'],
                     quantity: $itemData['quantity'],
                     unitPriceChf: $itemData['unit_price_chf'],
-                    lineTotalChf: $itemData['line_total_chf']
+                    lineTotalChf: $itemData['line_total_chf'],
+                    warranty: $itemData['warranty']
                 );
                 $this->receiptItemRepository->create($item);
             }
@@ -294,11 +304,14 @@ class ReceiptController extends BaseController
             $unitPrice = (float) ($item['unit_price_chf'] ?? 0);
             $lineTotal = ReceiptItem::calculateLineTotal($quantity, $unitPrice);
             
+            $warranty = !empty(trim($item['warranty'] ?? '')) ? trim($item['warranty']) : null;
+
             $items[] = [
                 'description' => trim($item['description'] ?? ''),
                 'quantity' => $quantity,
                 'unit_price_chf' => $unitPrice,
                 'line_total_chf' => $lineTotal,
+                'warranty' => $warranty,
             ];
         }
         

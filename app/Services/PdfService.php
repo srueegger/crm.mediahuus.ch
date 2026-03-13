@@ -449,18 +449,25 @@ class PdfService
 
         // Header with Logo and Branch Info
         $currentY = $this->addHeader($pdf, $branch, $currentY);
-        
+
         // Document Title and Number
         $currentY = $this->addReceiptTitle($pdf, $document, $currentY);
-        
-        // Skip customer information for receipts
-        
+
+        // Customer Information (only if provided)
+        $hasCustomerInfo = $document->getCustomerName() !== 'Barkauf'
+            || $document->getCustomerStreet()
+            || $document->getCustomerZip()
+            || $document->getCustomerCity();
+        if ($hasCustomerInfo) {
+            $currentY = $this->addReceiptCustomerBlock($pdf, $document, $currentY);
+        }
+
         // Receipt Items Table
         $currentY = $this->addReceiptItemsTable($pdf, $receipt, $currentY);
-        
+
         // Total Amount
         $currentY = $this->addReceiptTotal($pdf, $receipt, $currentY);
-        
+
         // Footer Information
         $this->addReceiptFooter($pdf, $branch, $document);
     }
@@ -496,58 +503,129 @@ class PdfService
         return $currentY + 20;
     }
 
-    private function addReceiptItemsTable(TCPDF $pdf, Receipt $receipt, float $currentY): float
+    private function addReceiptCustomerBlock(TCPDF $pdf, Document $document, float $currentY): float
     {
         // Section title
         $pdf->SetFont('helvetica', 'B', 12);
         $pdf->SetXY(20, $currentY);
+        $pdf->Cell(0, 6, 'Kunde', 0, 1, 'L');
+
+        $currentY += 8;
+        $pdf->SetFont('helvetica', '', 10);
+
+        if ($document->getCustomerName() !== 'Barkauf') {
+            $pdf->SetXY(20, $currentY);
+            $pdf->Cell(0, 5, $document->getCustomerName(), 0, 1, 'L');
+            $currentY += 5;
+        }
+
+        if ($document->getCustomerStreet()) {
+            $pdf->SetXY(20, $currentY);
+            $pdf->Cell(0, 5, $document->getCustomerStreet(), 0, 1, 'L');
+            $currentY += 5;
+        }
+
+        if ($document->getCustomerZip() || $document->getCustomerCity()) {
+            $pdf->SetXY(20, $currentY);
+            $pdf->Cell(0, 5, trim(($document->getCustomerZip() ?? '') . ' ' . ($document->getCustomerCity() ?? '')), 0, 1, 'L');
+            $currentY += 5;
+        }
+
+        return $currentY + 8;
+    }
+
+    private function addReceiptItemsTable(TCPDF $pdf, Receipt $receipt, float $currentY): float
+    {
+        // Check if any item has a warranty
+        $hasWarranty = false;
+        foreach ($receipt->getItems() as $item) {
+            if ($item->getWarranty()) {
+                $hasWarranty = true;
+                break;
+            }
+        }
+
+        // Section title
+        $pdf->SetFont('helvetica', 'B', 12);
+        $pdf->SetXY(20, $currentY);
         $pdf->Cell(0, 6, 'Verkaufte Produkte/Dienstleistungen', 0, 1, 'L');
-        
+
         $currentY += 10;
 
-        // Table headers
+        // Table headers - adjust widths based on warranty column
         $pdf->SetFont('helvetica', 'B', 9);
         $pdf->SetFillColor(240, 240, 240);
-        
+
         $pdf->SetXY(20, $currentY);
-        $pdf->Cell(80, 8, 'Beschreibung', 1, 0, 'L', true);
-        $pdf->Cell(20, 8, 'Menge', 1, 0, 'C', true);
-        $pdf->Cell(35, 8, 'Einzelpreis', 1, 0, 'R', true);
-        $pdf->Cell(35, 8, 'Summe', 1, 1, 'R', true);
-        
+        if ($hasWarranty) {
+            $pdf->Cell(55, 8, 'Beschreibung', 1, 0, 'L', true);
+            $pdf->Cell(25, 8, 'Garantie', 1, 0, 'C', true);
+            $pdf->Cell(20, 8, 'Menge', 1, 0, 'C', true);
+            $pdf->Cell(35, 8, 'Einzelpreis', 1, 0, 'R', true);
+            $pdf->Cell(35, 8, 'Summe', 1, 1, 'R', true);
+        } else {
+            $pdf->Cell(80, 8, 'Beschreibung', 1, 0, 'L', true);
+            $pdf->Cell(20, 8, 'Menge', 1, 0, 'C', true);
+            $pdf->Cell(35, 8, 'Einzelpreis', 1, 0, 'R', true);
+            $pdf->Cell(35, 8, 'Summe', 1, 1, 'R', true);
+        }
+
         $currentY += 8;
 
         // Table items
         $pdf->SetFont('helvetica', '', 9);
         $pdf->SetFillColor(255, 255, 255);
-        
+
         foreach ($receipt->getItems() as $item) {
             // Check if we need a new page
             if ($currentY > 250) {
                 $pdf->AddPage();
                 $currentY = 15;
             }
-            
-            $pdf->SetXY(20, $currentY);
-            
-            // Description (with text wrapping if needed)
+
             $description = $item->getItemDescription();
-            $descriptionHeight = max(8, $pdf->getStringHeight(80, $description));
-            
-            $pdf->MultiCell(80, $descriptionHeight, $description, 1, 'L', false);
-            
-            // Quantity
-            $pdf->SetXY(100, $currentY);
-            $pdf->Cell(20, $descriptionHeight, (string)$item->getQuantity(), 1, 0, 'C');
-            
-            // Unit price
-            $pdf->SetXY(120, $currentY);
-            $pdf->Cell(35, $descriptionHeight, $item->getFormattedUnitPrice(), 1, 0, 'R');
-            
-            // Line total
-            $pdf->SetXY(155, $currentY);
-            $pdf->Cell(35, $descriptionHeight, $item->getFormattedLineTotal(), 1, 0, 'R');
-            
+
+            if ($hasWarranty) {
+                $descriptionHeight = max(8, $pdf->getStringHeight(55, $description));
+
+                $pdf->SetXY(20, $currentY);
+                $pdf->MultiCell(55, $descriptionHeight, $description, 1, 'L', false);
+
+                // Warranty
+                $pdf->SetXY(75, $currentY);
+                $warrantyLabel = $item->getWarrantyLabel() ?? '-';
+                $pdf->Cell(25, $descriptionHeight, $warrantyLabel, 1, 0, 'C');
+
+                // Quantity
+                $pdf->SetXY(100, $currentY);
+                $pdf->Cell(20, $descriptionHeight, (string)$item->getQuantity(), 1, 0, 'C');
+
+                // Unit price
+                $pdf->SetXY(120, $currentY);
+                $pdf->Cell(35, $descriptionHeight, $item->getFormattedUnitPrice(), 1, 0, 'R');
+
+                // Line total
+                $pdf->SetXY(155, $currentY);
+                $pdf->Cell(35, $descriptionHeight, $item->getFormattedLineTotal(), 1, 0, 'R');
+            } else {
+                $descriptionHeight = max(8, $pdf->getStringHeight(80, $description));
+
+                $pdf->SetXY(20, $currentY);
+                $pdf->MultiCell(80, $descriptionHeight, $description, 1, 'L', false);
+
+                // Quantity
+                $pdf->SetXY(100, $currentY);
+                $pdf->Cell(20, $descriptionHeight, (string)$item->getQuantity(), 1, 0, 'C');
+
+                // Unit price
+                $pdf->SetXY(120, $currentY);
+                $pdf->Cell(35, $descriptionHeight, $item->getFormattedUnitPrice(), 1, 0, 'R');
+
+                // Line total
+                $pdf->SetXY(155, $currentY);
+                $pdf->Cell(35, $descriptionHeight, $item->getFormattedLineTotal(), 1, 0, 'R');
+            }
+
             $currentY += $descriptionHeight;
         }
 
