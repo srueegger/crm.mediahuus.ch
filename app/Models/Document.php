@@ -18,6 +18,9 @@ class Document
     private string $customerName;
     private ?string $customerPhone;
     private ?string $customerEmail;
+    private ?string $customerStreet;
+    private ?string $customerZip;
+    private ?string $customerCity;
     private \DateTime $createdAt;
     private \DateTime $updatedAt;
 
@@ -31,10 +34,13 @@ class Document
         ?string $customerEmail = null,
         ?int $id = null,
         ?\DateTime $createdAt = null,
-        ?\DateTime $updatedAt = null
+        ?\DateTime $updatedAt = null,
+        ?string $customerStreet = null,
+        ?string $customerZip = null,
+        ?string $customerCity = null
     ) {
         $this->validateDocType($docType);
-        
+
         $this->id = $id;
         $this->docType = $docType;
         $this->docNumber = $docNumber;
@@ -43,6 +49,9 @@ class Document
         $this->customerName = $customerName;
         $this->customerPhone = $customerPhone;
         $this->customerEmail = $customerEmail;
+        $this->customerStreet = $customerStreet;
+        $this->customerZip = $customerZip;
+        $this->customerCity = $customerCity;
         $this->createdAt = $createdAt ?? new \DateTime();
         $this->updatedAt = $updatedAt ?? new \DateTime();
     }
@@ -87,6 +96,36 @@ class Document
         return $this->customerEmail;
     }
 
+    public function getCustomerStreet(): ?string
+    {
+        return $this->customerStreet;
+    }
+
+    public function getCustomerZip(): ?string
+    {
+        return $this->customerZip;
+    }
+
+    public function getCustomerCity(): ?string
+    {
+        return $this->customerCity;
+    }
+
+    public function getCustomerAddress(): ?string
+    {
+        if (!$this->customerStreet && !$this->customerZip && !$this->customerCity) {
+            return null;
+        }
+        $parts = [];
+        if ($this->customerStreet) {
+            $parts[] = $this->customerStreet;
+        }
+        if ($this->customerZip || $this->customerCity) {
+            $parts[] = trim(($this->customerZip ?? '') . ' ' . ($this->customerCity ?? ''));
+        }
+        return implode(', ', $parts);
+    }
+
     public function getCreatedAt(): \DateTime
     {
         return $this->createdAt;
@@ -108,6 +147,10 @@ class Document
             'customer_name' => $this->customerName,
             'customer_phone' => $this->customerPhone,
             'customer_email' => $this->customerEmail,
+            'customer_street' => $this->customerStreet,
+            'customer_zip' => $this->customerZip,
+            'customer_city' => $this->customerCity,
+            'customer_address' => $this->getCustomerAddress(),
             'created_at' => $this->createdAt->format('Y-m-d H:i:s'),
             'updated_at' => $this->updatedAt->format('Y-m-d H:i:s'),
         ];

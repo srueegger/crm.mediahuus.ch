@@ -47,6 +47,33 @@
                     </dl>
                 </div>
 
+                <!-- Customer Info (only if provided) -->
+                {% if document.customer_name != 'Barkauf' or document.customer_street or document.customer_zip or document.customer_city %}
+                <div>
+                    <h3 class="text-lg font-medium text-gray-900 mb-4">Kundeninformationen</h3>
+                    <dl class="space-y-2">
+                        {% if document.customer_name != 'Barkauf' %}
+                        <div>
+                            <dt class="text-sm font-medium text-gray-500">Name:</dt>
+                            <dd class="text-sm text-gray-900">{{ document.customer_name }}</dd>
+                        </div>
+                        {% endif %}
+                        {% if document.customer_street %}
+                        <div>
+                            <dt class="text-sm font-medium text-gray-500">Strasse:</dt>
+                            <dd class="text-sm text-gray-900">{{ document.customer_street }}</dd>
+                        </div>
+                        {% endif %}
+                        {% if document.customer_zip or document.customer_city %}
+                        <div>
+                            <dt class="text-sm font-medium text-gray-500">PLZ / Ort:</dt>
+                            <dd class="text-sm text-gray-900">{{ document.customer_zip }} {{ document.customer_city }}</dd>
+                        </div>
+                        {% endif %}
+                    </dl>
+                </div>
+                {% endif %}
+
                 <!-- Branch Info -->
                 <div>
                     <h3 class="text-lg font-medium text-gray-900 mb-4">Filial-Informationen</h3>
@@ -81,11 +108,22 @@
             
             <div class="overflow-x-auto">
                 <table class="min-w-full divide-y divide-gray-200">
+                    {% set has_warranty = false %}
+                    {% for item in receipt.items %}
+                        {% if item.warranty_label %}
+                            {% set has_warranty = true %}
+                        {% endif %}
+                    {% endfor %}
                     <thead class="bg-gray-50">
                         <tr>
                             <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                                 Beschreibung
                             </th>
+                            {% if has_warranty %}
+                            <th class="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                Garantie
+                            </th>
+                            {% endif %}
                             <th class="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
                                 Menge
                             </th>
@@ -103,6 +141,11 @@
                                 <td class="px-6 py-4 whitespace-pre-wrap text-sm text-gray-900">
                                     {{ item.item_description }}
                                 </td>
+                                {% if has_warranty %}
+                                <td class="px-6 py-4 text-center text-sm text-gray-900">
+                                    {{ item.warranty_label ?? '-' }}
+                                </td>
+                                {% endif %}
                                 <td class="px-6 py-4 text-center text-sm text-gray-900">
                                     {{ item.quantity }}
                                 </td>
@@ -117,10 +160,10 @@
                     </tbody>
                     <tfoot class="bg-gray-50">
                         <tr>
-                            <td colspan="3" class="px-6 py-4 text-right text-sm font-medium text-gray-900">
+                            <td colspan="{{ has_warranty ? 4 : 3 }}" class="px-6 py-4 text-right text-sm font-medium text-gray-900">
                                 Gesamtbetrag:
                             </td>
-                            <td class="px-6 py-4 text-right text-lg font-bold text-green-600">
+                            <td class="px-6 py-4 text-right text-lg font-bold" style="color: #2d8f3e;">
                                 {{ receipt.formatted_total }}
                             </td>
                         </tr>

@@ -23,6 +23,7 @@ class ReceiptItemRepository
             'quantity' => $item->getQuantity(),
             'unit_price_chf' => $item->getUnitPriceChf(),
             'line_total_chf' => $item->getLineTotalChf(),
+            'warranty' => $item->getWarranty(),
         ]);
 
         return (int) $this->connection->lastInsertId();
@@ -92,7 +93,8 @@ class ReceiptItemRepository
             quantity: (int) $row['quantity'],
             unitPriceChf: (float) $row['unit_price_chf'],
             lineTotalChf: (float) $row['line_total_chf'],
-            id: (int) $row['id']
+            id: (int) $row['id'],
+            warranty: $row['warranty'] ?? null
         );
     }
 }

@@ -25,6 +25,9 @@ class DocumentRepository
             'customer_name' => $document->getCustomerName(),
             'customer_phone' => $document->getCustomerPhone(),
             'customer_email' => $document->getCustomerEmail(),
+            'customer_street' => $document->getCustomerStreet(),
+            'customer_zip' => $document->getCustomerZip(),
+            'customer_city' => $document->getCustomerCity(),
             'created_at' => $document->getCreatedAt()->format('Y-m-d H:i:s'),
             'updated_at' => $document->getUpdatedAt()->format('Y-m-d H:i:s'),
         ]);
@@ -144,7 +147,10 @@ class DocumentRepository
             customerEmail: $row['customer_email'],
             id: (int) $row['id'],
             createdAt: new \DateTime($row['created_at']),
-            updatedAt: new \DateTime($row['updated_at'])
+            updatedAt: new \DateTime($row['updated_at']),
+            customerStreet: $row['customer_street'] ?? null,
+            customerZip: $row['customer_zip'] ?? null,
+            customerCity: $row['customer_city'] ?? null
         );
     }
 }
