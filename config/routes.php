@@ -8,6 +8,7 @@ use App\Controllers\EstimateController;
 use App\Controllers\ReceiptController;
 use App\Controllers\PurchaseController;
 use App\Controllers\InsuranceController;
+use App\Controllers\ExportController;
 use App\Middleware\AuthMiddleware;
 use Slim\App;
 
@@ -52,5 +53,8 @@ $app->group('', function () use ($app) {
     $app->post('/insurance', [InsuranceController::class, 'store'])->setName('insurance.store');
     $app->get('/insurance/{id:[0-9]+}', [InsuranceController::class, 'show'])->setName('insurance.show');
     $app->get('/insurance/{id:[0-9]+}/pdf', [InsuranceController::class, 'generatePdf'])->setName('insurance.pdf');
+
+    // Export
+    $app->get('/export/excel', [ExportController::class, 'excel'])->setName('export.excel');
 
 })->add(AuthMiddleware::class);

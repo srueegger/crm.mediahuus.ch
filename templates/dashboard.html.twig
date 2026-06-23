@@ -112,6 +112,29 @@
                         {% endif %}
                     </form>
                 </div>
+
+                {# === Excel-Export mit Datumsfilter === #}
+                <form method="get" action="{{ url_for('export.excel') }}"
+                      class="mt-4 pt-4 border-t border-gray-100 flex flex-wrap items-end gap-3">
+                    <div>
+                        <label for="export_from" class="block text-xs font-medium text-gray-500 mb-1">Von (Datum)</label>
+                        <input type="date" id="export_from" name="date_from"
+                               class="text-sm border-gray-300 rounded-md shadow-sm focus:ring-emerald-500 focus:border-emerald-500">
+                    </div>
+                    <div>
+                        <label for="export_to" class="block text-xs font-medium text-gray-500 mb-1">Bis (Datum)</label>
+                        <input type="date" id="export_to" name="date_to"
+                               class="text-sm border-gray-300 rounded-md shadow-sm focus:ring-emerald-500 focus:border-emerald-500">
+                    </div>
+                    <button type="submit"
+                            class="inline-flex items-center gap-2 px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white text-sm font-medium rounded-md shadow-sm transition-colors">
+                        <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                        </svg>
+                        Excel-Export
+                    </button>
+                    <p class="text-xs text-gray-400 self-center">Ohne Datum werden alle Dokumente exportiert.</p>
+                </form>
             </div>
 
             {% if documents|length > 0 %}

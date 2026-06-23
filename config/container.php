@@ -25,6 +25,7 @@ use App\Controllers\ReceiptController;
 use App\Controllers\PurchaseController;
 use App\Controllers\InsuranceController;
 use App\Controllers\DashboardController;
+use App\Controllers\ExportController;
 
 return [
     // Twig Template Engine
@@ -55,6 +56,7 @@ return [
                 'insurance.create' => '/insurance/create',
                 'insurance.show' => '/insurance/' . ($params['id'] ?? '{id}'),
                 'insurance.pdf' => '/insurance/' . ($params['id'] ?? '{id}') . '/pdf',
+                'export.excel' => '/export/excel',
                 'users.index' => '/users',
                 'users.create' => '/users/create',
                 'users.edit' => '/users/' . ($params['id'] ?? '{id}') . '/edit',
@@ -175,5 +177,10 @@ return [
     // Dashboard Controller
     DashboardController::class => function (Environment $twig, DocumentRepository $documentRepository, BranchRepository $branchRepository, EstimateRepository $estimateRepository, PurchaseRepository $purchaseRepository, ReceiptRepository $receiptRepository, InsuranceAssessmentRepository $insuranceRepository) {
         return new DashboardController($twig, $documentRepository, $branchRepository, $estimateRepository, $purchaseRepository, $receiptRepository, $insuranceRepository);
+    },
+
+    // Export Controller
+    ExportController::class => function (DocumentRepository $documentRepository, BranchRepository $branchRepository, EstimateRepository $estimateRepository, PurchaseRepository $purchaseRepository, ReceiptRepository $receiptRepository, InsuranceAssessmentRepository $insuranceRepository, LoggerInterface $logger) {
+        return new ExportController($documentRepository, $branchRepository, $estimateRepository, $purchaseRepository, $receiptRepository, $insuranceRepository, $logger);
     },
 ];
