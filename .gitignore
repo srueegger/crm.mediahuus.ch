@@ -31,3 +31,6 @@ Thumbs.db
 
 # PHP
 *.tmp
+
+# Uploads (Ausweis-Fotos etc. – nicht ins Repo)
+/public/uploads/
