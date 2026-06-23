@@ -73,29 +73,35 @@ class DashboardController extends BaseController
         // Get all branches for filter dropdown
         $branches = $this->branchRepository->findAll();
 
-        // Enrich documents with type-specific data
+        // Enrich documents with type-specific data.
+        // Twig (3.x) resolviert snake_case-Attribute wie `doc_number` nicht auf getDocNumber(),
+        // daher – wie auf allen anderen Seiten – als toArray() übergeben.
         $allDocuments = [];
         foreach ($documents as $document) {
             $branch = $this->branchRepository->findById($document->getBranchId());
 
             $itemData = [
-                'document' => $document,
-                'branch' => $branch,
+                'document' => $document->toArray(),
+                'branch' => $branch ? $branch->toArray() : null,
             ];
 
             // Get type-specific data
             switch ($document->getDocType()) {
                 case 'estimate':
-                    $itemData['estimate'] = $this->estimateRepository->findByDocumentId($document->getId());
+                    $estimate = $this->estimateRepository->findByDocumentId($document->getId());
+                    $itemData['estimate'] = $estimate ? $estimate->toArray() : null;
                     break;
                 case 'purchase':
-                    $itemData['purchase'] = $this->purchaseRepository->findByDocumentId($document->getId());
+                    $purchase = $this->purchaseRepository->findByDocumentId($document->getId());
+                    $itemData['purchase'] = $purchase ? $purchase->toArray() : null;
                     break;
                 case 'receipt':
-                    $itemData['receipt'] = $this->receiptRepository->findByDocumentId($document->getId());
+                    $receipt = $this->receiptRepository->findByDocumentId($document->getId());
+                    $itemData['receipt'] = $receipt ? $receipt->toArray() : null;
                     break;
                 case 'insurance':
-                    $itemData['insurance'] = $this->insuranceRepository->findByDocumentId($document->getId());
+                    $insurance = $this->insuranceRepository->findByDocumentId($document->getId());
+                    $itemData['insurance'] = $insurance ? $insurance->toArray() : null;
                     break;
             }
 
