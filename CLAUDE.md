@@ -18,7 +18,7 @@ Internes CRM für einen Handy-An-/Verkauf- & Reparatur-Shop mit 2 Filialen:
 
 ## Projektübersicht
 
-Das Mediahuus CRM ist ein internes Customer Relationship Management System für die Mediahuus Handy-An-/Verkauf & Reparatur-Shops. Es handelt sich um eine PHP-basierte Webanwendung zur Verwaltung von Kostenvoranschlägen, Ankäufen, Quittungen und Versicherungsgutachten.
+Das Mediahuus CRM ist ein internes Customer Relationship Management System für die Mediahuus Handy-An-/Verkauf & Reparatur-Shops. Es handelt sich um eine PHP-basierte Webanwendung zur Verwaltung von Kostenvoranschlägen, Ankäufen, Quittungen, Versicherungsgutachten und Rechnungen (mit Swiss QR-Zahlteil).
 
 ## Technische Architektur
 
@@ -27,6 +27,8 @@ Das Mediahuus CRM ist ein internes Customer Relationship Management System für 
 - **Template Engine**: Twig 3 (Security & DX)
 - **Database**: Doctrine DBAL + MariaDB (Query Builder ohne ORM-Overhead)
 - **PDF Generation**: TCPDF (ursprünglich geplant: mPDF)
+- **QR-Rechnung**: sprain/swiss-qr-bill (Swiss QR-Zahlteil, SCOR-Referenz)
+- **Tests**: PHPUnit 10 (`phpunit.xml.dist`, Tests in `tests/`)
 - **Frontend**: Tailwind CSS + Vanilla JavaScript (Utility-first)
 - **Authentication**: PHP Sessions + bcrypt (CSRF-Schutz)
 - **Dependency Injection**: PHP-DI Container (Auto-wiring)
@@ -42,6 +44,7 @@ app/
 │   ├── BaseController.php
 │   ├── DashboardController.php
 │   ├── EstimateController.php
+│   ├── InvoiceController.php
 │   ├── PurchaseController.php
 │   ├── ReceiptController.php
 │   └── UserController.php
@@ -49,6 +52,8 @@ app/
 │   ├── Branch.php
 │   ├── Document.php
 │   ├── Estimate.php
+│   ├── Invoice.php
+│   ├── InvoiceItem.php
 │   ├── Purchase.php
 │   ├── Receipt.php
 │   ├── ReceiptItem.php
@@ -57,6 +62,7 @@ app/
 │   ├── BranchRepository.php
 │   ├── DocumentRepository.php
 │   ├── EstimateRepository.php
+│   ├── InvoiceRepository.php
 │   ├── PurchaseRepository.php
 │   ├── ReceiptItemRepository.php
 │   ├── ReceiptRepository.php
@@ -65,12 +71,19 @@ app/
 │   ├── AuthService.php
 │   ├── DamageTypeService.php
 │   ├── FileUploadService.php
-│   └── PdfService.php
+│   ├── InvoiceCalculator.php
+│   ├── InvoiceInputValidator.php
+│   ├── InvoiceNumberGenerator.php
+│   ├── InvoicePdfService.php
+│   ├── InvoiceService.php
+│   ├── PdfService.php
+│   └── QrBillFactory.php
 └── Middleware/        # Request Middleware
     └── AuthMiddleware.php
 
 config/
 ├── container.php      # DI Container Konfiguration
+├── invoice.php        # Rechnungs-Konfiguration (Absender, IBAN, MWST-Sätze, Zahlungsfrist)
 └── routes.php         # Routing Definitionen
 
 database/
@@ -84,12 +97,14 @@ database/
 │   ├── 007_add_damage_type_to_estimates.sql
 │   ├── 007_create_purchases_table.sql
 │   ├── 008_create_receipts_table.sql
-│   └── 009_add_receipt_type_to_documents.sql
+│   ├── 009_add_receipt_type_to_documents.sql
+│   ├── 010-012 (Versicherungsgutachten, Kundenadresse, Quittungs-Garantie)
+│   └── 013_create_invoices_tables.sql
 └── backups/          # SQL Dumps
 
 public/
 ├── index.php         # Application Entry Point
-├── assets/           # CSS, JS, Images
+├── assets/           # CSS, JS, Images (u.a. js/invoice-form.js: Live-Vorschau Rechnung)
 └── uploads/          # User Uploads
     └── id_documents/ # Ausweis-Fotos (Ankauf)
 
@@ -101,6 +116,9 @@ templates/            # Twig Templates
 ├── estimates/
 │   ├── create.html.twig
 │   ├── index.html.twig
+│   └── show.html.twig
+├── invoices/
+│   ├── create.html.twig
 │   └── show.html.twig
 ├── purchases/
 │   ├── create.html.twig
@@ -114,6 +132,12 @@ templates/            # Twig Templates
     ├── create.html.twig
     ├── edit.html.twig
     └── index.html.twig
+
+tests/                 # PHPUnit
+├── AuthServiceTest.php
+└── Services/          # Invoice*Test, QrBillFactoryTest
+
+phpunit.xml.dist       # PHPUnit-Konfiguration
 ```
 
 ## Kernfunktionen
@@ -135,23 +159,31 @@ templates/            # Twig Templates
   - Ausweis-Fotografie via Kamera (Vorder- & Rückseite)
   - Ankaufspreis in CHF
   - PDF-Generierung mit Bestätigungstext & Unterschriftenlinien
-  - Eindeutige Dokumentnummer (Format: AN-YYYY-NNNNNN)
+  - Eindeutige Dokumentnummer (Format: AK-YYYY-NNNNNN)
 - **Quittungen (Verkaufsbelege)**:
   - Formular mit Positions-/Artikelliste (Beschreibung, Menge, Einzelpreis)
   - Dynamische Zeilen hinzufügen/entfernen
   - Automatische Summenberechnung
   - PDF-Generierung mit Artikeltabelle & Gesamtbetrag
   - Eindeutige Dokumentnummer (Format: QU-YYYY-NNNNNN)
+- **Rechnungen** (Swiss QR-Rechnung):
+  - Empfänger: Firma und/oder Name plus Adresse (Pflicht)
+  - Positionen mit Beschreibung, Menge, Einzelpreis (inkl. MWST) und MWST-Satz pro Position (8.1 % vorausgewählt, 2.6 %, 0 %)
+  - Live-Vorschau im Formular (`invoice-form.js`); massgebend sind die serverseitig berechneten Summen (`InvoiceCalculator`)
+  - Zahlungsfrist standardmässig 10 Tage, pro Rechnung änderbar
+  - PDF mit Rechnungskopf und Swiss QR-Zahlteil, SCOR-Referenz (ISO 11649) aus der Rechnungsnummer
+  - Absender immer Mediahuus GmbH, Reinach (zentral in `config/invoice.php`), E-Mail im Kopf immer info@mediahuus.ch; Filiale intern immer Reinach
+  - Eindeutige Rechnungsnummer (Format: RE-JJJJ-MM-TT-NN, laufende Nummer pro Rechnungstag)
+  - Im Dashboard und im Excel-Export enthalten
+  - Nicht im Umfang: Status offen/bezahlt, Mahnwesen, Bearbeiten/Stornieren, E-Mail-Versand
+- **Versicherungsgutachten**: Formular, Detailansicht und PDF (`InsuranceController`, VG-YYYY-NNNNNN)
+- **Excel-Export**: `GET /export/excel` (`ExportController`)
 - **Dokumentenliste**: Tabellarisch mit Filtern (Filiale, Typ, Datum) pro Modul
 - **Filialen-System**: Clara & Reinach mit separaten Adressen
 
-### 🔗 Placeholder implementiert
-- **Versicherungsgutachten**: Link führt zurück zum Dashboard
-
 ### ⏳ Noch zu implementieren
-- **Versicherungsgutachten**: Spezielle Assessment-Workflows
-- **Erweiterte Dokumentenverwaltung**: Archive, Export
-- **Tests**: Smoke-Tests für zentrale Use-Cases
+- **Erweiterte Dokumentenverwaltung**: Archiv
+- **Tests**: Smoke-Tests für Controller/Use-Cases (Services der Rechnungen sind mit PHPUnit abgedeckt)
 
 ## Datenmodell (Implementiert)
 
@@ -159,17 +191,22 @@ templates/            # Twig Templates
 ```sql
 users (id, name, email [unique], password_hash, is_active, created_at, updated_at)
 branches (id, name, street, zip, city, phone, email, created_at, updated_at)
-documents (id, doc_type ENUM["estimate","purchase","insurance","receipt"], doc_number UNIQUE, branch_id FK, user_id FK, customer_name, customer_phone, customer_email, created_at, updated_at)
+documents (id, doc_type ENUM["estimate","purchase","insurance","receipt","invoice"], doc_number UNIQUE, branch_id FK, user_id FK, customer_name, customer_phone, customer_email, created_at, updated_at)
 estimates (id, document_id FK UNIQUE, device_name, serial_number, damage_type ENUM, issue_text TEXT, price_chf DECIMAL(10,2))
 purchases (id, document_id FK UNIQUE, seller_street, seller_zip, seller_city, device_type, device_brand, device_model, imei, serial_number, device_condition, accessories, purchase_price_chf DECIMAL(10,2), id_document_front, id_document_back)
 receipts (id, document_id FK UNIQUE, notes TEXT, total_amount DECIMAL(10,2))
 receipt_items (id, receipt_id FK, item_description, quantity INT, unit_price DECIMAL(10,2), line_total DECIMAL(10,2))
+invoices (id, document_id FK UNIQUE, company_name, contact_name, invoice_date, payment_term_days, due_date, total_net_chf, total_vat_chf, total_gross_chf, qr_reference)
+invoice_items (id, invoice_id FK, position, description, quantity DECIMAL(10,2), unit_price_gross_chf, vat_rate DECIMAL(4,2), line_total_gross_chf)
 ```
+
+Rechnungen: `documents.customer_name` enthält den Anzeigenamen (Firma, sonst Name), `customer_street/zip/city` die Empfängeradresse (`customer_zip` seit Migration 013 VARCHAR(16)), `branch_id` ist immer Reinach.
 
 ### Design-Prinzip
 - **Generische Dokumente**: `documents` als Basis-Tabelle
-- **Typ-spezifische Details**: `estimates`, `purchases`, `receipts` je als Detail-Tabelle
-- **Eindeutige Dokumentnummern**: KO-YYYY-NNNNNN, AN-YYYY-NNNNNN, QU-YYYY-NNNNNN
+- **Typ-spezifische Details**: `estimates`, `purchases`, `receipts`, `invoices` je als Detail-Tabelle
+- **Eindeutige Dokumentnummern**: KO-YYYY-NNNNNN, AK-YYYY-NNNNNN, QU-YYYY-NNNNNN, VG-YYYY-NNNNNN, Rechnungen RE-JJJJ-MM-TT-NN (z. B. RE-2026-10-12-01)
+- **Nummernvergabe**: "höchste bestehende Nummer + 1" (nicht mehr COUNT+1, damit gelöschte Dokumente keine Duplikate erzeugen); bei Kollision des UNIQUE-Index bis zu 3 Wiederholungen
 
 ### Environment Variablen
 ```
@@ -221,8 +258,10 @@ ddev composer update     # Dependencies aktualisieren
 ddev composer migrate    # Database Migrations
 ddev composer seed       # Test-Daten laden
 
+# Tests
+ddev exec vendor/bin/phpunit   # PHPUnit Tests
+
 # Development Tools (geplant)
-ddev composer test       # PHPUnit Tests
 ddev composer phpcs      # Code Style Check
 ddev composer phpstan    # Static Analysis
 
@@ -276,6 +315,14 @@ GET  /estimates/{id}         → Detailansicht
 GET  /estimates/{id}/pdf     → PDF-Download
 ```
 
+### Rechnungen
+```
+GET  /invoices/create        → Rechnungsformular (Live-Vorschau)
+POST /invoices               → Speichern + Redirect
+GET  /invoices/{id}          → Detailansicht
+GET  /invoices/{id}/pdf      → PDF-Download (Rechnung mit QR-Zahlteil)
+```
+
 ### Ankauf (Geräte-Einkauf)
 ```
 GET  /purchases              → Ankaufsliste (mit Filtern)
@@ -304,9 +351,13 @@ POST /users/{id}             → User aktualisieren
 POST /users/{id}/toggle-status → Aktiv/Inaktiv
 ```
 
-### Placeholder-Routes
+### Versicherungsgutachten & Export
 ```
-GET  /insurance/new          → Redirect zu Dashboard
+GET  /insurance/create       → Formular
+POST /insurance              → Speichern
+GET  /insurance/{id}         → Detailansicht
+GET  /insurance/{id}/pdf     → PDF-Download
+GET  /export/excel           → Excel-Export
 ```
 
 ## Git-Workflow & Entwicklung
@@ -347,15 +398,22 @@ GET  /insurance/new          → Redirect zu Dashboard
 - [✅] PDF-Generierung (Artikeltabelle mit Summen)
 - [✅] Dokumenten-Liste mit Filtern
 
-### 🎯 Sprint 4: Versicherungsgutachten (AUSSTEHEND)
-- [ ] Gutachten-Formulare
-- [ ] Spezielle PDF-Layouts für Versicherungen
+### 🎯 Sprint 4: Versicherungsgutachten (Formulare und PDF umgesetzt)
+- [✅] Gutachten-Formulare
+- [✅] PDF-Layout für Versicherungen
 - [ ] Archivierungs-System
+
+### ✅ Sprint 5: Rechnungen (Swiss QR-Rechnung)
+- [✅] Rechnungsformular mit Live-Vorschau, MWST pro Position
+- [✅] PDF mit QR-Zahlteil (sprain/swiss-qr-bill, SCOR-Referenz)
+- [✅] Dashboard-Kachel, Excel-Export
+- [✅] PHPUnit-Tests für Rechnungs-Services
 
 ## Deployment
 
 - **Lokal**: DDEV Container-Environment
-- **Staging/Produktion**: TBD (noch zu definieren)
+- **Staging/Produktion**: TBD (noch zu definieren); auf Produktion ist kein Composer verfügbar: `vendor/` wird lokal gebaut (`composer install --no-dev --optimize-autoloader`) und hochgeladen
+- **Composer**: `composer.lock` ist versioniert; `config.platform.php = 8.2` stellt sicher, dass nur mit PHP 8.2 kompatible Versionen aufgelöst werden
 - **Database**: MariaDB mit SQL-Dumps für Backup
 
 ## Filialen
@@ -366,14 +424,14 @@ GET  /insurance/new          → Redirect zu Dashboard
 (Adressen und Kontaktdaten in database/migrations definiert)
 
 ## Nächste Schritte
-1. **Versicherungsgutachten**: Sprint 4 - Gutachten-Formulare & PDF-Layouts
-2. **Tests implementieren**: Smoke-Tests für Login, Dokument-Erstellung, PDF-Generation
+1. **Archivierung**: Archiv für Dokumente
+2. **Tests erweitern**: Smoke-Tests für Login, Dokument-Erstellung, PDF-Generation
 3. **Code-Quality**: PHPStan-Setup, PHPCS-Konfiguration
-4. **Erweiterte Dokumentenverwaltung**: Archive, Export
+4. **Erweiterte Dokumentenverwaltung**: Archive
 5. **Deployment**: Staging/Produktions-Setup definieren
 
 ---
 
-**Status:** Sprints 1-3 abgeschlossen (Kostenvoranschläge, Ankauf, Quittungen)
-**Nächste Iteration:** Versicherungsgutachten (Sprint 4)
+**Status:** Kostenvoranschläge, Ankauf, Quittungen, Versicherungsgutachten und Rechnungen umgesetzt
+**Nächste Iteration:** Archivierung / erweiterte Dokumentenverwaltung
 - immer das gleiche gürn für icons und buttons verwenden, das wir sonst auch überall bei dem projekt nutzen

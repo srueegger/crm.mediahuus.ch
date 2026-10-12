@@ -9,10 +9,12 @@ Internes CRM-System für die Mediahuus Handy-An-/Verkauf & Reparatur-Shops.
 - ✅ Kostenvoranschläge erstellen & als PDF exportieren
 - ✅ Ankauf (Geräte-Einkauf) mit Ausweis-Fotografie & IMEI-Scanner
 - ✅ Quittungen (Verkaufsbelege) mit Artikelliste
+- ✅ Rechnungen mit Swiss QR-Zahlteil (MWST pro Position, Live-Vorschau)
 - ✅ PDF-Generierung für alle Dokumenttypen
+- ✅ Excel-Export
 - ✅ Benutzerverwaltung (CRUD)
 - ✅ Filialen-System (Clara & Reinach)
-- ⏳ Versicherungsgutachten (geplant)
+- ✅ Versicherungsgutachten
 
 ## Tech Stack
 
@@ -20,6 +22,8 @@ Internes CRM-System für die Mediahuus Handy-An-/Verkauf & Reparatur-Shops.
 - **Template Engine**: Twig 3 (Security & DX)
 - **Database**: Doctrine DBAL + MariaDB
 - **PDF Generation**: TCPDF
+- **QR-Rechnung**: sprain/swiss-qr-bill
+- **Tests**: PHPUnit
 - **Frontend**: Tailwind CSS + Vanilla JS
 - **DI Container**: PHP-DI
 - **Barcode Scanner**: QuaggaJS (IMEI-Scan via Kamera)
@@ -78,6 +82,23 @@ ddev logs -f            # Logs anzeigen
 ddev ssh                # Shell in Container
 ```
 
+### Tests
+
+```bash
+ddev exec vendor/bin/phpunit
+```
+
+## Rechnungen
+
+Unter `/invoices/create` wird eine Rechnung erfasst: Empfänger (Firma und/oder Name, Adresse),
+Positionen mit Menge, Einzelpreis inkl. MWST und MWST-Satz pro Position (8.1 %, 2.6 %, 0 %) sowie
+die Zahlungsfrist (Standard 10 Tage). Das PDF enthält den Swiss QR-Zahlteil mit SCOR-Referenz.
+Absender ist immer die Mediahuus GmbH in Reinach; Absender-, IBAN- und MWST-Daten stehen in
+`config/invoice.php`. Rechnungsnummern haben das Format `RE-JJJJ-MM-TT-NN`.
+
+Hinweis Deployment: Auf dem Produktivserver ist kein Composer verfügbar. `vendor/` wird lokal mit
+`composer install --no-dev --optimize-autoloader` gebaut und hochgeladen.
+
 ## Demo-Zugang
 
 ```
@@ -94,6 +115,7 @@ app/
 │   ├── BaseController.php
 │   ├── DashboardController.php
 │   ├── EstimateController.php
+│   ├── InvoiceController.php
 │   ├── PurchaseController.php
 │   ├── ReceiptController.php
 │   └── UserController.php
@@ -103,7 +125,9 @@ app/
 │   ├── AuthService.php
 │   ├── DamageTypeService.php
 │   ├── FileUploadService.php
-│   └── PdfService.php
+│   ├── Invoice*.php        # Rechnungen (Berechnung, Validierung, Nummer, PDF)
+│   ├── PdfService.php
+│   └── QrBillFactory.php
 └── Middleware/
     └── AuthMiddleware.php
 
@@ -112,7 +136,7 @@ config/
 └── routes.php          # Route-Definitionen
 
 database/
-├── migrations/         # SQL Migrations (001-009)
+├── migrations/         # SQL Migrations (001-013)
 └── backups/            # SQL Dumps
 
 public/
@@ -123,11 +147,14 @@ public/
 templates/
 ├── auth/               # Login
 ├── estimates/          # Kostenvoranschläge
+├── invoices/           # Rechnungen
 ├── purchases/          # Ankauf
 ├── receipts/           # Quittungen
 ├── users/              # Benutzerverwaltung
 ├── base.html.twig      # Layout-Template
 └── dashboard.html.twig
+
+tests/                  # PHPUnit-Tests
 ```
 
 ## Entwicklung
