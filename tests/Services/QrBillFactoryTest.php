@@ -34,6 +34,17 @@ class QrBillFactoryTest extends TestCase
         $this->assertTrue($qrBill->isValid());
     }
 
+    public function testTransliteratesDebtorForQrBill(): void
+    {
+        $qrBill = $this->factory->create('RE-2026-10-12-01', '10.00', 'Kovačević Bau GmbH', 'Šumska 5', '4051', 'Łódź');
+
+        $this->assertTrue($qrBill->isValid());
+        $debtor = $qrBill->getUltimateDebtor();
+        $this->assertSame('Kovacevic Bau GmbH', $debtor->getName());
+        $this->assertSame('Šumska 5', $debtor->getStreet());
+        $this->assertSame('Lódz', $debtor->getCity());
+    }
+
     public function testPostboxWithoutHouseNumber(): void
     {
         $qrBill = $this->factory->create('RE-2026-10-12-01', '10.00', 'Max Muster', 'Postfach 12', '4051', 'Basel');

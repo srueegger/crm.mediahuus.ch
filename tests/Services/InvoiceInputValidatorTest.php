@@ -45,6 +45,35 @@ class InvoiceInputValidatorTest extends TestCase
         $this->assertSame('8.1', $result['data']['items'][0]['vat_rate']);
     }
 
+    public function testAcceptsLatinExtendedNames(): void
+    {
+        $result = $this->validator->validate($this->validPost(['company_name' => 'Kovačević Bau GmbH', 'city' => 'Łódź']));
+
+        $this->assertSame([], $result['errors']);
+    }
+
+    public function testRejectsNonRepresentableName(): void
+    {
+        $result = $this->validator->validate($this->validPost(['company_name' => '😀']));
+
+        $this->assertSame(
+            'Bitte nur lateinische Schrift verwenden (z. B. keine kyrillischen oder griechischen Zeichen).',
+            $result['errors']['company_name']
+        );
+    }
+
+    public function testRejectsTooLongItemDescription(): void
+    {
+        $post = $this->validPost();
+        $post['items'][0]['description'] = str_repeat('a', 501);
+        $result = $this->validator->validate($post);
+
+        $this->assertSame('Beschreibung darf höchstens 500 Zeichen lang sein.', $result['errors']['items.0.description']);
+
+        $post['items'][0]['description'] = str_repeat('ä', 500);
+        $this->assertSame([], $this->validator->validate($post)['errors']);
+    }
+
     public function testRequiresCompanyOrName(): void
     {
         $result = $this->validator->validate($this->validPost(['company_name' => ' ', 'contact_name' => '']));

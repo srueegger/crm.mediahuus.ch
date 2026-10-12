@@ -110,8 +110,14 @@ class InvoicePdfServiceTest extends TestCase
     public function testHeaderUsesConfiguredEmailNotBranchEmail(): void
     {
         $pdf = $this->service->generate($this->document(), $this->invoice(3), $this->branch());
-        $this->assertStringContainsString('info@mediahuus.ch', $pdf);
-        $this->assertStringNotContainsString('reinach@mediahuus.ch', $pdf);
-        $this->assertStringContainsString('061 711 11 11', $pdf);
+        // Unicode-Schrift (Identity-H): Text liegt als UTF-16BE im Content-Stream
+        $this->assertStringContainsString($this->utf16('info@mediahuus.ch'), $pdf);
+        $this->assertStringNotContainsString($this->utf16('reinach@mediahuus.ch'), $pdf);
+        $this->assertStringContainsString($this->utf16('061 711 11 11'), $pdf);
+    }
+
+    private function utf16(string $text): string
+    {
+        return mb_convert_encoding($text, 'UTF-16BE', 'UTF-8');
     }
 }

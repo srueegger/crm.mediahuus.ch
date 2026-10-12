@@ -51,7 +51,7 @@ class InvoicePdfService
             $pdf->SetMargins(20, 15, 20);
             $pdf->SetAutoPageBreak(true, 20);
             $pdf->AddPage();
-            $pdf->SetFont('helvetica', '', 10);
+            $pdf->SetFont('dejavusans', '', 10);
 
             $this->addHeader($pdf, $branch);
             $recipientBottom = $this->addRecipient($pdf, $document, $invoice);
@@ -93,11 +93,11 @@ class InvoicePdfService
         $creditor = $this->config['creditor'];
         $y = 15.0;
 
-        $pdf->SetFont('helvetica', 'B', 12);
+        $pdf->SetFont('dejavusans', 'B', 12);
         $pdf->SetXY(120, $y);
         $pdf->Cell(70, 6, $creditor['name'], 0, 1, 'R');
 
-        $pdf->SetFont('helvetica', '', 9);
+        $pdf->SetFont('dejavusans', '', 9);
         $lines = [
             $creditor['street'] . ' ' . $creditor['building_number'],
             $creditor['postal_code'] . ' ' . $creditor['city'],
@@ -121,7 +121,7 @@ class InvoicePdfService
 
     private function addRecipient(TCPDF $pdf, Document $document, Invoice $invoice): float
     {
-        $pdf->SetFont('helvetica', '', 10);
+        $pdf->SetFont('dejavusans', '', 10);
         $pdf->SetXY(118, 55);
         $pdf->MultiCell(80, 5, $invoice->getDisplayName(), 0, 'L', false, 1, 118, 55);
 
@@ -146,12 +146,12 @@ class InvoicePdfService
 
     private function addTitle(TCPDF $pdf, Document $document, Invoice $invoice, float $y): float
     {
-        $pdf->SetFont('helvetica', 'B', 16);
+        $pdf->SetFont('dejavusans', 'B', 16);
         $pdf->SetXY(20, $y);
         $pdf->Cell(0, 8, 'Rechnung ' . $document->getDocNumber(), 0, 1, 'L');
 
         $y += 10;
-        $pdf->SetFont('helvetica', '', 10);
+        $pdf->SetFont('dejavusans', '', 10);
         $rows = [
             'Rechnungsdatum:' => $invoice->getInvoiceDate()->format('d.m.Y'),
             'Zahlbar bis:' => $invoice->getDueDate()->format('d.m.Y'),
@@ -169,7 +169,7 @@ class InvoicePdfService
 
     private function addTableHeader(TCPDF $pdf, float $y): float
     {
-        $pdf->SetFont('helvetica', 'B', 9);
+        $pdf->SetFont('dejavusans', 'B', 9);
         $pdf->SetFillColor(240, 240, 240);
         $pdf->SetXY(20, $y);
         $pdf->Cell(10, 7, 'Pos.', 0, 0, 'L', true);
@@ -185,7 +185,7 @@ class InvoicePdfService
     private function addItemsTable(TCPDF $pdf, Invoice $invoice, float $y): float
     {
         $y = $this->addTableHeader($pdf, $y);
-        $pdf->SetFont('helvetica', '', 9);
+        $pdf->SetFont('dejavusans', '', 9);
         $pdf->SetDrawColor(220, 220, 220);
 
         foreach ($invoice->getItems() as $item) {
@@ -193,7 +193,7 @@ class InvoicePdfService
             if ($y + $height > self::PAGE_BOTTOM) {
                 $pdf->AddPage();
                 $y = $this->addTableHeader($pdf, 15.0);
-                $pdf->SetFont('helvetica', '', 9);
+                $pdf->SetFont('dejavusans', '', 9);
             }
 
             $pdf->SetXY(20, $y);
@@ -223,7 +223,7 @@ class InvoicePdfService
             $y = 15.0;
         }
 
-        $pdf->SetFont('helvetica', '', 10);
+        $pdf->SetFont('dejavusans', '', 10);
         $pdf->SetXY(100, $y);
         $pdf->Cell(60, 5, 'Total exkl. MWST', 0, 0, 'L');
         $pdf->Cell(30, 5, $this->formatChf($invoice->getTotalNetChf()), 0, 1, 'R');
@@ -239,7 +239,7 @@ class InvoicePdfService
         $y += 1;
         $pdf->SetDrawColor(120, 120, 120);
         $pdf->Line(100, $y, 190, $y);
-        $pdf->SetFont('helvetica', 'B', 11);
+        $pdf->SetFont('dejavusans', 'B', 11);
         $pdf->SetXY(100, $y + 1);
         $pdf->Cell(60, 6, 'Total CHF inkl. MWST', 0, 0, 'L');
         $pdf->Cell(30, 6, $this->formatChf($invoice->getTotalGrossChf()), 0, 1, 'R');
@@ -258,7 +258,7 @@ class InvoicePdfService
             $y = 15.0;
         }
 
-        $pdf->SetFont('helvetica', '', 9);
+        $pdf->SetFont('dejavusans', '', 9);
         $pdf->SetXY(20, $y);
         $pdf->MultiCell(170, 4.5, $text, 0, 'L', false, 1);
         $pdf->SetX(20);

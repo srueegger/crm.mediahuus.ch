@@ -17,7 +17,7 @@
         <div class="grid grid-cols-1 md:grid-cols-12 gap-4">
             <div class="md:col-span-12">
                 <label class="mediahuus-label">Beschreibung *</label>
-                <input type="text" name="items[{{ index }}][description]"
+                <input type="text" maxlength="500" name="items[{{ index }}][description]"
                        class="mediahuus-input item-description {{ errors['items.' ~ index ~ '.description'] is defined ? 'error' : '' }}"
                        value="{{ row.description|default('') }}"
                        placeholder="z.B. Display-Reparatur iPhone 13">

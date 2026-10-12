@@ -216,6 +216,14 @@
             }
         });
 
+        // Doppelklick-Schutz: Absende-Buttons sperren, sobald das Formular abgeschickt wird
+        form.addEventListener('submit', function (event) {
+            if (event.defaultPrevented) { return; }
+            Array.prototype.forEach.call(form.querySelectorAll('button[type="submit"], input[type="submit"]'), function (btn) {
+                btn.disabled = true;
+            });
+        });
+
         form.addEventListener('input', update);
         form.addEventListener('change', update);
 

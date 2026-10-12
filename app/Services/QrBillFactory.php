@@ -17,8 +17,9 @@ class QrBillFactory
     /**
      * @param array<string, string> $creditorConfig
      */
-    public function __construct(private array $creditorConfig)
+    public function __construct(private array $creditorConfig, private ?QrTextNormalizer $normalizer = null)
     {
+        $this->normalizer ??= new QrTextNormalizer();
     }
 
     /**
@@ -37,6 +38,12 @@ class QrBillFactory
         if (!preg_match('/^\d+\.\d{2}$/', $amountGross) || bccomp($amountGross, '0.01', 2) < 0) {
             throw new \RuntimeException('Die QR-Rechnung ist ungültig: Der Rechnungsbetrag muss mindestens 0.01 CHF betragen.');
         }
+
+        // Zeichen ausserhalb Windows-1252 transliterieren (die Bibliothek wuerde sie sonst stillschweigend entfernen)
+        $debtorName = $this->normalizer->normalize($debtorName);
+        $debtorStreet = $this->normalizer->normalize($debtorStreet);
+        $debtorZip = $this->normalizer->normalize($debtorZip);
+        $debtorCity = $this->normalizer->normalize($debtorCity);
 
         $qrBill = QrBill::create();
 

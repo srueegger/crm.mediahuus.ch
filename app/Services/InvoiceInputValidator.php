@@ -12,7 +12,10 @@ class InvoiceInputValidator
     private const MAX_CITY = 35;
     private const MAX_TOTAL = '999999999.99';
 
+    private const MAX_DESCRIPTION = 500;
+
     private InvoiceCalculator $calculator;
+    private QrTextNormalizer $normalizer;
 
     /**
      * @param array<string, mixed> $invoiceConfig Inhalt von config/invoice.php
@@ -20,6 +23,7 @@ class InvoiceInputValidator
     public function __construct(private array $invoiceConfig, ?InvoiceCalculator $calculator = null)
     {
         $this->calculator = $calculator ?? new InvoiceCalculator();
+        $this->normalizer = new QrTextNormalizer();
     }
 
     /**
@@ -48,6 +52,13 @@ class InvoiceInputValidator
         $this->checkAddressField($errors, 'street', $street, self::MAX_STREET, 'Strasse');
         $this->checkAddressField($errors, 'zip', $zip, self::MAX_ZIP, 'PLZ');
         $this->checkAddressField($errors, 'city', $city, self::MAX_CITY, 'Ort');
+
+        $latinMessage = 'Bitte nur lateinische Schrift verwenden (z. B. keine kyrillischen oder griechischen Zeichen).';
+        foreach (['company_name' => $company, 'contact_name' => $contact, 'street' => $street, 'zip' => $zip, 'city' => $city] as $key => $value) {
+            if ($value !== '' && !isset($errors[$key]) && !$this->normalizer->isRepresentable($value)) {
+                $errors[$key] = $latinMessage;
+            }
+        }
 
         $invoiceDate = $this->parseDate($this->str($post['invoice_date'] ?? ''));
         if ($invoiceDate === null) {
@@ -116,6 +127,11 @@ class InvoiceInputValidator
                 $itemErrors = true;
             }
 
+            if (mb_strlen($description) > self::MAX_DESCRIPTION) {
+                $errors["items.$i.description"] = 'Beschreibung darf höchstens 500 Zeichen lang sein.';
+                $itemErrors = true;
+            }
+
             $quantity = $this->parseDecimal($quantityRaw, 8);
             if ($quantity === null || bccomp($quantity, '0', 2) <= 0) {
                 $errors["items.$i.quantity"] = 'Die Menge muss grösser als 0 sein';
@@ -134,7 +150,7 @@ class InvoiceInputValidator
                 $itemErrors = true;
             }
 
-            if ($description !== '' && $quantity !== null && $price !== null && $vat !== null
+            if ($description !== '' && mb_strlen($description) <= self::MAX_DESCRIPTION && $quantity !== null && $price !== null && $vat !== null
                 && bccomp($quantity, '0', 2) > 0) {
                 $items[] = [
                     'description' => $description,
