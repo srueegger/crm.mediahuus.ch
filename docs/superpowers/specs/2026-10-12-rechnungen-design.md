@@ -159,7 +159,7 @@ Stil (Logo, Schrift, Fusszeile) wie die bestehenden Dokumente:
 
 - **Kopf**: Logo links; rechts Mediahuus GmbH, Hauptstrasse 38, 4153 Reinach, Telefon, E-Mail,
   CHE-178.268.076 MWST.
-- **Empfänger-Adressblock** links an der Position für Fenstercouverts (CH, Fenster links).
+- **Empfänger-Adressblock** rechts an der Position für Fenstercouverts mit Fenster rechts (CH-Norm C5/6): x = 118 mm, y = 55 mm, Breite 80 mm. Die Absenderangaben im Kopf enden oberhalb von y = 45 mm.
 - **Titel** „Rechnung RE-2026-10-12-01“, darunter Rechnungsdatum, Zahlbar bis, Zahlungsfrist.
 - **Positionstabelle**: Pos., Beschreibung, Menge, Einzelpreis, MWST, Total (inkl. MWST, CHF).
 - **Summenblock**: Total exkl. MWST; MWST je Satz mit Basisbetrag; Total CHF inkl. MWST (fett).

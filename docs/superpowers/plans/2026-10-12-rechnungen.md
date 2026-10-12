@@ -216,7 +216,7 @@
   - `testNeedsSeparateQrPage`: `needsSeparateQrPage(192.0)` → false, `needsSeparateQrPage(192.1)` → true (Zahlteil beginnt bei y = 297 − 105 = 192 mm).
   - `testFilename`.
 - [ ] **Step 2:** Run – Expected: FAIL.
-- [ ] **Step 3:** Layout gemäss Spec-Abschnitt „PDF“ umsetzen (Logo `public/assets/logo.png`; Empfängerblock x=20 mm, y=50 mm, Breite 85 mm für Fenstercouvert links; öffentliche Methode `needsSeparateQrPage(float $currentY): bool`). Zahlteil: `new TcPdfOutput($qrBill, 'de', $pdf, 0, 192)`, `setPrintable(false)`, `getPaymentPart()`; Seitenumbruch der Tabelle mit `SetAutoPageBreak(true, 20)`, vor dem Zahlteil `SetAutoPageBreak(false)`.
+- [ ] **Step 3:** Layout gemäss Spec-Abschnitt „PDF“ umsetzen (Logo `public/assets/logo.png`; Empfängerblock x=118 mm, y=55 mm, Breite 80 mm für Fenstercouvert rechts, Kopf-Absenderangaben enden oberhalb y=45 mm; öffentliche Methode `needsSeparateQrPage(float $currentY): bool`). Zahlteil: `new TcPdfOutput($qrBill, 'de', $pdf, 0, 192)`, `setPrintable(false)`, `getPaymentPart()`; Seitenumbruch der Tabelle mit `SetAutoPageBreak(true, 20)`, vor dem Zahlteil `SetAutoPageBreak(false)`.
 - [ ] **Step 4:** Tests – Expected: PASS.
 - [ ] **Step 5:** Beispiel-PDF in den Scratchpad schreiben (kleines CLI-Skript) und visuell prüfen: Adressblock, Summen, MWST-Nr., QR-Teil mit Schweizerkreuz und Scherenlinie.
 - [ ] **Step 6: Commit** `feat: Rechnungs-PDF mit QR-Zahlteil`
