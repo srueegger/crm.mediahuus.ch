@@ -5,6 +5,10 @@
     "license": "proprietary",
     "require": {
         "php": ">=8.2",
+        "ext-bcmath": "*",
+        "ext-dom": "*",
+        "ext-iconv": "*",
+        "ext-intl": "*",
         "doctrine/dbal": "^3.7",
         "monolog/monolog": "^3.4",
         "php-di/php-di": "^7.0",
