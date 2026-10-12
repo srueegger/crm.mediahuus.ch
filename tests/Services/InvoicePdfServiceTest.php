@@ -20,7 +20,15 @@ class InvoicePdfServiceTest extends TestCase
     protected function setUp(): void
     {
         $config = require __DIR__ . '/../../config/invoice.php';
-        $this->service = new InvoicePdfService($config, new QrBillFactory($config['creditor']), new NullLogger());
+        $this->service = new class ($config, new QrBillFactory($config['creditor']), new NullLogger()) extends InvoicePdfService {
+            protected function createPdf(): \TCPDF
+            {
+                $pdf = parent::createPdf();
+                $pdf->setCompression(false);
+
+                return $pdf;
+            }
+        };
     }
 
     private function document(): Document
@@ -97,5 +105,13 @@ class InvoicePdfServiceTest extends TestCase
     public function testFilename(): void
     {
         $this->assertSame('Rechnung_RE-2026-10-12-01.pdf', $this->service->getFilename($this->document()));
+    }
+
+    public function testHeaderUsesConfiguredEmailNotBranchEmail(): void
+    {
+        $pdf = $this->service->generate($this->document(), $this->invoice(3), $this->branch());
+        $this->assertStringContainsString('info@mediahuus.ch', $pdf);
+        $this->assertStringNotContainsString('reinach@mediahuus.ch', $pdf);
+        $this->assertStringContainsString('061 711 11 11', $pdf);
     }
 }

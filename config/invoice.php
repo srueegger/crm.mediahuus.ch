@@ -10,6 +10,7 @@ return [
         'postal_code' => '4153',
         'city' => 'Reinach',
         'country' => 'CH',
+        'email' => 'info@mediahuus.ch',
         'iban' => 'CH1306300507650167830',
         'vat_number' => 'CHE-178.268.076 MWST',
         'branch_name' => 'Mediahuus Reinach',

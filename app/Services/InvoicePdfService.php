@@ -41,7 +41,7 @@ class InvoicePdfService
     public function generate(Document $document, Invoice $invoice, Branch $branch): string
     {
         try {
-            $pdf = new TCPDF(PDF_PAGE_ORIENTATION, PDF_UNIT, PDF_PAGE_FORMAT, true, 'UTF-8', false);
+            $pdf = $this->createPdf();
             $pdf->SetCreator('Mediahuus CRM');
             $pdf->SetAuthor('Mediahuus');
             $pdf->SetTitle('Rechnung ' . $document->getDocNumber());
@@ -54,8 +54,8 @@ class InvoicePdfService
             $pdf->SetFont('helvetica', '', 10);
 
             $this->addHeader($pdf, $branch);
-            $this->addRecipient($pdf, $document, $invoice);
-            $y = $this->addTitle($pdf, $document, $invoice);
+            $recipientBottom = $this->addRecipient($pdf, $document, $invoice);
+            $y = $this->addTitle($pdf, $document, $invoice, max(80.0, $recipientBottom + 8));
             $y = $this->addItemsTable($pdf, $invoice, $y);
             $y = $this->addTotals($pdf, $invoice, $y);
             $y = $this->addPaymentHint($pdf, $invoice, $y);
@@ -76,6 +76,11 @@ class InvoicePdfService
             ]);
             throw $e;
         }
+    }
+
+    protected function createPdf(): TCPDF
+    {
+        return new TCPDF(PDF_PAGE_ORIENTATION, PDF_UNIT, PDF_PAGE_FORMAT, true, 'UTF-8', false);
     }
 
     private function addHeader(TCPDF $pdf, Branch $branch): void
@@ -100,8 +105,8 @@ class InvoicePdfService
         if ($branch->getPhone()) {
             $lines[] = 'Tel: ' . $branch->getPhone();
         }
-        if ($branch->getEmail()) {
-            $lines[] = 'E-Mail: ' . $branch->getEmail();
+        if (!empty($creditor['email'])) {
+            $lines[] = 'E-Mail: ' . $creditor['email'];
         }
         $lines[] = $creditor['vat_number'];
 
@@ -114,7 +119,7 @@ class InvoicePdfService
         // Letzte Zeile endet bei y = 15 + 8 + 5 * 4 = 43 mm (< 45 mm).
     }
 
-    private function addRecipient(TCPDF $pdf, Document $document, Invoice $invoice): void
+    private function addRecipient(TCPDF $pdf, Document $document, Invoice $invoice): float
     {
         $pdf->SetFont('helvetica', '', 10);
         $pdf->SetXY(118, 55);
@@ -135,11 +140,12 @@ class InvoicePdfService
             $pdf->SetX(118);
             $pdf->MultiCell(80, 5, $line, 0, 'L', false, 1);
         }
+
+        return $pdf->GetY();
     }
 
-    private function addTitle(TCPDF $pdf, Document $document, Invoice $invoice): float
+    private function addTitle(TCPDF $pdf, Document $document, Invoice $invoice, float $y): float
     {
-        $y = 80.0;
         $pdf->SetFont('helvetica', 'B', 16);
         $pdf->SetXY(20, $y);
         $pdf->Cell(0, 8, 'Rechnung ' . $document->getDocNumber(), 0, 1, 'L');
