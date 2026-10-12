@@ -89,7 +89,7 @@ class DocumentRepository
 
     public function generateDocNumber(string $docType): string
     {
-        if ($docType === 'invoice') {
+        if ($docType === Document::TYPE_INVOICE) {
             throw new \InvalidArgumentException(
                 'Rechnungsnummern werden über InvoiceNumberGenerator vergeben.'
             );
@@ -122,9 +122,9 @@ class DocumentRepository
     public function findLastInvoiceNumberForDate(\DateTimeInterface $date): ?string
     {
         $last = $this->connection->fetchOne(
-            "SELECT doc_number FROM documents WHERE doc_type = 'invoice' AND doc_number LIKE ? "
+            'SELECT doc_number FROM documents WHERE doc_type = ? AND doc_number LIKE ? '
             . 'ORDER BY LENGTH(doc_number) DESC, doc_number DESC LIMIT 1',
-            ['RE-' . $date->format('Y-m-d') . '-%']
+            [Document::TYPE_INVOICE, 'RE-' . $date->format('Y-m-d') . '-%']
         );
 
         return is_string($last) && $last !== '' ? $last : null;

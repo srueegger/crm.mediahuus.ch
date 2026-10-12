@@ -9,6 +9,7 @@ class Document
     public const TYPE_PURCHASE = 'purchase';
     public const TYPE_INSURANCE = 'insurance';
     public const TYPE_RECEIPT = 'receipt';
+    public const TYPE_INVOICE = 'invoice';
 
     private ?int $id;
     private string $docType;
@@ -162,7 +163,8 @@ class Document
             self::TYPE_ESTIMATE,
             self::TYPE_PURCHASE,
             self::TYPE_INSURANCE,
-            self::TYPE_RECEIPT
+            self::TYPE_RECEIPT,
+            self::TYPE_INVOICE
         ];
     }
 
@@ -173,6 +175,7 @@ class Document
             self::TYPE_PURCHASE => 'Ankauf',
             self::TYPE_INSURANCE => 'Versicherungsgutachten',
             self::TYPE_RECEIPT => 'Quittung',
+            self::TYPE_INVOICE => 'Rechnung',
             default => 'Unbekannt'
         };
     }

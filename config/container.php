@@ -19,6 +19,12 @@ use App\Repositories\InsuranceAssessmentRepository;
 use App\Services\AuthService;
 use App\Services\PdfService;
 use App\Services\FileUploadService;
+use App\Repositories\InvoiceRepository;
+use App\Services\InvoiceCalculator;
+use App\Services\InvoiceInputValidator;
+use App\Services\InvoiceNumberGenerator;
+use App\Services\InvoiceService;
+use App\Services\QrBillFactory;
 use App\Controllers\UserController;
 use App\Controllers\EstimateController;
 use App\Controllers\ReceiptController;
@@ -136,6 +142,41 @@ return [
     // Receipt Repository
     ReceiptRepository::class => function (Connection $connection, ReceiptItemRepository $receiptItemRepository) {
         return new ReceiptRepository($connection, $receiptItemRepository);
+    },
+
+    // Rechnungen: Konfiguration, Repository und Services
+    InvoiceRepository::class => function (Connection $connection) {
+        return new InvoiceRepository($connection);
+    },
+
+    InvoiceInputValidator::class => function (InvoiceCalculator $calculator) {
+        return new InvoiceInputValidator(require __DIR__ . '/invoice.php', $calculator);
+    },
+
+    QrBillFactory::class => function () {
+        $config = require __DIR__ . '/invoice.php';
+        return new QrBillFactory($config['creditor']);
+    },
+
+    InvoiceService::class => function (
+        Connection $connection,
+        DocumentRepository $documentRepository,
+        InvoiceRepository $invoiceRepository,
+        BranchRepository $branchRepository,
+        InvoiceCalculator $calculator,
+        InvoiceNumberGenerator $numberGenerator,
+        QrBillFactory $qrBillFactory
+    ) {
+        return new InvoiceService(
+            $connection,
+            $documentRepository,
+            $invoiceRepository,
+            $branchRepository,
+            $calculator,
+            $numberGenerator,
+            $qrBillFactory,
+            require __DIR__ . '/invoice.php'
+        );
     },
 
     // Estimate Controller

@@ -33,6 +33,16 @@ class BranchRepository
         return $row ? $this->hydrateBranch($row) : null;
     }
 
+    public function findByName(string $name): ?Branch
+    {
+        $row = $this->connection->fetchAssociative(
+            'SELECT * FROM branches WHERE name = ?',
+            [$name]
+        );
+
+        return $row ? $this->hydrateBranch($row) : null;
+    }
+
     public function create(Branch $branch): int
     {
         $this->connection->insert('branches', [
