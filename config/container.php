@@ -30,6 +30,7 @@ use App\Controllers\UserController;
 use App\Controllers\EstimateController;
 use App\Controllers\ReceiptController;
 use App\Controllers\PurchaseController;
+use App\Controllers\InvoiceController;
 use App\Controllers\InsuranceController;
 use App\Controllers\DashboardController;
 use App\Controllers\ExportController;
@@ -60,6 +61,10 @@ return [
                 'purchases.create' => '/purchases/create',
                 'purchases.show' => '/purchases/' . ($params['id'] ?? '{id}'),
                 'purchases.pdf' => '/purchases/' . ($params['id'] ?? '{id}') . '/pdf',
+                'invoices.create' => '/invoices/create',
+                'invoices.store' => '/invoices',
+                'invoices.show' => '/invoices/' . ($params['id'] ?? '{id}'),
+                'invoices.pdf' => '/invoices/' . ($params['id'] ?? '{id}') . '/pdf',
                 'insurance.create' => '/insurance/create',
                 'insurance.show' => '/insurance/' . ($params['id'] ?? '{id}'),
                 'insurance.pdf' => '/insurance/' . ($params['id'] ?? '{id}') . '/pdf',
@@ -181,6 +186,30 @@ return [
             $numberGenerator,
             $qrBillFactory,
             require __DIR__ . '/invoice.php'
+        );
+    },
+
+    // Invoice Controller
+    InvoiceController::class => function (
+        Environment $twig,
+        DocumentRepository $documentRepository,
+        InvoiceRepository $invoiceRepository,
+        BranchRepository $branchRepository,
+        InvoiceInputValidator $validator,
+        InvoiceService $invoiceService,
+        InvoicePdfService $pdfService,
+        LoggerInterface $logger
+    ) {
+        return new InvoiceController(
+            $twig,
+            $documentRepository,
+            $invoiceRepository,
+            $branchRepository,
+            $validator,
+            $invoiceService,
+            $pdfService,
+            require __DIR__ . '/invoice.php',
+            $logger
         );
     },
 

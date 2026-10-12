@@ -7,6 +7,7 @@ use App\Controllers\UserController;
 use App\Controllers\EstimateController;
 use App\Controllers\ReceiptController;
 use App\Controllers\PurchaseController;
+use App\Controllers\InvoiceController;
 use App\Controllers\InsuranceController;
 use App\Controllers\ExportController;
 use App\Middleware\AuthMiddleware;
@@ -41,6 +42,12 @@ $app->group('', function () use ($app) {
     $app->post('/receipts', [ReceiptController::class, 'store'])->setName('receipts.store');
     $app->get('/receipts/{id:[0-9]+}', [ReceiptController::class, 'show'])->setName('receipts.show');
     $app->get('/receipts/{id:[0-9]+}/pdf', [ReceiptController::class, 'generatePdf'])->setName('receipts.pdf');
+
+    // Invoices (Rechnungen)
+    $app->get('/invoices/create', [InvoiceController::class, 'create'])->setName('invoices.create');
+    $app->post('/invoices', [InvoiceController::class, 'store'])->setName('invoices.store');
+    $app->get('/invoices/{id:[0-9]+}', [InvoiceController::class, 'show'])->setName('invoices.show');
+    $app->get('/invoices/{id:[0-9]+}/pdf', [InvoiceController::class, 'generatePdf'])->setName('invoices.pdf');
 
     // Purchases (Ankauf)
     $app->get('/purchases/create', [PurchaseController::class, 'create'])->setName('purchases.create');
