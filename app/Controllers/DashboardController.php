@@ -10,6 +10,7 @@ use App\Repositories\EstimateRepository;
 use App\Repositories\PurchaseRepository;
 use App\Repositories\ReceiptRepository;
 use App\Repositories\InsuranceAssessmentRepository;
+use App\Repositories\InvoiceRepository;
 use Twig\Environment;
 use Psr\Http\Message\ResponseInterface as Response;
 use Psr\Http\Message\ServerRequestInterface as Request;
@@ -22,6 +23,7 @@ class DashboardController extends BaseController
     private PurchaseRepository $purchaseRepository;
     private ReceiptRepository $receiptRepository;
     private InsuranceAssessmentRepository $insuranceRepository;
+    private InvoiceRepository $invoiceRepository;
 
     public function __construct(
         Environment $twig,
@@ -30,7 +32,8 @@ class DashboardController extends BaseController
         EstimateRepository $estimateRepository,
         PurchaseRepository $purchaseRepository,
         ReceiptRepository $receiptRepository,
-        InsuranceAssessmentRepository $insuranceRepository
+        InsuranceAssessmentRepository $insuranceRepository,
+        InvoiceRepository $invoiceRepository
     ) {
         parent::__construct($twig);
         $this->documentRepository = $documentRepository;
@@ -39,6 +42,7 @@ class DashboardController extends BaseController
         $this->purchaseRepository = $purchaseRepository;
         $this->receiptRepository = $receiptRepository;
         $this->insuranceRepository = $insuranceRepository;
+        $this->invoiceRepository = $invoiceRepository;
     }
 
     public function index(Request $request, Response $response): Response
@@ -102,6 +106,10 @@ class DashboardController extends BaseController
                 case 'insurance':
                     $insurance = $this->insuranceRepository->findByDocumentId($document->getId());
                     $itemData['insurance'] = $insurance ? $insurance->toArray() : null;
+                    break;
+                case 'invoice':
+                    $invoice = $this->invoiceRepository->findByDocumentId($document->getId());
+                    $itemData['invoice'] = $invoice ? $invoice->toArray() : null;
                     break;
             }
 

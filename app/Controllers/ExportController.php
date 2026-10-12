@@ -10,6 +10,8 @@ use App\Repositories\EstimateRepository;
 use App\Repositories\PurchaseRepository;
 use App\Repositories\ReceiptRepository;
 use App\Repositories\InsuranceAssessmentRepository;
+use App\Repositories\InvoiceRepository;
+use App\Repositories\UserRepository;
 use App\Services\DamageTypeService;
 use PhpOffice\PhpSpreadsheet\Spreadsheet;
 use PhpOffice\PhpSpreadsheet\Worksheet\Worksheet;
@@ -34,6 +36,8 @@ class ExportController
         private PurchaseRepository $purchaseRepository,
         private ReceiptRepository $receiptRepository,
         private InsuranceAssessmentRepository $insuranceRepository,
+        private InvoiceRepository $invoiceRepository,
+        private UserRepository $userRepository,
         private LoggerInterface $logger
     ) {
     }
@@ -66,6 +70,11 @@ class ExportController
         $purchases = $this->indexByDocumentId($this->purchaseRepository->findAll());
         $receipts = $this->indexByDocumentId($this->receiptRepository->findAll());
         $insurances = $this->indexByDocumentId($this->insuranceRepository->findAll());
+        $invoices = $this->indexByDocumentId($this->invoiceRepository->findAll());
+        $users = [];
+        foreach ($this->userRepository->findAll(true) as $user) {
+            $users[$user->getId()] = $user->getName();
+        }
 
         // Dokumente nach Typ gruppieren
         $byType = [
@@ -73,6 +82,7 @@ class ExportController
             Document::TYPE_PURCHASE => [],
             Document::TYPE_ESTIMATE => [],
             Document::TYPE_INSURANCE => [],
+            Document::TYPE_INVOICE => [],
         ];
         foreach ($documents as $doc) {
             $byType[$doc->getDocType()][] = $doc;
@@ -81,7 +91,8 @@ class ExportController
         $spreadsheet = new Spreadsheet();
         $spreadsheet->removeSheetByIndex(0); // Default-Sheet entfernen
 
-        $this->buildOverviewSheet($spreadsheet, $documents, $branches, $estimates, $purchases, $receipts, $insurances);
+        $this->buildOverviewSheet($spreadsheet, $documents, $branches, $estimates, $purchases, $receipts, $insurances, $invoices);
+        $this->buildInvoicesSheet($spreadsheet, $byType[Document::TYPE_INVOICE], $branches, $invoices, $users);
         $this->buildReceiptsSheet($spreadsheet, $byType[Document::TYPE_RECEIPT], $branches, $receipts);
         $this->buildPurchasesSheet($spreadsheet, $byType[Document::TYPE_PURCHASE], $branches, $purchases);
         $this->buildEstimatesSheet($spreadsheet, $byType[Document::TYPE_ESTIMATE], $branches, $estimates);
@@ -119,7 +130,8 @@ class ExportController
         array $estimates,
         array $purchases,
         array $receipts,
-        array $insurances
+        array $insurances,
+        array $invoices
     ): void {
         $sheet = $spreadsheet->createSheet();
         $sheet->setTitle('Übersicht');
@@ -129,7 +141,7 @@ class ExportController
 
         $row = 2;
         foreach ($documents as $doc) {
-            $amount = $this->primaryAmount($doc, $estimates, $purchases, $receipts, $insurances);
+            $amount = $this->primaryAmount($doc, $estimates, $purchases, $receipts, $insurances, $invoices);
             $sheet->setCellValue("A{$row}", $doc->getDocNumber());
             $sheet->setCellValue("B{$row}", $doc->getTypeLabel());
             $sheet->setCellValue("C{$row}", $doc->getCreatedAt()->format('d.m.Y H:i'));
@@ -141,6 +153,36 @@ class ExportController
                 $sheet->setCellValue("H{$row}", $amount);
                 $sheet->getStyle("H{$row}")->getNumberFormat()->setFormatCode(self::MONEY_FORMAT);
             }
+            $row++;
+        }
+
+        $this->finalizeSheet($sheet, count($headers));
+    }
+
+    private function buildInvoicesSheet(Spreadsheet $spreadsheet, array $documents, array $branches, array $invoices, array $users): void
+    {
+        $sheet = $spreadsheet->createSheet();
+        $sheet->setTitle('Rechnungen');
+
+        $headers = ['Nummer', 'Datum', 'Fällig', 'Empfänger', 'Adresse', 'Netto', 'MWST', 'Total', 'Erstellt von'];
+        $this->writeHeader($sheet, $headers);
+
+        $row = 2;
+        foreach ($documents as $doc) {
+            $invoice = $invoices[$doc->getId()] ?? null;
+
+            $sheet->setCellValue("A{$row}", $doc->getDocNumber());
+            $sheet->setCellValue("B{$row}", $invoice !== null ? $invoice->getInvoiceDate()->format('d.m.Y') : $doc->getCreatedAt()->format('d.m.Y'));
+            $sheet->setCellValue("C{$row}", $invoice !== null ? $invoice->getDueDate()->format('d.m.Y') : '');
+            $sheet->setCellValue("D{$row}", $invoice !== null ? $invoice->getDisplayName() : $doc->getCustomerName());
+            $sheet->setCellValue("E{$row}", $doc->getCustomerAddress() ?? '');
+            if ($invoice !== null) {
+                foreach (['F' => $invoice->getTotalNetChf(), 'G' => $invoice->getTotalVatChf(), 'H' => $invoice->getTotalGrossChf()] as $col => $amount) {
+                    $sheet->setCellValue("{$col}{$row}", (float) $amount);
+                    $sheet->getStyle("{$col}{$row}")->getNumberFormat()->setFormatCode(self::MONEY_FORMAT);
+                }
+            }
+            $sheet->setCellValue("I{$row}", $users[$doc->getUserId()] ?? '');
             $row++;
         }
 
@@ -355,13 +397,15 @@ class ExportController
         array $estimates,
         array $purchases,
         array $receipts,
-        array $insurances
+        array $insurances,
+        array $invoices
     ): ?float {
         return match ($doc->getDocType()) {
             Document::TYPE_ESTIMATE => isset($estimates[$doc->getId()]) ? $estimates[$doc->getId()]->getPriceChf() : null,
             Document::TYPE_PURCHASE => isset($purchases[$doc->getId()]) ? $purchases[$doc->getId()]->getPurchasePriceChf() : null,
             Document::TYPE_RECEIPT => isset($receipts[$doc->getId()]) ? $receipts[$doc->getId()]->getTotalAmountChf() : null,
             Document::TYPE_INSURANCE => isset($insurances[$doc->getId()]) ? $insurances[$doc->getId()]->getRepairCostChf() : null,
+            Document::TYPE_INVOICE => isset($invoices[$doc->getId()]) ? (float) $invoices[$doc->getId()]->getTotalGrossChf() : null,
             default => null,
         };
     }
