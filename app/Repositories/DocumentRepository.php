@@ -89,6 +89,12 @@ class DocumentRepository
 
     public function generateDocNumber(string $docType): string
     {
+        if ($docType === 'invoice') {
+            throw new \InvalidArgumentException(
+                'Rechnungsnummern werden über InvoiceNumberGenerator vergeben.'
+            );
+        }
+
         $prefix = match($docType) {
             Document::TYPE_ESTIMATE => 'KO',
             Document::TYPE_PURCHASE => 'AK',
@@ -98,14 +104,30 @@ class DocumentRepository
         };
 
         $year = date('Y');
-        
-        // Get the next sequential number for this year and type
-        $sql = 'SELECT COUNT(*) FROM documents WHERE doc_type = ? AND YEAR(created_at) = ?';
-        $count = $this->connection->fetchOne($sql, [$docType, $year]);
-        
-        $nextNumber = $count + 1;
-        
+
+        // Höchste vorhandene Nummer dieses Präfixes und Jahres ermitteln
+        $last = $this->connection->fetchOne(
+            'SELECT doc_number FROM documents WHERE doc_number LIKE ? ORDER BY doc_number DESC LIMIT 1',
+            [$prefix . '-' . $year . '-%']
+        );
+
+        $nextNumber = 1;
+        if (is_string($last) && $last !== '') {
+            $nextNumber = (int) substr($last, (int) strrpos($last, '-') + 1) + 1;
+        }
+
         return sprintf('%s-%s-%06d', $prefix, $year, $nextNumber);
+    }
+
+    public function findLastInvoiceNumberForDate(\DateTimeInterface $date): ?string
+    {
+        $last = $this->connection->fetchOne(
+            "SELECT doc_number FROM documents WHERE doc_type = 'invoice' AND doc_number LIKE ? "
+            . 'ORDER BY LENGTH(doc_number) DESC, doc_number DESC LIMIT 1',
+            ['RE-' . $date->format('Y-m-d') . '-%']
+        );
+
+        return is_string($last) && $last !== '' ? $last : null;
     }
 
     public function update(Document $document): bool
