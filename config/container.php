@@ -23,6 +23,7 @@ use App\Repositories\InvoiceRepository;
 use App\Services\InvoiceCalculator;
 use App\Services\InvoiceInputValidator;
 use App\Services\InvoiceNumberGenerator;
+use App\Services\InvoicePdfService;
 use App\Services\InvoiceService;
 use App\Services\QrBillFactory;
 use App\Controllers\UserController;
@@ -156,6 +157,10 @@ return [
     QrBillFactory::class => function () {
         $config = require __DIR__ . '/invoice.php';
         return new QrBillFactory($config['creditor']);
+    },
+
+    InvoicePdfService::class => function (QrBillFactory $qrBillFactory, LoggerInterface $logger) {
+        return new InvoicePdfService(require __DIR__ . '/invoice.php', $qrBillFactory, $logger);
     },
 
     InvoiceService::class => function (
