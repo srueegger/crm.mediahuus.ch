@@ -34,6 +34,29 @@ class CameraHandler {
             });
         }
 
+        // ID Document file pickers (any image format or PDF)
+        document.querySelectorAll('.id-file-button').forEach((button) => {
+            const target = button.dataset.target;
+            const input = document.getElementById(`id_file_${target}`);
+            if (!input) return;
+
+            button.addEventListener('click', () => input.click());
+            input.addEventListener('change', () => {
+                const file = input.files && input.files[0];
+                input.value = '';
+                if (file) this.handleIdDocumentFile(target, file);
+            });
+        });
+
+        // Restore previews after a server-side validation error
+        ['front', 'back'].forEach((target) => {
+            const hiddenInput = document.getElementById(`id_document_${target}`);
+            if (hiddenInput && hiddenInput.value) {
+                const isImage = /^data:image\/(jpeg|png);/.test(hiddenInput.value);
+                this.setIdDocument(target, hiddenInput.value, isImage ? null : 'Ausgewählte Datei', false);
+            }
+        });
+
         // IMEI Scan Button
         const scanImeiBtn = document.getElementById('scanImeiBtn');
         if (scanImeiBtn) {
@@ -278,32 +301,129 @@ class CameraHandler {
 
 
     handleIdDocumentCapture(imageDataUrl) {
-        const targetId = `id_document_${this.currentTarget}`;
-        const previewId = `preview-${this.currentTarget}`;
+        this.setIdDocument(this.currentTarget, imageDataUrl);
+    }
 
-        // Store base64 data in hidden input
-        const hiddenInput = document.getElementById(targetId);
+    /**
+     * Handle a file chosen via the file picker. Images the browser can decode
+     * (incl. HEIC in Safari) are downscaled to JPEG here; everything else (PDF,
+     * HEIC in other browsers, ...) is sent as-is and converted on the server.
+     */
+    async handleIdDocumentFile(target, file) {
+        const maxFileSize = 10 * 1024 * 1024;
+        // Unconverted files are sent base64-encoded (+33%); front and back must fit into one request
+        const maxPassthroughSize = 6 * 1024 * 1024;
+
+        if (file.type === 'image/svg+xml') {
+            alert('SVG-Dateien werden nicht unterstützt. Bitte ein Foto oder PDF wählen.');
+            return;
+        }
+        if (file.size > maxFileSize) {
+            alert('Die Datei ist zu gross (maximal 10 MB).');
+            return;
+        }
+
+        const jpegDataUrl = await this.convertImageFileToJpeg(file);
+        if (jpegDataUrl) {
+            this.setIdDocument(target, jpegDataUrl);
+            return;
+        }
+
+        if (file.size > maxPassthroughSize) {
+            alert('Die Datei ist zu gross (maximal 6 MB für PDF und HEIC). Bitte eine kleinere Datei oder die Kamera verwenden.');
+            return;
+        }
+
+        const reader = new FileReader();
+        reader.onload = () => this.setIdDocument(target, reader.result, file.name);
+        reader.onerror = () => alert('Die Datei konnte nicht gelesen werden.');
+        reader.readAsDataURL(file);
+    }
+
+    convertImageFileToJpeg(file) {
+        if (!file.type.startsWith('image/') && !/\.(heic|heif|avif)$/i.test(file.name)) {
+            return Promise.resolve(null);
+        }
+
+        return new Promise((resolve) => {
+            const url = URL.createObjectURL(file);
+            const img = new Image();
+            img.onload = () => {
+                const maxSize = 1920;
+                let width = img.naturalWidth;
+                let height = img.naturalHeight;
+                if (width > maxSize || height > maxSize) {
+                    const ratio = Math.min(maxSize / width, maxSize / height);
+                    width = Math.floor(width * ratio);
+                    height = Math.floor(height * ratio);
+                }
+
+                const canvas = document.createElement('canvas');
+                canvas.width = width;
+                canvas.height = height;
+                const ctx = canvas.getContext('2d');
+                ctx.fillStyle = '#ffffff';
+                ctx.fillRect(0, 0, width, height);
+                ctx.drawImage(img, 0, 0, width, height);
+                URL.revokeObjectURL(url);
+                resolve(canvas.toDataURL('image/jpeg', 0.85));
+            };
+            img.onerror = () => {
+                URL.revokeObjectURL(url);
+                resolve(null);
+            };
+            img.src = url;
+        });
+    }
+
+    /**
+     * Store the data URL in the hidden input and show a preview.
+     * With fileName set, a file badge is shown instead of an image (PDF, HEIC, ...).
+     */
+    setIdDocument(target, dataUrl, fileName = null, highlight = true) {
+        const hiddenInput = document.getElementById(`id_document_${target}`);
         if (hiddenInput) {
-            hiddenInput.value = imageDataUrl;
+            hiddenInput.value = dataUrl;
         }
 
-        // Update preview
-        const preview = document.getElementById(previewId);
-        if (preview) {
-            preview.innerHTML = `
-                <img src="${imageDataUrl}" alt="Captured ID">
-                <button type="button" class="retake-button" data-target="${this.currentTarget}"
-                        data-title="${this.currentTarget === 'front' ? 'Ausweis Vorderseite fotografieren' : 'Ausweis Rückseite fotografieren'}">
-                    Erneut aufnehmen
-                </button>
-            `;
+        const preview = document.getElementById(`preview-${target}`);
+        if (!preview) return;
+
+        const title = target === 'front' ? 'Ausweis Vorderseite fotografieren' : 'Ausweis Rückseite fotografieren';
+        preview.innerHTML = '';
+
+        if (fileName) {
+            const badge = document.createElement('div');
+            badge.className = 'camera-preview-placeholder';
+            badge.innerHTML = `
+                <svg class="w-16 h-16 mb-2" style="color: #10b981;" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+                </svg>
+                <p class="text-sm font-medium" style="color: #f3f4f6; word-break: break-all;"></p>
+                <p class="text-xs mt-1" style="color: #9ca3af;">Wird beim Speichern in ein Bild umgewandelt</p>`;
+            badge.querySelector('p').textContent = fileName;
+            preview.appendChild(badge);
+        } else {
+            const img = document.createElement('img');
+            img.src = dataUrl;
+            img.alt = 'Ausweis';
+            preview.appendChild(img);
         }
 
-        // Visual feedback
-        preview.classList.add('ring-4', 'ring-emerald-500');
-        setTimeout(() => {
-            preview.classList.remove('ring-4', 'ring-emerald-500');
-        }, 1000);
+        const retake = document.createElement('button');
+        retake.type = 'button';
+        retake.className = 'retake-button';
+        retake.dataset.target = target;
+        retake.dataset.title = title;
+        retake.textContent = 'Erneut aufnehmen';
+        preview.appendChild(retake);
+
+        if (highlight) {
+            preview.classList.add('ring-4', 'ring-emerald-500');
+            setTimeout(() => {
+                preview.classList.remove('ring-4', 'ring-emerald-500');
+            }, 1000);
+        }
     }
 
     closeCamera() {

@@ -101,11 +101,12 @@ class PurchaseController extends BaseController
             }
         }
 
-        try {
-            // Handle image uploads (base64 from camera)
-            $idDocumentFront = null;
-            $idDocumentBack = null;
+        // Handle ID document uploads (camera capture or file picker, base64)
+        $idDocumentFront = null;
+        $idDocumentBack = null;
+        $uploadField = 'id_document_front';
 
+        try {
             if (!empty($data['id_document_front'])) {
                 $idDocumentFront = $this->fileUploadService->handleBase64Upload(
                     $data['id_document_front'],
@@ -113,12 +114,36 @@ class PurchaseController extends BaseController
                 );
             }
 
+            $uploadField = 'id_document_back';
             if (!empty($data['id_document_back'])) {
                 $idDocumentBack = $this->fileUploadService->handleBase64Upload(
                     $data['id_document_back'],
                     'id_back'
                 );
             }
+        } catch (\RuntimeException $e) {
+            $this->logger->warning('ID document upload rejected', [
+                'field' => $uploadField,
+                'error' => $e->getMessage(),
+            ]);
+
+            if ($idDocumentFront) {
+                $this->fileUploadService->deleteFile($idDocumentFront);
+            }
+
+            // Re-render the form so entered data is kept; the rejected file must be chosen again
+            $data[$uploadField] = '';
+            $branches = $this->branchRepository->findAll();
+            return $this->render($response, 'purchases/create.html.twig', [
+                'user' => $currentUser->toArray(),
+                'branches' => array_map(fn($branch) => $branch->toArray(), $branches),
+                'deviceTypes' => $this->getDeviceTypes(),
+                'errors' => [$uploadField => $e->getMessage()],
+                'formData' => $data,
+            ]);
+        }
+
+        try {
 
             if (!$idDocumentFront) {
                 throw new \RuntimeException('ID document front is required');
