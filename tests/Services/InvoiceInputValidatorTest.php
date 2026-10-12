@@ -151,4 +151,32 @@ class InvoiceInputValidatorTest extends TestCase
         $post['items'][0]['unit_price'] = '1000000000';
         $this->assertArrayHasKey('items', $this->validator->validate($post)['errors']);
     }
+
+    public function testErrorKeysUseOriginalRowKeyWithLeadingEmptyRow(): void
+    {
+        $post = $this->validPost(['items' => [
+            ['description' => '', 'quantity' => '1', 'unit_price' => '', 'vat_rate' => '8.1'],
+            ['description' => '', 'quantity' => '1', 'unit_price' => '5', 'vat_rate' => '8.1'],
+        ]]);
+        $result = $this->validator->validate($post);
+
+        $this->assertArrayHasKey('items.1.description', $result['errors']);
+        $this->assertArrayNotHasKey('items.0.description', $result['errors']);
+    }
+
+    public function testErrorKeysUseOriginalKeysWithGaps(): void
+    {
+        $post = $this->validPost(['items' => [
+            0 => ['description' => 'A', 'quantity' => '1', 'unit_price' => '5', 'vat_rate' => '8.1'],
+            3 => ['description' => 'B', 'quantity' => '1', 'unit_price' => '5', 'vat_rate' => '7.7'],
+        ]]);
+        $result = $this->validator->validate($post);
+
+        $this->assertArrayHasKey('items.3.vat_rate', $result['errors']);
+
+        $post['items'][3]['vat_rate'] = '2.6';
+        $ok = $this->validator->validate($post);
+        $this->assertSame([], $ok['errors']);
+        $this->assertSame([0, 1], array_keys($ok['data']['items']));
+    }
 }

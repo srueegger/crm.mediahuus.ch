@@ -95,8 +95,7 @@ class InvoiceInputValidator
             $rawItems = [];
         }
 
-        $index = 0;
-        foreach ($rawItems as $row) {
+        foreach ($rawItems as $key => $row) {
             if (!is_array($row)) {
                 continue;
             }
@@ -110,7 +109,7 @@ class InvoiceInputValidator
                 continue;
             }
             $nonEmpty++;
-            $i = $index++;
+            $i = $key;
 
             if ($description === '') {
                 $errors["items.$i.description"] = 'Beschreibung ist erforderlich';
