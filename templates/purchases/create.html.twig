@@ -356,7 +356,7 @@
                 Ausweis / Pass fotografieren
             </h3>
             <p class="text-sm text-gray-600 mb-4">
-                Bitte fotografieren Sie den Ausweis oder Pass des Verkäufers. Bei einem Ausweis benötigen wir beide Seiten.
+                Bitte fotografieren Sie den Ausweis oder Pass des Verkäufers oder wählen Sie eine Datei aus (alle Bildformate inkl. iPhone-Fotos/HEIC sowie PDF). Bei einem Ausweis benötigen wir beide Seiten.
             </p>
 
             <div class="space-y-6">
@@ -370,6 +370,17 @@
                             </svg>
                             <p class="text-sm">Tippen Sie hier, um die Kamera zu öffnen</p>
                         </div>
+                    </div>
+                    <div class="mt-2">
+                        <button type="button" class="id-file-button w-full sm:w-auto px-4 py-2 bg-emerald-50 text-emerald-700 rounded-lg border border-emerald-200 hover:bg-emerald-100 transition-colors flex items-center justify-center gap-2"
+                                data-target="front">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"/>
+                            </svg>
+                            Datei auswählen (Foto oder PDF)
+                        </button>
+                        <input type="file" id="id_file_front" class="hidden"
+                               accept="image/*,.heic,.heif,.avif,application/pdf,.pdf">
                     </div>
                     <input type="hidden" name="id_document_front" id="id_document_front" value="{{ formData.id_document_front|default('') }}">
                     {% if errors.id_document_front %}
@@ -387,6 +398,17 @@
                             </svg>
                             <p class="text-sm">Tippen Sie hier, um die Kamera zu öffnen</p>
                         </div>
+                    </div>
+                    <div class="mt-2">
+                        <button type="button" class="id-file-button w-full sm:w-auto px-4 py-2 bg-emerald-50 text-emerald-700 rounded-lg border border-emerald-200 hover:bg-emerald-100 transition-colors flex items-center justify-center gap-2"
+                                data-target="back">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"/>
+                            </svg>
+                            Datei auswählen (Foto oder PDF)
+                        </button>
+                        <input type="file" id="id_file_back" class="hidden"
+                               accept="image/*,.heic,.heif,.avif,application/pdf,.pdf">
                     </div>
                     <input type="hidden" name="id_document_back" id="id_document_back" value="{{ formData.id_document_back|default('') }}">
                     {% if errors.id_document_back %}
@@ -506,5 +528,5 @@
 
 <!-- QuaggaJS for Barcode Scanning -->
 <script src="https://cdn.jsdelivr.net/npm/@ericblade/quagga2@1.8.4/dist/quagga.min.js"></script>
-<script src="/assets/js/camera-handler.js?v=2.2"></script>
+<script src="/assets/js/camera-handler.js?v=2.3"></script>
 {% endblock %}

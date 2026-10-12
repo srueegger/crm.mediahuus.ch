@@ -10,13 +10,20 @@ class FileUploadService
 {
     private string $uploadDir;
     private LoggerInterface $logger;
-    private array $allowedMimeTypes = [
-        'image/jpeg',
-        'image/jpg',
-        'image/png',
-        'image/webp',
+    // Formate, die TCPDF direkt einbetten kann und unverändert gespeichert werden.
+    // Die Endung kommt nie aus Client-Angaben, sondern immer aus dem erkannten Inhalt.
+    private array $extensionsByMimeType = [
+        'image/jpeg' => 'jpeg',
+        'image/jpg' => 'jpeg',
+        'image/png' => 'png',
+    ];
+    // Alle übrigen Bildformate (HEIC, WebP, AVIF, TIFF, ...) und PDF werden mit Imagick
+    // in JPEG umgewandelt. SVG ist bewusst ausgeschlossen (aktiver Inhalt).
+    private array $blockedMimeTypes = [
+        'image/svg+xml',
     ];
     private int $maxFileSize = 10485760; // 10MB
+    private int $maxImageDimension = 2400;
 
     public function __construct(string $uploadDir, LoggerInterface $logger)
     {
@@ -32,39 +39,30 @@ class FileUploadService
     }
 
     /**
-     * Handle base64 encoded image upload from mobile camera
+     * Handle base64 encoded upload (camera capture or file picker, images and PDF)
      */
     public function handleBase64Upload(string $base64Data, string $prefix = 'id'): string
     {
-        // Remove data URI prefix if present
-        if (preg_match('/^data:image\/(\w+);base64,/', $base64Data, $matches)) {
-            $imageType = $matches[1];
+        // Remove data URI prefix if present (the declared type is ignored, content is sniffed below)
+        if (preg_match('/^data:[^,]*;base64,/i', $base64Data)) {
             $base64Data = substr($base64Data, strpos($base64Data, ',') + 1);
-        } else {
-            $imageType = 'jpg'; // default
         }
 
-        $imageData = base64_decode($base64Data);
+        $imageData = base64_decode($base64Data, true);
 
         if ($imageData === false) {
-            throw new RuntimeException('Invalid base64 image data');
+            throw new RuntimeException('Die Datei konnte nicht übertragen werden. Bitte erneut versuchen.');
         }
 
         // Validate file size
         if (strlen($imageData) > $this->maxFileSize) {
-            throw new RuntimeException('File size exceeds maximum allowed size of 10MB');
+            throw new RuntimeException('Die Datei ist zu gross (maximal 10 MB).');
         }
 
-        // Validate image
-        $finfo = new \finfo(FILEINFO_MIME_TYPE);
-        $mimeType = $finfo->buffer($imageData);
-
-        if (!in_array($mimeType, $this->allowedMimeTypes)) {
-            throw new RuntimeException('Invalid file type. Only JPEG, PNG, and WebP images are allowed');
-        }
+        [$imageData, $extension, $mimeType] = $this->normalizeImage($imageData);
 
         // Generate unique filename
-        $filename = $this->generateUniqueFilename($prefix, $imageType);
+        $filename = $this->generateUniqueFilename($prefix, $extension);
         $filepath = $this->uploadDir . '/' . $filename;
 
         // Save file
@@ -108,32 +106,24 @@ class FileUploadService
             throw new RuntimeException('File size exceeds maximum allowed size of 10MB');
         }
 
-        // Validate MIME type
-        $finfo = new \finfo(FILEINFO_MIME_TYPE);
-        $mimeType = $finfo->file($file['tmp_name']);
-
-        if (!in_array($mimeType, $this->allowedMimeTypes)) {
-            throw new RuntimeException('Invalid file type. Only JPEG, PNG, and WebP images are allowed');
+        $imageData = file_get_contents($file['tmp_name']);
+        if ($imageData === false) {
+            throw new RuntimeException('Failed to read uploaded file');
         }
 
-        // Get file extension from original filename
-        $extension = strtolower(pathinfo($file['name'], PATHINFO_EXTENSION));
-        if (!in_array($extension, ['jpg', 'jpeg', 'png', 'webp'])) {
-            $extension = 'jpg'; // fallback
-        }
+        [$imageData, $extension, $mimeType] = $this->normalizeImage($imageData);
 
         // Generate unique filename
         $filename = $this->generateUniqueFilename($prefix, $extension);
         $filepath = $this->uploadDir . '/' . $filename;
 
-        // Move uploaded file
-        if (!move_uploaded_file($file['tmp_name'], $filepath)) {
-            throw new RuntimeException('Failed to move uploaded file');
+        if (file_put_contents($filepath, $imageData) === false) {
+            throw new RuntimeException('Failed to save uploaded file');
         }
 
         $this->logger->info('File uploaded successfully', [
             'filename' => $filename,
-            'size' => $file['size'],
+            'size' => strlen($imageData),
             'mime_type' => $mimeType
         ]);
 
@@ -174,6 +164,87 @@ class FileUploadService
     public function fileExists(string $filename): bool
     {
         return file_exists($this->uploadDir . '/' . $filename);
+    }
+
+    /**
+     * Validate the uploaded content and convert it into a format TCPDF can embed.
+     *
+     * @return array{0: string, 1: string, 2: string} [data, extension, detected MIME type]
+     */
+    private function normalizeImage(string $data): array
+    {
+        $finfo = new \finfo(FILEINFO_MIME_TYPE);
+        $mimeType = (string) $finfo->buffer($data);
+
+        if (isset($this->extensionsByMimeType[$mimeType])) {
+            return [$data, $this->extensionsByMimeType[$mimeType], $mimeType];
+        }
+
+        $isConvertible = (str_starts_with($mimeType, 'image/') || $mimeType === 'application/pdf')
+            && !in_array($mimeType, $this->blockedMimeTypes, true);
+
+        if (!$isConvertible) {
+            throw new RuntimeException('Ungültiger Dateityp. Erlaubt sind Bilder (z. B. JPEG, PNG, HEIC, WebP) und PDF.');
+        }
+
+        return [$this->convertToJpeg($data, $mimeType), 'jpeg', $mimeType];
+    }
+
+    /**
+     * Convert any image format supported by Imagick (or the first page of a PDF) to JPEG
+     */
+    private function convertToJpeg(string $data, string $mimeType): string
+    {
+        if (!class_exists(\Imagick::class)) {
+            throw new RuntimeException('Dieses Dateiformat kann auf dem Server nicht verarbeitet werden. Bitte JPEG oder PNG verwenden.');
+        }
+
+        try {
+            $imagick = new \Imagick();
+            if ($mimeType === 'application/pdf') {
+                // Resolution must be set before reading, otherwise PDFs are rasterized at 72 dpi
+                $imagick->setResolution(200, 200);
+            }
+            $imagick->readImageBlob($data);
+
+            // Multi-frame sources (PDF pages, animated GIF, HEIC sequences): use the first frame
+            $imagick->setIteratorIndex(0);
+            $image = $imagick->getImage();
+            $imagick->clear();
+
+            if (method_exists($image, 'autoOrient')) {
+                $image->autoOrient();
+            }
+
+            // Flatten transparency onto white (JPEG has no alpha channel)
+            $image->setImageBackgroundColor('white');
+            $image->setImageAlphaChannel(\Imagick::ALPHACHANNEL_REMOVE);
+            $image->transformImageColorspace(\Imagick::COLORSPACE_SRGB);
+
+            if ($image->getImageWidth() > $this->maxImageDimension || $image->getImageHeight() > $this->maxImageDimension) {
+                $image->thumbnailImage($this->maxImageDimension, $this->maxImageDimension, true);
+            }
+
+            $image->stripImage();
+            $image->setImageFormat('jpeg');
+            $image->setImageCompressionQuality(85);
+
+            $jpeg = $image->getImageBlob();
+            $image->clear();
+        } catch (\ImagickException $e) {
+            $this->logger->warning('Image conversion failed', [
+                'mime_type' => $mimeType,
+                'error' => $e->getMessage(),
+            ]);
+            throw new RuntimeException('Die Datei konnte nicht gelesen werden. Bitte ein anderes Bild oder PDF verwenden.');
+        }
+
+        $this->logger->info('Image converted to JPEG', [
+            'source_mime_type' => $mimeType,
+            'size' => strlen($jpeg),
+        ]);
+
+        return $jpeg;
     }
 
     /**
