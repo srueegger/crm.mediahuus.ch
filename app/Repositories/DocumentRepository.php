@@ -107,8 +107,9 @@ class DocumentRepository
 
         // Höchste vorhandene Nummer dieses Präfixes und Jahres ermitteln
         $last = $this->connection->fetchOne(
-            'SELECT doc_number FROM documents WHERE doc_number LIKE ? ORDER BY doc_number DESC LIMIT 1',
-            [$prefix . '-' . $year . '-%']
+            'SELECT doc_number FROM documents WHERE doc_number LIKE ? AND doc_number REGEXP ? '
+            . 'ORDER BY doc_number DESC LIMIT 1',
+            [$prefix . '-' . $year . '-%', '^' . $prefix . '-' . $year . '-[0-9]{6}$']
         );
 
         $nextNumber = 1;
