@@ -1,0 +1,232 @@
+{% extends "base.html.twig" %}
+
+{% import _self as m %}
+
+{% macro item_row(index, row, errors, vat_rates, default_rate) %}
+    {% set selected_rate = row.vat_rate|default(default_rate) %}
+    <div class="item-row bg-white border border-gray-200 rounded-lg p-4 mb-4" data-index="{{ index }}">
+        <div class="flex justify-between items-start mb-4">
+            <h4 class="text-sm font-medium text-gray-900">Position <span class="item-number"></span></h4>
+            <button type="button" class="remove-item-btn text-red-600 hover:text-red-700" aria-label="Position entfernen">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+                </svg>
+            </button>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-12 gap-4">
+            <div class="md:col-span-12">
+                <label class="mediahuus-label">Beschreibung *</label>
+                <input type="text" maxlength="500" name="items[{{ index }}][description]"
+                       class="mediahuus-input item-description {{ errors['items.' ~ index ~ '.description'] is defined ? 'error' : '' }}"
+                       value="{{ row.description|default('') }}"
+                       placeholder="z.B. Display-Reparatur iPhone 13">
+                {% if errors['items.' ~ index ~ '.description'] is defined %}
+                    <p class="mt-1 text-sm text-red-600">{{ errors['items.' ~ index ~ '.description'] }}</p>
+                {% endif %}
+            </div>
+
+            <div class="md:col-span-3">
+                <label class="mediahuus-label">Menge *</label>
+                <input type="text" inputmode="decimal" name="items[{{ index }}][quantity]"
+                       class="mediahuus-input item-quantity {{ errors['items.' ~ index ~ '.quantity'] is defined ? 'error' : '' }}"
+                       value="{{ row.quantity is defined ? row.quantity : '1' }}">
+                {% if errors['items.' ~ index ~ '.quantity'] is defined %}
+                    <p class="mt-1 text-sm text-red-600">{{ errors['items.' ~ index ~ '.quantity'] }}</p>
+                {% endif %}
+            </div>
+
+            <div class="md:col-span-3">
+                <label class="mediahuus-label">Einzelpreis inkl. MWST (CHF) *</label>
+                <input type="text" inputmode="decimal" name="items[{{ index }}][unit_price]"
+                       class="mediahuus-input item-unit-price {{ errors['items.' ~ index ~ '.unit_price'] is defined ? 'error' : '' }}"
+                       value="{{ row.unit_price|default('') }}"
+                       placeholder="0.00">
+                {% if errors['items.' ~ index ~ '.unit_price'] is defined %}
+                    <p class="mt-1 text-sm text-red-600">{{ errors['items.' ~ index ~ '.unit_price'] }}</p>
+                {% endif %}
+            </div>
+
+            <div class="md:col-span-3">
+                <label class="mediahuus-label">MWST-Satz *</label>
+                <select name="items[{{ index }}][vat_rate]"
+                        class="mediahuus-select item-vat-rate {{ errors['items.' ~ index ~ '.vat_rate'] is defined ? 'error' : '' }}">
+                    {% for rate in vat_rates %}
+                        <option value="{{ rate }}" {{ selected_rate == rate ? 'selected' : '' }}>{{ rate }} %</option>
+                    {% endfor %}
+                </select>
+                {% if errors['items.' ~ index ~ '.vat_rate'] is defined %}
+                    <p class="mt-1 text-sm text-red-600">{{ errors['items.' ~ index ~ '.vat_rate'] }}</p>
+                {% endif %}
+            </div>
+
+            <div class="md:col-span-3">
+                <label class="mediahuus-label">Zeilensumme</label>
+                <div class="flex items-center min-h-[56px] px-4 bg-gray-100 border border-gray-300 rounded-lg text-gray-700 font-medium item-line-total">
+                    CHF 0.00
+                </div>
+            </div>
+        </div>
+    </div>
+{% endmacro %}
+
+{% block title %}Neue Rechnung - {{ parent() }}{% endblock %}
+
+{% block content %}
+<div class="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
+    <div class="px-4 py-6 sm:px-0">
+        <div class="mb-8">
+            <h2 class="text-2xl font-bold text-gray-900 mb-2">Neue Rechnung</h2>
+            <p class="text-gray-600">Rechnung mit QR-Zahlteil für Firmen- und Privatkunden erstellen</p>
+        </div>
+
+        {% if error %}
+            <div class="mb-6 bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded">
+                {{ error }}
+            </div>
+        {% endif %}
+
+        <div class="mediahuus-form-section !p-4 sm:!p-8">
+            <form method="POST" action="/invoices" class="space-y-8" id="invoice-form" novalidate>
+
+                <!-- Empfänger -->
+                <div class="border-b border-gray-200 pb-8">
+                    <h3 class="text-lg font-medium text-gray-900 mb-4">Empfänger</h3>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div>
+                            <label for="company_name" class="mediahuus-label">Firma</label>
+                            <input type="text" name="company_name" id="company_name" maxlength="70"
+                                   class="mediahuus-input {{ errors.company_name is defined ? 'error' : '' }}"
+                                   value="{{ formData.company_name }}" placeholder="z.B. Muster AG">
+                            {% if errors.company_name is defined %}
+                                <p class="mt-1 text-sm text-red-600">{{ errors.company_name }}</p>
+                            {% endif %}
+                        </div>
+                        <div>
+                            <label for="contact_name" class="mediahuus-label">Name (Vor- und Nachname)</label>
+                            <input type="text" name="contact_name" id="contact_name" maxlength="70"
+                                   class="mediahuus-input {{ errors.contact_name is defined ? 'error' : '' }}"
+                                   value="{{ formData.contact_name }}" placeholder="z.B. Max Muster">
+                            {% if errors.contact_name is defined %}
+                                <p class="mt-1 text-sm text-red-600">{{ errors.contact_name }}</p>
+                            {% else %}
+                                <p class="mt-1 text-sm text-gray-500">Firma oder Name ist erforderlich.</p>
+                            {% endif %}
+                        </div>
+                        <div class="md:col-span-2">
+                            <label for="street" class="mediahuus-label">Strasse + Nr. *</label>
+                            <input type="text" name="street" id="street" maxlength="70"
+                                   class="mediahuus-input {{ errors.street is defined ? 'error' : '' }}"
+                                   value="{{ formData.street }}" placeholder="z.B. Musterstrasse 12">
+                            {% if errors.street is defined %}
+                                <p class="mt-1 text-sm text-red-600">{{ errors.street }}</p>
+                            {% endif %}
+                        </div>
+                        <div>
+                            <label for="zip" class="mediahuus-label">PLZ *</label>
+                            <input type="text" name="zip" id="zip" maxlength="16"
+                                   class="mediahuus-input {{ errors.zip is defined ? 'error' : '' }}"
+                                   value="{{ formData.zip }}" placeholder="z.B. 4153">
+                            {% if errors.zip is defined %}
+                                <p class="mt-1 text-sm text-red-600">{{ errors.zip }}</p>
+                            {% endif %}
+                        </div>
+                        <div>
+                            <label for="city" class="mediahuus-label">Ort *</label>
+                            <input type="text" name="city" id="city" maxlength="35"
+                                   class="mediahuus-input {{ errors.city is defined ? 'error' : '' }}"
+                                   value="{{ formData.city }}" placeholder="z.B. Reinach">
+                            {% if errors.city is defined %}
+                                <p class="mt-1 text-sm text-red-600">{{ errors.city }}</p>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Rechnungsdaten -->
+                <div class="border-b border-gray-200 pb-8">
+                    <h3 class="text-lg font-medium text-gray-900 mb-4">Rechnungsdaten</h3>
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                        <div>
+                            <label for="invoice_date" class="mediahuus-label">Rechnungsdatum *</label>
+                            <input type="date" name="invoice_date" id="invoice_date"
+                                   class="mediahuus-input {{ errors.invoice_date is defined ? 'error' : '' }}"
+                                   value="{{ formData.invoice_date }}">
+                            {% if errors.invoice_date is defined %}
+                                <p class="mt-1 text-sm text-red-600">{{ errors.invoice_date }}</p>
+                            {% endif %}
+                        </div>
+                        <div>
+                            <label for="payment_term_days" class="mediahuus-label">Zahlungsfrist (Tage)</label>
+                            <input type="text" inputmode="numeric" name="payment_term_days" id="payment_term_days"
+                                   class="mediahuus-input {{ errors.payment_term_days is defined ? 'error' : '' }}"
+                                   value="{{ formData.payment_term_days }}">
+                            {% if errors.payment_term_days is defined %}
+                                <p class="mt-1 text-sm text-red-600">{{ errors.payment_term_days }}</p>
+                            {% endif %}
+                        </div>
+                        <div>
+                            <span class="mediahuus-label">Zahlbar bis</span>
+                            <div class="flex items-center min-h-[56px] px-4 bg-gray-100 border border-gray-300 rounded-lg text-gray-700 font-medium">
+                                <span id="due-date">-</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Positionen -->
+                <div class="pb-4">
+                    <h3 class="text-lg font-medium text-gray-900 mb-4">Positionen</h3>
+                    <p class="text-sm text-gray-500 mb-4">Preise werden inklusive MWST erfasst.</p>
+
+                    <div id="items-container">
+                        {% for index, row in formData.items %}
+                            {{ m.item_row(index, row, errors, vat_rates, default_vat_rate) }}
+                        {% endfor %}
+                    </div>
+
+                    {% if errors.items is defined %}
+                        <p class="mt-2 text-sm text-red-600">{{ errors.items }}</p>
+                    {% endif %}
+
+                    <div class="mt-4">
+                        <button type="button" id="add-item-btn" class="mediahuus-button-secondary">
+                            + Position hinzufügen
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Live-Vorschau (auf dem Handy am unteren Rand sichtbar) -->
+                <div class="sticky bottom-0 z-10 -mx-4 sm:mx-0 bg-white border-t-2 sm:border-2 sm:rounded-lg shadow-lg p-4"
+                     style="border-color: #2d8f3e;" id="invoice-summary">
+                    <h3 class="text-base font-semibold text-gray-900 mb-2">Vorschau</h3>
+                    <div class="space-y-1">
+                        <div class="flex justify-between gap-4 text-sm text-gray-700">
+                            <span>Total exkl. MWST</span>
+                            <span id="preview-net" class="font-medium whitespace-nowrap">CHF 0.00</span>
+                        </div>
+                        <div id="preview-vat-groups" class="space-y-1"></div>
+                        <div class="flex justify-between gap-4 pt-2 border-t border-gray-200">
+                            <span class="font-semibold text-gray-900">Total inkl. MWST</span>
+                            <span id="preview-gross" class="text-xl font-bold whitespace-nowrap" style="color: #2d8f3e;">CHF 0.00</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="flex flex-col-reverse sm:flex-row sm:justify-end gap-3 pt-6 border-t">
+                    <a href="/" class="mediahuus-button-secondary">Abbrechen</a>
+                    <button type="submit" class="mediahuus-button-primary">Rechnung erstellen</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<template id="item-template">
+    {{ m.item_row('__INDEX__', {}, {}, vat_rates, default_vat_rate) }}
+</template>
+{% endblock %}
+
+{% block scripts %}
+<script src="/assets/js/invoice-form.js"></script>
+{% endblock %}

@@ -1,6 +1,5 @@
 # Dependencies
 /vendor/
-composer.lock
 
 # Environment
 .env
@@ -35,3 +34,4 @@ Thumbs.db
 # Uploads (Ausweis-Fotos etc. – nicht ins Repo)
 /public/uploads/*
 !/public/uploads/.htaccess
+.phpunit.cache/

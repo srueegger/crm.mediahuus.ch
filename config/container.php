@@ -19,10 +19,18 @@ use App\Repositories\InsuranceAssessmentRepository;
 use App\Services\AuthService;
 use App\Services\PdfService;
 use App\Services\FileUploadService;
+use App\Repositories\InvoiceRepository;
+use App\Services\InvoiceCalculator;
+use App\Services\InvoiceInputValidator;
+use App\Services\InvoiceNumberGenerator;
+use App\Services\InvoicePdfService;
+use App\Services\InvoiceService;
+use App\Services\QrBillFactory;
 use App\Controllers\UserController;
 use App\Controllers\EstimateController;
 use App\Controllers\ReceiptController;
 use App\Controllers\PurchaseController;
+use App\Controllers\InvoiceController;
 use App\Controllers\InsuranceController;
 use App\Controllers\DashboardController;
 use App\Controllers\ExportController;
@@ -53,6 +61,10 @@ return [
                 'purchases.create' => '/purchases/create',
                 'purchases.show' => '/purchases/' . ($params['id'] ?? '{id}'),
                 'purchases.pdf' => '/purchases/' . ($params['id'] ?? '{id}') . '/pdf',
+                'invoices.create' => '/invoices/create',
+                'invoices.store' => '/invoices',
+                'invoices.show' => '/invoices/' . ($params['id'] ?? '{id}'),
+                'invoices.pdf' => '/invoices/' . ($params['id'] ?? '{id}') . '/pdf',
                 'insurance.create' => '/insurance/create',
                 'insurance.show' => '/insurance/' . ($params['id'] ?? '{id}'),
                 'insurance.pdf' => '/insurance/' . ($params['id'] ?? '{id}') . '/pdf',
@@ -138,6 +150,69 @@ return [
         return new ReceiptRepository($connection, $receiptItemRepository);
     },
 
+    // Rechnungen: Konfiguration, Repository und Services
+    InvoiceRepository::class => function (Connection $connection) {
+        return new InvoiceRepository($connection);
+    },
+
+    InvoiceInputValidator::class => function (InvoiceCalculator $calculator) {
+        return new InvoiceInputValidator(require __DIR__ . '/invoice.php', $calculator);
+    },
+
+    QrBillFactory::class => function () {
+        $config = require __DIR__ . '/invoice.php';
+        return new QrBillFactory($config['creditor']);
+    },
+
+    InvoicePdfService::class => function (QrBillFactory $qrBillFactory, LoggerInterface $logger) {
+        return new InvoicePdfService(require __DIR__ . '/invoice.php', $qrBillFactory, $logger);
+    },
+
+    InvoiceService::class => function (
+        Connection $connection,
+        DocumentRepository $documentRepository,
+        InvoiceRepository $invoiceRepository,
+        BranchRepository $branchRepository,
+        InvoiceCalculator $calculator,
+        InvoiceNumberGenerator $numberGenerator,
+        QrBillFactory $qrBillFactory
+    ) {
+        return new InvoiceService(
+            $connection,
+            $documentRepository,
+            $invoiceRepository,
+            $branchRepository,
+            $calculator,
+            $numberGenerator,
+            $qrBillFactory,
+            require __DIR__ . '/invoice.php'
+        );
+    },
+
+    // Invoice Controller
+    InvoiceController::class => function (
+        Environment $twig,
+        DocumentRepository $documentRepository,
+        InvoiceRepository $invoiceRepository,
+        BranchRepository $branchRepository,
+        InvoiceInputValidator $validator,
+        InvoiceService $invoiceService,
+        InvoicePdfService $pdfService,
+        LoggerInterface $logger
+    ) {
+        return new InvoiceController(
+            $twig,
+            $documentRepository,
+            $invoiceRepository,
+            $branchRepository,
+            $validator,
+            $invoiceService,
+            $pdfService,
+            require __DIR__ . '/invoice.php',
+            $logger
+        );
+    },
+
     // Estimate Controller
     EstimateController::class => function (Environment $twig, DocumentRepository $documentRepository, EstimateRepository $estimateRepository, BranchRepository $branchRepository, PdfService $pdfService, LoggerInterface $logger) {
         return new EstimateController($twig, $documentRepository, $estimateRepository, $branchRepository, $pdfService, $logger);
@@ -175,12 +250,12 @@ return [
     },
 
     // Dashboard Controller
-    DashboardController::class => function (Environment $twig, DocumentRepository $documentRepository, BranchRepository $branchRepository, EstimateRepository $estimateRepository, PurchaseRepository $purchaseRepository, ReceiptRepository $receiptRepository, InsuranceAssessmentRepository $insuranceRepository) {
-        return new DashboardController($twig, $documentRepository, $branchRepository, $estimateRepository, $purchaseRepository, $receiptRepository, $insuranceRepository);
+    DashboardController::class => function (Environment $twig, DocumentRepository $documentRepository, BranchRepository $branchRepository, EstimateRepository $estimateRepository, PurchaseRepository $purchaseRepository, ReceiptRepository $receiptRepository, InsuranceAssessmentRepository $insuranceRepository, InvoiceRepository $invoiceRepository) {
+        return new DashboardController($twig, $documentRepository, $branchRepository, $estimateRepository, $purchaseRepository, $receiptRepository, $insuranceRepository, $invoiceRepository);
     },
 
     // Export Controller
-    ExportController::class => function (DocumentRepository $documentRepository, BranchRepository $branchRepository, EstimateRepository $estimateRepository, PurchaseRepository $purchaseRepository, ReceiptRepository $receiptRepository, InsuranceAssessmentRepository $insuranceRepository, LoggerInterface $logger) {
-        return new ExportController($documentRepository, $branchRepository, $estimateRepository, $purchaseRepository, $receiptRepository, $insuranceRepository, $logger);
+    ExportController::class => function (DocumentRepository $documentRepository, BranchRepository $branchRepository, EstimateRepository $estimateRepository, PurchaseRepository $purchaseRepository, ReceiptRepository $receiptRepository, InsuranceAssessmentRepository $insuranceRepository, InvoiceRepository $invoiceRepository, UserRepository $userRepository, LoggerInterface $logger) {
+        return new ExportController($documentRepository, $branchRepository, $estimateRepository, $purchaseRepository, $receiptRepository, $insuranceRepository, $invoiceRepository, $userRepository, $logger);
     },
 ];
