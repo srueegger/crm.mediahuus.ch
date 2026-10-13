@@ -88,6 +88,7 @@
 
         <div class="mediahuus-form-section !p-4 sm:!p-8">
             <form method="POST" action="/invoices" class="space-y-8" id="invoice-form" novalidate>
+                {{ csrf_field() }}
 
                 <!-- Empfänger -->
                 <div class="border-b border-gray-200 pb-8">

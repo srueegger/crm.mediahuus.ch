@@ -3,6 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="csrf-token" content="{{ csrf_token() }}">
     <title>{% block title %}{{ app_name }}{% endblock %}</title>
     
     <!-- Favicon -->
@@ -154,6 +155,7 @@
                 <div class="flex items-center space-x-4">
                     <span class="text-sm text-gray-700">{{ user.name }}</span>
                     <form method="POST" action="/logout" class="inline">
+                        {{ csrf_field() }}
                         <button type="submit" class="bg-red-600 text-white px-4 py-2 rounded-md text-sm hover:bg-red-700">
                             Abmelden
                         </button>

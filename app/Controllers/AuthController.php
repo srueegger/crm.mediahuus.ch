@@ -4,6 +4,7 @@ declare(strict_types=1);
 namespace App\Controllers;
 
 use App\Services\AuthService;
+use App\Services\CsrfTokenManager;
 use Psr\Http\Message\ResponseInterface as Response;
 use Psr\Http\Message\ServerRequestInterface as Request;
 use Twig\Environment;
@@ -12,10 +13,13 @@ class AuthController extends BaseController
 {
     private AuthService $authService;
 
-    public function __construct(Environment $twig, AuthService $authService)
+    private CsrfTokenManager $csrf;
+
+    public function __construct(Environment $twig, AuthService $authService, CsrfTokenManager $csrf)
     {
         parent::__construct($twig);
         $this->authService = $authService;
+        $this->csrf = $csrf;
     }
 
     public function showLogin(Request $request, Response $response): Response
@@ -47,6 +51,7 @@ class AuthController extends BaseController
         
         if ($user) {
             $this->authService->startSession($user);
+            $this->csrf->regenerate();
             return $response->withHeader('Location', '/')->withStatus(302);
         }
 
@@ -60,6 +65,7 @@ class AuthController extends BaseController
     public function logout(Request $request, Response $response): Response
     {
         $this->authService->endSession();
+        $this->csrf->regenerate();
         return $response->withHeader('Location', '/login')->withStatus(302);
     }
 }

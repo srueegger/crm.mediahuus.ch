@@ -17,6 +17,7 @@ use App\Repositories\ReceiptItemRepository;
 use App\Repositories\PurchaseRepository;
 use App\Repositories\InsuranceAssessmentRepository;
 use App\Services\AuthService;
+use App\Services\CsrfTokenManager;
 use App\Services\PdfService;
 use App\Services\FileUploadService;
 use App\Repositories\InvoiceRepository;
@@ -37,11 +38,11 @@ use App\Controllers\ExportController;
 
 return [
     // Twig Template Engine
-    Environment::class => function () {
+    Environment::class => function (CsrfTokenManager $csrf) {
         $loader = new FilesystemLoader(__DIR__ . '/../templates');
         $twig = new Environment($loader, [
             'cache' => $_ENV['TWIG_CACHE'] ?? false,
-            'debug' => $_ENV['DEBUG'] ?? false,
+            'debug' => filter_var($_ENV['DEBUG'] ?? false, FILTER_VALIDATE_BOOLEAN),
         ]);
         
         // Add global variables
@@ -78,6 +79,14 @@ return [
             return $urls[$routeName] ?? '/';
         }));
         
+        $twig->addFunction(new \Twig\TwigFunction('csrf_token', function () use ($csrf): string {
+            return $csrf->getToken();
+        }));
+        $twig->addFunction(new \Twig\TwigFunction('csrf_field', function () use ($csrf): string {
+            return '<input type="hidden" name="_csrf" value="'
+                . htmlspecialchars($csrf->getToken(), ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8') . '">';
+        }, ['is_safe' => ['html']]));
+
         return $twig;
     },
 

@@ -101,6 +101,7 @@
                                     <!-- Status Toggle Button -->
                                     {% if userItem.id != user.id %}
                                         <form method="POST" action="{{ url_for('users.toggle', {id: userItem.id}) }}" class="inline">
+                                            {{ csrf_field() }}
                                             {% if userItem.is_active %}
                                                 <input type="hidden" name="action" value="deactivate">
                                                 <button type="submit" 
