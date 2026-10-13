@@ -1,0 +1,13 @@
+{% extends 'emails/base.html.twig' %}
+{% block title %}Ihre Reparatur {{ doc_number }}{% endblock %}
+{% block content %}
+<p style="margin:0 0 16px;">Guten Tag</p>
+<p style="margin:0 0 16px;">Wir haben Ihr Gerät <strong>{{ device_name }}</strong> zur Reparatur entgegengenommen. Ihre Reparaturnummer lautet <strong>{{ doc_number }}</strong>.</p>
+<p style="margin:0 0 20px;">Den aktuellen Stand Ihrer Reparatur können Sie jederzeit online einsehen:</p>
+<p style="margin:0 0 24px;">
+    <a href="{{ status_url }}" style="display:inline-block;background-color:#059669;color:#ffffff;text-decoration:none;font-weight:bold;padding:12px 24px;border-radius:6px;">Reparaturstatus ansehen</a>
+</p>
+<p style="margin:0 0 16px;font-size:13px;color:#6b7280;">Falls der Button nicht funktioniert, kopieren Sie diesen Link in Ihren Browser:<br><a href="{{ status_url }}" style="color:#059669;word-break:break-all;">{{ status_url }}</a></p>
+<p style="margin:0 0 16px;">Die Auftragsbestätigung finden Sie im Anhang. Sobald Ihr Gerät abholbereit ist, melden wir uns erneut.</p>
+<p style="margin:0;">Freundliche Grüsse<br>{{ branch.name }}</p>
+{% endblock %}

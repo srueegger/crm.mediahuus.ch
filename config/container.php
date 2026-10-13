@@ -35,6 +35,7 @@ use App\Services\InvoiceService;
 use App\Services\QrBillFactory;
 use App\Services\MailService;
 use App\Services\AppUrl;
+use App\Services\RepairMailer;
 use App\Controllers\UserController;
 use App\Controllers\EstimateController;
 use App\Controllers\ReceiptController;
@@ -152,6 +153,18 @@ return [
     AppUrl::class => function () {
         $base = trim((string) ($_ENV['APP_URL'] ?? ''));
         return new AppUrl($base !== '' ? $base : 'https://crm.mediahuus.ch');
+    },
+
+    // Reparatur-E-Mails
+    RepairMailer::class => function (
+        MailService $mail,
+        Environment $twig,
+        PdfService $pdf,
+        AppUrl $url,
+        RepairEventRepository $events,
+        LoggerInterface $logger
+    ) {
+        return new RepairMailer($mail, $twig, $pdf, $url, $events, $logger);
     },
 
     // PDF Service
