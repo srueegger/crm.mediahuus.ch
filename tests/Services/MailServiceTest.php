@@ -93,4 +93,35 @@ class MailServiceTest extends TestCase
         $this->assertSame(MailResult::FAILED, $result->status);
         $this->assertSame('boom', $result->error);
     }
+
+    public function testFromEnvWithInvalidDsnDoesNotThrowAndLogs(): void
+    {
+        $logger = $this->createMock(LoggerInterface::class);
+        $logger->expects($this->atLeastOnce())->method('error');
+
+        $service = MailService::fromEnv(['MAILER_DSN' => 'mailgun+htps://KEY:DOMAIN@default'], $logger);
+        $result = $service->send($this->email());
+
+        $this->assertSame(MailResult::NOT_CONFIGURED, $result->status);
+    }
+
+    public function testFromEnvWithEmptyDsnIsNotConfigured(): void
+    {
+        $service = MailService::fromEnv(['MAILER_DSN' => ''], $this->createMock(LoggerInterface::class));
+
+        $this->assertSame(MailResult::NOT_CONFIGURED, $service->send($this->email())->status);
+    }
+
+    public function testFromEnvEmptyOrInvalidFromFallsBackToDefault(): void
+    {
+        foreach ([['MAIL_FROM' => '', 'MAIL_FROM_NAME' => ''], ['MAIL_FROM' => 'kein-mail']] as $env) {
+            $env['MAILER_DSN'] = 'null://null';
+            $service = MailService::fromEnv($env, $this->createMock(LoggerInterface::class));
+            $prop = new \ReflectionProperty(MailService::class, 'from');
+            $from = $prop->getValue($service);
+
+            $this->assertSame('info@mediahuus.ch', $from->getAddress());
+            $this->assertSame('Mediahuus', $from->getName());
+        }
+    }
 }

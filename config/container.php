@@ -32,8 +32,6 @@ use App\Services\InvoicePdfService;
 use App\Services\InvoiceService;
 use App\Services\QrBillFactory;
 use App\Services\MailService;
-use Symfony\Component\Mailer\Transport;
-use Symfony\Component\Mime\Address;
 use App\Controllers\UserController;
 use App\Controllers\EstimateController;
 use App\Controllers\ReceiptController;
@@ -144,10 +142,7 @@ return [
 
     // Mail Service (zentraler E-Mail-Versand)
     MailService::class => function (LoggerInterface $logger) {
-        $dsn = trim((string) ($_ENV['MAILER_DSN'] ?? ''));
-        $transport = $dsn !== '' ? Transport::fromDsn($dsn) : null;
-        $from = new Address($_ENV['MAIL_FROM'] ?? 'info@mediahuus.ch', $_ENV['MAIL_FROM_NAME'] ?? 'Mediahuus');
-        return new MailService($transport, $from, $logger);
+        return MailService::fromEnv($_ENV, $logger);
     },
 
     // PDF Service
