@@ -11,6 +11,7 @@ use App\Repositories\PurchaseRepository;
 use App\Repositories\ReceiptRepository;
 use App\Repositories\InsuranceAssessmentRepository;
 use App\Repositories\InvoiceRepository;
+use App\Services\TwigCacheConfig;
 use Twig\Environment;
 use Psr\Http\Message\ResponseInterface as Response;
 use Psr\Http\Message\ServerRequestInterface as Request;
@@ -129,16 +130,21 @@ class DashboardController extends BaseController
     public function clearCache(Request $request, Response $response): Response
     {
         try {
-            // Clear Twig cache directory
-            $cacheDir = __DIR__ . '/../../var/cache/twig';
-            if (is_dir($cacheDir)) {
-                $this->deleteDirectory($cacheDir);
+            $projectRoot = dirname(__DIR__, 2);
+            $cacheDirs = [
+                TwigCacheConfig::defaultDir($projectRoot),
+                // Altlast: TWIG_CACHE=false wurde früher als Pfad public/false gelesen
+                $projectRoot . '/public/false',
+            ];
+            $configured = TwigCacheConfig::resolve($_ENV['TWIG_CACHE'] ?? null, $projectRoot);
+            if ($configured !== false) {
+                $cacheDirs[] = $configured;
             }
-            
-            // Also clear any false/ cache directories in public
-            $publicCacheDir = __DIR__ . '/../../public/false';
-            if (is_dir($publicCacheDir)) {
-                $this->deleteDirectory($publicCacheDir);
+
+            foreach (array_unique($cacheDirs) as $cacheDir) {
+                if (is_dir($cacheDir)) {
+                    $this->deleteDirectory($cacheDir);
+                }
             }
             
             $response->getBody()->write(json_encode(['success' => true, 'message' => 'Cache erfolgreich geleert']));
