@@ -3,6 +3,7 @@ declare(strict_types=1);
 
 use Twig\Environment;
 use Twig\Loader\FilesystemLoader;
+use App\Services\TwigCacheConfig;
 use Doctrine\DBAL\Connection;
 use Doctrine\DBAL\DriverManager;
 use Monolog\Logger;
@@ -44,8 +45,10 @@ return [
     Environment::class => function (CsrfTokenManager $csrf) {
         $loader = new FilesystemLoader(__DIR__ . '/../templates');
         $twig = new Environment($loader, [
-            'cache' => $_ENV['TWIG_CACHE'] ?? false,
+            'cache' => TwigCacheConfig::resolve($_ENV['TWIG_CACHE'] ?? null, dirname(__DIR__)),
             'debug' => filter_var($_ENV['DEBUG'] ?? false, FILTER_VALIDATE_BOOLEAN),
+            // Geänderte Templates nach einem Deploy immer neu kompilieren
+            'auto_reload' => true,
         ]);
         
         // Add global variables

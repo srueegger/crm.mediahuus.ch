@@ -86,7 +86,8 @@ app/
 │   ├── InvoiceService.php
 │   ├── PdfService.php
 │   ├── PhoneNormalizer.php         # Telefonnummern für den Abgleich normalisieren
-│   └── QrBillFactory.php
+│   ├── QrBillFactory.php
+│   └── TwigCacheConfig.php         # TWIG_CACHE auswerten (false / true / Pfad)
 └── Middleware/        # Request Middleware
     └── AuthMiddleware.php
 
@@ -158,7 +159,7 @@ tests/                 # PHPUnit
 ├── AuthServiceTest.php
 ├── Middleware/        # CSRF- und Session-Middleware
 ├── Models/            # Customer*Test
-└── Services/          # Invoice*Test, QrBillFactoryTest, Customer*Test, PhoneNormalizerTest, CsrfTokenManagerTest
+└── Services/          # Invoice*Test, QrBillFactoryTest, Customer*Test, PhoneNormalizerTest, CsrfTokenManagerTest, TwigCacheConfigTest
 
 phpunit.xml.dist       # PHPUnit-Konfiguration
 ```
@@ -257,7 +258,7 @@ APP_ENV=production
 DEBUG=false
 
 # Twig & Session
-TWIG_CACHE=false
+TWIG_CACHE=false   # false/leer = kein Cache, true = var/cache/twig, sonst Pfad (relativ ab Projektverzeichnis)
 SESSION_NAME=mediahuus_crm_session
 ```
 
@@ -482,6 +483,7 @@ GET  /export/excel           → Excel-Export
   5. `php bin/import-customers.php` ausführen. Wiederholbar: verarbeitet nur Dokumente ohne `customer_id`, ältestes zuerst, damit die neuesten Angaben gewinnen. Barkauf-Quittungen ohne Kundennamen bleiben ohne Kunde.
 - **Composer**: `composer.lock` ist versioniert; `config.platform.php = 8.2` stellt sicher, dass nur mit PHP 8.2 kompatible Versionen aufgelöst werden
 - **Database**: MariaDB mit SQL-Dumps für Backup
+- **Twig-Cache**: `TWIG_CACHE` wird von `TwigCacheConfig` ausgewertet (`false` → kein Cache, `true` → `var/cache/twig`, sonst Pfad). `auto_reload` ist immer aktiv, nach einem Deploy werden geänderte Templates also ohne manuelles Leeren neu kompiliert. «Cache leeren» (`POST /clear-cache`) löscht `var/cache/twig`, den konfigurierten Pfad und das frühere Verzeichnis `public/false`; Letzteres kann auf Produktion nach dem Deploy einmalig gelöscht werden.
 
 ## Filialen
 
