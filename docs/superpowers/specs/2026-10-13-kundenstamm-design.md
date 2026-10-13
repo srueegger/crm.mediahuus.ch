@@ -40,7 +40,7 @@ Erfolgskriterien:
 - Kunden löschen, Datenschutz-Löschfristen, Datenexport pro Kunde
 - Marketing-Felder (Newsletter-Einwilligung o. ä.)
 - Nachträgliches Umhängen eines einzelnen Dokuments zu einem anderen Kunden (nur via Zusammenführen)
-- CSRF-Schutz (fehlt im ganzen Projekt, separates Thema)
+- CSRF-Schutz: separat in `feat/csrf` (Spec `2026-10-13-csrf-design.md`), wird vorher gemergt; alle neuen POST-Formulare des Kundenstamms enthalten `{{ csrf_field() }}`
 
 ## Datenmodell
 
