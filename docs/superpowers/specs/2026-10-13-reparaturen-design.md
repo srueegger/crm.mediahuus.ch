@@ -122,7 +122,7 @@ CREATE TABLE repair_events (
 | `Services/RepairService.php` | Anlegen (Dokument + Nummer + Token + Kunde + erstes Ereignis), Bearbeiten, Statuswechsel mit Regeln, Auslösen der E-Mails |
 | `Services/RepairStatusTokenGenerator.php` | `bin2hex(random_bytes(16))` |
 | `Services/RepairStatusPage.php` | Baut aus Reparatur, Ereignissen und Filiale das reduzierte Array für die Statusseite und prüft die 30-Tage-Regel |
-| `Services/RepairPdfService.php` | Auftragsbestätigung (Layout wie Kostenvoranschlag, TCPDF) |
+| `Services/PdfService.php` (neue Methode `generateRepairPdf`) | Auftragsbestätigung (Layout und Kopf/Fuss wie Kostenvoranschlag, TCPDF) |
 | `Services/RepairMailer.php` | Baut die zwei Reparatur-E-Mails und übergibt sie dem `MailService` |
 | `Services/MailService.php` | **Einziger** Versandweg für alle E-Mails des Systems |
 | `Controllers/RepairController.php` | Interne Seiten (Liste, Erfassen, Detail, Bearbeiten, Status, PDF, E-Mail erneut senden) |
