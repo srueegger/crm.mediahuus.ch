@@ -3,6 +3,8 @@ declare(strict_types=1);
 
 require __DIR__ . '/../vendor/autoload.php';
 
+use App\Middleware\CsrfMiddleware;
+use App\Middleware\SessionMiddleware;
 use DI\ContainerBuilder;
 use Slim\Factory\AppFactory;
 use Dotenv\Dotenv;
@@ -22,11 +24,13 @@ $container = $containerBuilder->build();
 AppFactory::setContainer($container);
 $app = AppFactory::create();
 
-// Add error middleware
-$app->addErrorMiddleware(true, true, true);
-
-// Add body parsing middleware
+// Middleware (Slim: zuletzt hinzugefügt = zuerst ausgeführt)
+// Reihenfolge der Ausführung: Error -> Session -> BodyParsing -> CSRF
+$debug = filter_var($_ENV['DEBUG'] ?? false, FILTER_VALIDATE_BOOLEAN);
+$app->add(CsrfMiddleware::class);
 $app->addBodyParsingMiddleware();
+$app->add(SessionMiddleware::class);
+$app->addErrorMiddleware($debug, true, true);
 
 // Load routes
 $GLOBALS['app'] = $app;
