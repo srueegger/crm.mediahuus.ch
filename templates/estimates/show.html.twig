@@ -55,7 +55,7 @@
                         <dt class="text-sm font-medium text-gray-500">Kunde</dt>
                         <dd class="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2">
                             <div>
-                                <p class="font-medium">{{ document.customer_name }}</p>
+                                <p class="font-medium">{% if document.customer_id %}<a href="{{ url_for('customers.show', {id: document.customer_id}) }}" class="text-emerald-700 hover:underline">{{ document.customer_name }}</a>{% else %}{{ document.customer_name }}{% endif %}</p>
                                 {% if document.customer_phone %}<p class="text-gray-600">Tel: {{ document.customer_phone }}</p>{% endif %}
                                 {% if document.customer_email %}<p class="text-gray-600">E-Mail: {{ document.customer_email }}</p>{% endif %}
                             </div>

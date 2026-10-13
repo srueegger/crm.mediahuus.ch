@@ -136,7 +136,7 @@ class ExportController
         $sheet = $spreadsheet->createSheet();
         $sheet->setTitle('Übersicht');
 
-        $headers = ['Dok.-Nr.', 'Typ', 'Datum', 'Filiale', 'Kunde', 'Telefon', 'E-Mail', 'Betrag'];
+        $headers = ['Dok.-Nr.', 'Typ', 'Datum', 'Filiale', 'Kunden-Nr.', 'Kunde', 'Telefon', 'E-Mail', 'Betrag'];
         $this->writeHeader($sheet, $headers);
 
         $row = 2;
@@ -146,12 +146,13 @@ class ExportController
             $sheet->setCellValue("B{$row}", $doc->getTypeLabel());
             $sheet->setCellValue("C{$row}", $doc->getCreatedAt()->format('d.m.Y H:i'));
             $sheet->setCellValue("D{$row}", $this->branchName($branches, $doc->getBranchId()));
-            $sheet->setCellValue("E{$row}", $doc->getCustomerName());
-            $sheet->setCellValue("F{$row}", $doc->getCustomerPhone() ?? '');
-            $sheet->setCellValue("G{$row}", $doc->getCustomerEmail() ?? '');
+            $sheet->setCellValue("E{$row}", $doc->getCustomerId());
+            $sheet->setCellValue("F{$row}", $doc->getCustomerName());
+            $sheet->setCellValue("G{$row}", $doc->getCustomerPhone() ?? '');
+            $sheet->setCellValue("H{$row}", $doc->getCustomerEmail() ?? '');
             if ($amount !== null) {
-                $sheet->setCellValue("H{$row}", $amount);
-                $sheet->getStyle("H{$row}")->getNumberFormat()->setFormatCode(self::MONEY_FORMAT);
+                $sheet->setCellValue("I{$row}", $amount);
+                $sheet->getStyle("I{$row}")->getNumberFormat()->setFormatCode(self::MONEY_FORMAT);
             }
             $row++;
         }
@@ -164,7 +165,7 @@ class ExportController
         $sheet = $spreadsheet->createSheet();
         $sheet->setTitle('Rechnungen');
 
-        $headers = ['Nummer', 'Datum', 'Fällig', 'Empfänger', 'Adresse', 'Netto', 'MWST', 'Total', 'Erstellt von'];
+        $headers = ['Nummer', 'Datum', 'Fällig', 'Kunden-Nr.', 'Empfänger', 'Adresse', 'Netto', 'MWST', 'Total', 'Erstellt von'];
         $this->writeHeader($sheet, $headers);
 
         $row = 2;
@@ -174,15 +175,16 @@ class ExportController
             $sheet->setCellValue("A{$row}", $doc->getDocNumber());
             $sheet->setCellValue("B{$row}", $invoice !== null ? $invoice->getInvoiceDate()->format('d.m.Y') : $doc->getCreatedAt()->format('d.m.Y'));
             $sheet->setCellValue("C{$row}", $invoice !== null ? $invoice->getDueDate()->format('d.m.Y') : '');
-            $sheet->setCellValue("D{$row}", $invoice !== null ? $invoice->getDisplayName() : $doc->getCustomerName());
-            $sheet->setCellValue("E{$row}", $doc->getCustomerAddress() ?? '');
+            $sheet->setCellValue("D{$row}", $doc->getCustomerId());
+            $sheet->setCellValue("E{$row}", $invoice !== null ? $invoice->getDisplayName() : $doc->getCustomerName());
+            $sheet->setCellValue("F{$row}", $doc->getCustomerAddress() ?? '');
             if ($invoice !== null) {
-                foreach (['F' => $invoice->getTotalNetChf(), 'G' => $invoice->getTotalVatChf(), 'H' => $invoice->getTotalGrossChf()] as $col => $amount) {
+                foreach (['G' => $invoice->getTotalNetChf(), 'H' => $invoice->getTotalVatChf(), 'I' => $invoice->getTotalGrossChf()] as $col => $amount) {
                     $sheet->setCellValue("{$col}{$row}", (float) $amount);
                     $sheet->getStyle("{$col}{$row}")->getNumberFormat()->setFormatCode(self::MONEY_FORMAT);
                 }
             }
-            $sheet->setCellValue("I{$row}", $users[$doc->getUserId()] ?? '');
+            $sheet->setCellValue("J{$row}", $users[$doc->getUserId()] ?? '');
             $row++;
         }
 
@@ -194,7 +196,7 @@ class ExportController
         $sheet = $spreadsheet->createSheet();
         $sheet->setTitle('Quittungen');
 
-        $headers = ['Dok.-Nr.', 'Datum', 'Filiale', 'Kunde', 'Adresse', 'Artikel', 'Anz. Positionen', 'Gesamtbetrag'];
+        $headers = ['Dok.-Nr.', 'Datum', 'Filiale', 'Kunden-Nr.', 'Kunde', 'Adresse', 'Artikel', 'Anz. Positionen', 'Gesamtbetrag'];
         $this->writeHeader($sheet, $headers);
 
         $row = 2;
@@ -217,14 +219,15 @@ class ExportController
             $sheet->setCellValue("A{$row}", $doc->getDocNumber());
             $sheet->setCellValue("B{$row}", $doc->getCreatedAt()->format('d.m.Y H:i'));
             $sheet->setCellValue("C{$row}", $this->branchName($branches, $doc->getBranchId()));
-            $sheet->setCellValue("D{$row}", $doc->getCustomerName());
-            $sheet->setCellValue("E{$row}", $doc->getCustomerAddress() ?? '');
-            $sheet->setCellValueExplicit("F{$row}", $itemsText, DataType::TYPE_STRING);
-            $sheet->getStyle("F{$row}")->getAlignment()->setWrapText(true);
-            $sheet->setCellValue("G{$row}", $itemCount);
+            $sheet->setCellValue("D{$row}", $doc->getCustomerId());
+            $sheet->setCellValue("E{$row}", $doc->getCustomerName());
+            $sheet->setCellValue("F{$row}", $doc->getCustomerAddress() ?? '');
+            $sheet->setCellValueExplicit("G{$row}", $itemsText, DataType::TYPE_STRING);
+            $sheet->getStyle("G{$row}")->getAlignment()->setWrapText(true);
+            $sheet->setCellValue("H{$row}", $itemCount);
             if ($receipt !== null) {
-                $sheet->setCellValue("H{$row}", $receipt->getTotalAmountChf());
-                $sheet->getStyle("H{$row}")->getNumberFormat()->setFormatCode(self::MONEY_FORMAT);
+                $sheet->setCellValue("I{$row}", $receipt->getTotalAmountChf());
+                $sheet->getStyle("I{$row}")->getNumberFormat()->setFormatCode(self::MONEY_FORMAT);
             }
             $row++;
         }
@@ -238,7 +241,7 @@ class ExportController
         $sheet->setTitle('Ankäufe');
 
         $headers = [
-            'Dok.-Nr.', 'Datum', 'Filiale', 'Verkäufer', 'Verkäufer-Adresse', 'Telefon', 'E-Mail',
+            'Dok.-Nr.', 'Datum', 'Filiale', 'Kunden-Nr.', 'Verkäufer', 'Verkäufer-Adresse', 'Telefon', 'E-Mail',
             'Gerätetyp', 'Marke', 'Modell', 'IMEI', 'Seriennummer', 'Zustand', 'Zubehör',
             'Ankaufspreis', 'Ausweis-Fotos',
         ];
@@ -251,21 +254,22 @@ class ExportController
             $sheet->setCellValue("A{$row}", $doc->getDocNumber());
             $sheet->setCellValue("B{$row}", $doc->getCreatedAt()->format('d.m.Y H:i'));
             $sheet->setCellValue("C{$row}", $this->branchName($branches, $doc->getBranchId()));
-            $sheet->setCellValue("D{$row}", $doc->getCustomerName());
+            $sheet->setCellValue("D{$row}", $doc->getCustomerId());
+            $sheet->setCellValue("E{$row}", $doc->getCustomerName());
             if ($purchase !== null) {
-                $sheet->setCellValue("E{$row}", $purchase->getSellerAddress());
-                $sheet->setCellValue("F{$row}", $doc->getCustomerPhone() ?? '');
-                $sheet->setCellValue("G{$row}", $doc->getCustomerEmail() ?? '');
-                $sheet->setCellValue("H{$row}", $purchase->getDeviceTypeName());
-                $sheet->setCellValue("I{$row}", $purchase->getDeviceBrand());
-                $sheet->setCellValue("J{$row}", $purchase->getDeviceModel());
-                $sheet->setCellValueExplicit("K{$row}", $purchase->getImei() ?? '', DataType::TYPE_STRING);
-                $sheet->setCellValueExplicit("L{$row}", $purchase->getSerialNumber() ?? '', DataType::TYPE_STRING);
-                $sheet->setCellValue("M{$row}", $purchase->getDeviceCondition() ?? '');
-                $sheet->setCellValue("N{$row}", $purchase->getAccessories() ?? '');
-                $sheet->setCellValue("O{$row}", $purchase->getPurchasePriceChf());
-                $sheet->getStyle("O{$row}")->getNumberFormat()->setFormatCode(self::MONEY_FORMAT);
-                $sheet->setCellValue("P{$row}", $this->idPhotoHint($purchase->getIdDocumentFront(), $purchase->getIdDocumentBack()));
+                $sheet->setCellValue("F{$row}", $purchase->getSellerAddress());
+                $sheet->setCellValue("G{$row}", $doc->getCustomerPhone() ?? '');
+                $sheet->setCellValue("H{$row}", $doc->getCustomerEmail() ?? '');
+                $sheet->setCellValue("I{$row}", $purchase->getDeviceTypeName());
+                $sheet->setCellValue("J{$row}", $purchase->getDeviceBrand());
+                $sheet->setCellValue("K{$row}", $purchase->getDeviceModel());
+                $sheet->setCellValueExplicit("L{$row}", $purchase->getImei() ?? '', DataType::TYPE_STRING);
+                $sheet->setCellValueExplicit("M{$row}", $purchase->getSerialNumber() ?? '', DataType::TYPE_STRING);
+                $sheet->setCellValue("N{$row}", $purchase->getDeviceCondition() ?? '');
+                $sheet->setCellValue("O{$row}", $purchase->getAccessories() ?? '');
+                $sheet->setCellValue("P{$row}", $purchase->getPurchasePriceChf());
+                $sheet->getStyle("P{$row}")->getNumberFormat()->setFormatCode(self::MONEY_FORMAT);
+                $sheet->setCellValue("Q{$row}", $this->idPhotoHint($purchase->getIdDocumentFront(), $purchase->getIdDocumentBack()));
             }
             $row++;
         }
@@ -279,7 +283,7 @@ class ExportController
         $sheet->setTitle('Kostenvoranschläge');
 
         $headers = [
-            'Dok.-Nr.', 'Datum', 'Filiale', 'Kunde', 'Telefon', 'E-Mail',
+            'Dok.-Nr.', 'Datum', 'Filiale', 'Kunden-Nr.', 'Kunde', 'Telefon', 'E-Mail',
             'Gerät', 'Seriennummer', 'Schadenstyp', 'Beschreibung', 'Preis',
         ];
         $this->writeHeader($sheet, $headers);
@@ -291,17 +295,18 @@ class ExportController
             $sheet->setCellValue("A{$row}", $doc->getDocNumber());
             $sheet->setCellValue("B{$row}", $doc->getCreatedAt()->format('d.m.Y H:i'));
             $sheet->setCellValue("C{$row}", $this->branchName($branches, $doc->getBranchId()));
-            $sheet->setCellValue("D{$row}", $doc->getCustomerName());
-            $sheet->setCellValue("E{$row}", $doc->getCustomerPhone() ?? '');
-            $sheet->setCellValue("F{$row}", $doc->getCustomerEmail() ?? '');
+            $sheet->setCellValue("D{$row}", $doc->getCustomerId());
+            $sheet->setCellValue("E{$row}", $doc->getCustomerName());
+            $sheet->setCellValue("F{$row}", $doc->getCustomerPhone() ?? '');
+            $sheet->setCellValue("G{$row}", $doc->getCustomerEmail() ?? '');
             if ($estimate !== null) {
-                $sheet->setCellValue("G{$row}", $estimate->getDeviceName());
-                $sheet->setCellValueExplicit("H{$row}", $estimate->getSerialNumber(), DataType::TYPE_STRING);
-                $sheet->setCellValue("I{$row}", DamageTypeService::getDamageTypeLabel($estimate->getDamageType()));
-                $sheet->setCellValueExplicit("J{$row}", $estimate->getIssueText(), DataType::TYPE_STRING);
-                $sheet->getStyle("J{$row}")->getAlignment()->setWrapText(true);
-                $sheet->setCellValue("K{$row}", $estimate->getPriceChf());
-                $sheet->getStyle("K{$row}")->getNumberFormat()->setFormatCode(self::MONEY_FORMAT);
+                $sheet->setCellValue("H{$row}", $estimate->getDeviceName());
+                $sheet->setCellValueExplicit("I{$row}", $estimate->getSerialNumber(), DataType::TYPE_STRING);
+                $sheet->setCellValue("J{$row}", DamageTypeService::getDamageTypeLabel($estimate->getDamageType()));
+                $sheet->setCellValueExplicit("K{$row}", $estimate->getIssueText(), DataType::TYPE_STRING);
+                $sheet->getStyle("K{$row}")->getAlignment()->setWrapText(true);
+                $sheet->setCellValue("L{$row}", $estimate->getPriceChf());
+                $sheet->getStyle("L{$row}")->getNumberFormat()->setFormatCode(self::MONEY_FORMAT);
             }
             $row++;
         }
@@ -315,7 +320,7 @@ class ExportController
         $sheet->setTitle('Gutachten');
 
         $headers = [
-            'Dok.-Nr.', 'Datum', 'Filiale', 'Kunde', 'Kunden-Adresse',
+            'Dok.-Nr.', 'Datum', 'Filiale', 'Kunden-Nr.', 'Kunde', 'Kunden-Adresse',
             'Gerät', 'Seriennummer', 'Schadenstyp', 'Schadensbeschreibung',
             'Ergebnis', 'Zeitwert', 'Reparaturkosten',
         ];
@@ -328,22 +333,23 @@ class ExportController
             $sheet->setCellValue("A{$row}", $doc->getDocNumber());
             $sheet->setCellValue("B{$row}", $doc->getCreatedAt()->format('d.m.Y H:i'));
             $sheet->setCellValue("C{$row}", $this->branchName($branches, $doc->getBranchId()));
-            $sheet->setCellValue("D{$row}", $doc->getCustomerName());
+            $sheet->setCellValue("D{$row}", $doc->getCustomerId());
+            $sheet->setCellValue("E{$row}", $doc->getCustomerName());
             if ($insurance !== null) {
-                $sheet->setCellValue("E{$row}", $insurance->getCustomerAddress());
-                $sheet->setCellValue("F{$row}", $insurance->getDeviceName());
-                $sheet->setCellValueExplicit("G{$row}", $insurance->getSerialNumber(), DataType::TYPE_STRING);
-                $sheet->setCellValue("H{$row}", DamageTypeService::getDamageTypeLabel($insurance->getDamageType()));
-                $sheet->setCellValueExplicit("I{$row}", $insurance->getDamageDescription(), DataType::TYPE_STRING);
-                $sheet->getStyle("I{$row}")->getAlignment()->setWrapText(true);
-                $sheet->setCellValue("J{$row}", $insurance->getAssessmentResultLabel());
+                $sheet->setCellValue("F{$row}", $insurance->getCustomerAddress());
+                $sheet->setCellValue("G{$row}", $insurance->getDeviceName());
+                $sheet->setCellValueExplicit("H{$row}", $insurance->getSerialNumber(), DataType::TYPE_STRING);
+                $sheet->setCellValue("I{$row}", DamageTypeService::getDamageTypeLabel($insurance->getDamageType()));
+                $sheet->setCellValueExplicit("J{$row}", $insurance->getDamageDescription(), DataType::TYPE_STRING);
+                $sheet->getStyle("J{$row}")->getAlignment()->setWrapText(true);
+                $sheet->setCellValue("K{$row}", $insurance->getAssessmentResultLabel());
                 if ($insurance->getDeviceValueChf() !== null) {
-                    $sheet->setCellValue("K{$row}", $insurance->getDeviceValueChf());
-                    $sheet->getStyle("K{$row}")->getNumberFormat()->setFormatCode(self::MONEY_FORMAT);
+                    $sheet->setCellValue("L{$row}", $insurance->getDeviceValueChf());
+                    $sheet->getStyle("L{$row}")->getNumberFormat()->setFormatCode(self::MONEY_FORMAT);
                 }
                 if ($insurance->getRepairCostChf() !== null) {
-                    $sheet->setCellValue("L{$row}", $insurance->getRepairCostChf());
-                    $sheet->getStyle("L{$row}")->getNumberFormat()->setFormatCode(self::MONEY_FORMAT);
+                    $sheet->setCellValue("M{$row}", $insurance->getRepairCostChf());
+                    $sheet->getStyle("M{$row}")->getNumberFormat()->setFormatCode(self::MONEY_FORMAT);
                 }
             }
             $row++;

@@ -55,7 +55,7 @@
                         {% if document.customer_name != 'Barkauf' %}
                         <div>
                             <dt class="text-sm font-medium text-gray-500">Name:</dt>
-                            <dd class="text-sm text-gray-900">{{ document.customer_name }}</dd>
+                            <dd class="text-sm text-gray-900">{% if document.customer_id %}<a href="{{ url_for('customers.show', {id: document.customer_id}) }}" class="text-emerald-700 hover:underline">{{ document.customer_name }}</a>{% else %}{{ document.customer_name }}{% endif %}</dd>
                         </div>
                         {% endif %}
                         {% if document.customer_street %}
