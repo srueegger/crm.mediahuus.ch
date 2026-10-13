@@ -33,7 +33,13 @@ $app->group('', function () use ($app) {
     $app->post('/users/{id:[0-9]+}/toggle-status', [UserController::class, 'toggleStatus'])->setName('users.toggle');
     
     // Customers (Kundenstamm)
+    $app->get('/customers', [CustomerController::class, 'index'])->setName('customers.index');
     $app->get('/customers/search', [CustomerController::class, 'search'])->setName('customers.search');
+    $app->get('/customers/create', [CustomerController::class, 'create'])->setName('customers.create');
+    $app->post('/customers', [CustomerController::class, 'store'])->setName('customers.store');
+    $app->get('/customers/{id:[0-9]+}', [CustomerController::class, 'show'])->setName('customers.show');
+    $app->get('/customers/{id:[0-9]+}/edit', [CustomerController::class, 'edit'])->setName('customers.edit');
+    $app->post('/customers/{id:[0-9]+}', [CustomerController::class, 'update'])->setName('customers.update');
 
     // Estimates
     $app->get('/estimates/create', [EstimateController::class, 'create'])->setName('estimates.create');

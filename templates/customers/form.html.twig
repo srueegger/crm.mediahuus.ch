@@ -1,0 +1,54 @@
+{% extends "base.html.twig" %}
+
+{% set isEdit = customer is not null %}
+{% block title %}{{ isEdit ? 'Kunde bearbeiten' : 'Neuer Kunde' }} - {{ parent() }}{% endblock %}
+
+{% block content %}
+<div class="max-w-2xl mx-auto py-6 sm:px-6 lg:px-8">
+    <div class="px-4 py-6 sm:px-0">
+        <div class="mb-8">
+            <h2 class="text-2xl font-bold text-gray-900 mb-2">{{ isEdit ? 'Kunde bearbeiten' : 'Neuer Kunde' }}</h2>
+        </div>
+
+        {% if errors.general is defined %}
+            <div class="mb-6 bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded">{{ errors.general }}</div>
+        {% endif %}
+
+        <div class="mediahuus-form-section">
+            <form method="POST" action="{{ isEdit ? url_for('customers.update', {id: customer.id}) : url_for('customers.store') }}" class="space-y-6">
+                {{ csrf_field() }}
+                {% set fields = [
+                    {key: 'company_name', label: 'Firma'},
+                    {key: 'name', label: 'Name *'},
+                    {key: 'phone', label: 'Telefon'},
+                    {key: 'email', label: 'E-Mail'},
+                    {key: 'street', label: 'Strasse'},
+                    {key: 'zip', label: 'PLZ'},
+                    {key: 'city', label: 'Ort'}
+                ] %}
+                {% for f in fields %}
+                    <div>
+                        <label for="{{ f.key }}" class="mediahuus-label">{{ f.label }}</label>
+                        <input type="text" name="{{ f.key }}" id="{{ f.key }}"
+                               value="{{ formData[f.key]|default('') }}"
+                               maxlength="{{ maxLengths[f.key] }}"
+                               class="mediahuus-input {{ errors[f.key] is defined ? 'error' : '' }}">
+                        {% if errors[f.key] is defined %}
+                            <p class="mt-1 text-sm text-red-600">{{ errors[f.key] }}</p>
+                        {% endif %}
+                    </div>
+                {% endfor %}
+                <div>
+                    <label for="notes" class="mediahuus-label">Notizen</label>
+                    <textarea name="notes" id="notes" rows="4" class="mediahuus-input">{{ formData.notes|default('') }}</textarea>
+                </div>
+
+                <div class="flex justify-end space-x-3 pt-6 border-t">
+                    <a href="{{ isEdit ? url_for('customers.show', {id: customer.id}) : url_for('customers.index') }}" class="mediahuus-button-secondary">Abbrechen</a>
+                    <button type="submit" class="mediahuus-button-primary">{{ isEdit ? 'Speichern' : 'Kunde erstellen' }}</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}
