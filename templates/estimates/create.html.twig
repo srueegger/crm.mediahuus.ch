@@ -49,6 +49,7 @@
                 <!-- Kundendaten -->
                 <div class="border-b border-gray-200 pb-8">
                     <h3 class="text-lg font-medium text-gray-900 mb-4">Kundendaten</h3>
+                    {% include 'customers/_picker.html.twig' with { fieldMap: customerFieldMap, linkedCustomer: linkedCustomer, customerId: formData.customer_id|default('') } %}
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                         <!-- Kundenname -->
                         <div class="md:col-span-2">
@@ -215,6 +216,7 @@
 {% endblock %}
 
 {% block scripts %}
+<script src="/assets/js/customer-picker.js" defer></script>
 <script>
 // Damage type templates for preview
 const damageTemplates = {{ damageTemplates|json_encode|raw }};

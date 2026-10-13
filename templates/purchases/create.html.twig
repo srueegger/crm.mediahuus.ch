@@ -160,6 +160,7 @@
                 </svg>
                 Verkäuferdaten
             </h3>
+            {% include 'customers/_picker.html.twig' with { fieldMap: customerFieldMap, linkedCustomer: linkedCustomer, customerId: formData.customer_id|default('') } %}
             <div class="space-y-4">
                 <div>
                     <label for="customer_name" class="mediahuus-label">Name *</label>
@@ -530,4 +531,5 @@
 <!-- QuaggaJS for Barcode Scanning -->
 <script src="https://cdn.jsdelivr.net/npm/@ericblade/quagga2@1.8.4/dist/quagga.min.js"></script>
 <script src="/assets/js/camera-handler.js?v=2.3"></script>
+<script src="/assets/js/customer-picker.js" defer></script>
 {% endblock %}

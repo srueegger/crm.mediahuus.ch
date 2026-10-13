@@ -1,0 +1,39 @@
+{#
+  Kunden-Picker. Variablen:
+    fieldMap       Zuordnung Kundenattribut (name|company|phone|email|street|zip|city) => Formularfeld
+    linkedCustomer Customer::toArray() oder null
+    customerId     vorbelegte Kunden-ID
+    inputName      Name des versteckten Felds (Standard: customer_id)
+    autosubmit     true: Auswahl setzt das Feld und sendet das umschliessende Formular ab
+#}
+{% set pickerInputName = inputName|default('customer_id') %}
+{% set pickerLinked = linkedCustomer|default(null) %}
+<div class="mb-6" data-customer-picker
+     data-field-map='{{ (fieldMap|default({}))|json_encode|e('html_attr') }}'
+     data-search-url="{{ url_for('customers.search') }}"
+     data-autosubmit="{{ autosubmit|default(false) ? '1' : '0' }}">
+    <label class="mediahuus-label" for="customer-picker-search-{{ pickerInputName }}">Bestehenden Kunden suchen</label>
+    <div class="relative">
+        <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+            <svg class="w-5 h-5 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
+            </svg>
+        </div>
+        <input type="text" id="customer-picker-search-{{ pickerInputName }}" autocomplete="off"
+               class="mediahuus-input pl-10" data-picker-search
+               placeholder="Name, Telefon oder E-Mail eingeben (ab 2 Zeichen)"
+               role="combobox" aria-autocomplete="list" aria-expanded="false">
+        <ul class="absolute z-20 mt-1 w-full bg-white border border-gray-200 rounded-lg shadow-lg max-h-72 overflow-auto hidden"
+            data-picker-results role="listbox"></ul>
+    </div>
+    <input type="hidden" name="{{ pickerInputName }}" value="{{ customerId|default('') }}" data-picker-id>
+    <div class="mt-2 inline-flex items-center gap-2 bg-emerald-50 text-emerald-700 border border-emerald-100 rounded-full px-3 py-1 text-sm {{ pickerLinked ? '' : 'hidden' }}"
+         data-picker-linked>
+        <svg class="w-4 h-4 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1"/>
+        </svg>
+        <span>Verknüpft mit: <strong data-picker-linked-name>{{ pickerLinked ? pickerLinked.display_name : '' }}</strong></span>
+        <button type="button" class="text-emerald-700 hover:text-emerald-900 font-bold leading-none" data-picker-clear
+                aria-label="Verknüpfung entfernen" title="Verknüpfung entfernen">&#10005;</button>
+    </div>
+</div>

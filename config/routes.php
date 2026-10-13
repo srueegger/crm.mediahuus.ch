@@ -10,6 +10,7 @@ use App\Controllers\PurchaseController;
 use App\Controllers\InvoiceController;
 use App\Controllers\InsuranceController;
 use App\Controllers\ExportController;
+use App\Controllers\CustomerController;
 use App\Middleware\AuthMiddleware;
 use Slim\App;
 
@@ -31,6 +32,9 @@ $app->group('', function () use ($app) {
     $app->post('/users/{id:[0-9]+}', [UserController::class, 'update'])->setName('users.update');
     $app->post('/users/{id:[0-9]+}/toggle-status', [UserController::class, 'toggleStatus'])->setName('users.toggle');
     
+    // Customers (Kundenstamm)
+    $app->get('/customers/search', [CustomerController::class, 'search'])->setName('customers.search');
+
     // Estimates
     $app->get('/estimates/create', [EstimateController::class, 'create'])->setName('estimates.create');
     $app->post('/estimates', [EstimateController::class, 'store'])->setName('estimates.store');

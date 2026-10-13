@@ -93,6 +93,7 @@
                 <!-- Empfänger -->
                 <div class="border-b border-gray-200 pb-8">
                     <h3 class="text-lg font-medium text-gray-900 mb-4">Empfänger</h3>
+                    {% include 'customers/_picker.html.twig' with { fieldMap: customerFieldMap, linkedCustomer: linkedCustomer, customerId: formData.customer_id|default('') } %}
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <div>
                             <label for="company_name" class="mediahuus-label">Firma</label>
@@ -229,5 +230,6 @@
 {% endblock %}
 
 {% block scripts %}
+<script src="/assets/js/customer-picker.js" defer></script>
 <script src="/assets/js/invoice-form.js"></script>
 {% endblock %}

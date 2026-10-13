@@ -65,6 +65,7 @@ return [
                 'purchases.create' => '/purchases/create',
                 'purchases.show' => '/purchases/' . ($params['id'] ?? '{id}'),
                 'purchases.pdf' => '/purchases/' . ($params['id'] ?? '{id}') . '/pdf',
+                'customers.search' => '/customers/search',
                 'invoices.create' => '/invoices/create',
                 'invoices.store' => '/invoices',
                 'invoices.show' => '/invoices/' . ($params['id'] ?? '{id}'),
