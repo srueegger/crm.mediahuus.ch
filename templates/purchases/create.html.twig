@@ -124,6 +124,7 @@
 
     <!-- Form -->
     <form method="POST" action="/purchases" id="purchaseForm" class="space-y-6">
+        {{ csrf_field() }}
 
         <!-- Filiale -->
         <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-4 sm:p-6">

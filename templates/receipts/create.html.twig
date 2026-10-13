@@ -21,6 +21,7 @@
         <!-- Form -->
         <div class="mediahuus-form-section">
             <form method="POST" action="/receipts" class="space-y-8" id="receipt-form">
+                {{ csrf_field() }}
 
                 <!-- Filiale auswählen -->
                 <div class="border-b border-gray-200 pb-8">

@@ -653,7 +653,7 @@ function clearCache() {
     var btn = document.getElementById('clear-cache-btn');
     btn.textContent = 'Wird geleert...';
     btn.disabled = true;
-    fetch('/clear-cache', { method: 'POST' })
+    fetch('/clear-cache', { method: 'POST', headers: { 'X-CSRF-Token': document.querySelector('meta[name="csrf-token"]').content } })
         .then(function(r) { return r.json(); })
         .then(function(data) {
             btn.textContent = data.success ? 'Geleert!' : 'Fehler';
