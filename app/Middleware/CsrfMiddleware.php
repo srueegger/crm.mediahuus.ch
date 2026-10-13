@@ -17,6 +17,7 @@ class CsrfMiddleware implements MiddlewareInterface
 {
     private const SAFE_METHODS = ['GET', 'HEAD', 'OPTIONS'];
     private const MESSAGE_FORBIDDEN = 'Die Sitzung ist abgelaufen oder das Formular ist veraltet. Bitte Seite neu laden und erneut versuchen.';
+    private const MESSAGE_LOGIN_EXPIRED = 'Ihre Sitzung ist abgelaufen. Bitte erneut anmelden.';
     private const MESSAGE_TOO_LARGE = 'Die hochgeladenen Dateien sind zu gross.';
 
     private int $postMaxBytes;
@@ -27,13 +28,17 @@ class CsrfMiddleware implements MiddlewareInterface
         private LoggerInterface $logger,
         ?int $postMaxBytes = null
     ) {
-        $this->postMaxBytes = $postMaxBytes ?? $this->parseSize((string) ini_get('post_max_size'));
+        $this->postMaxBytes = $postMaxBytes ?? self::parseSize((string) ini_get('post_max_size'));
     }
 
     public function process(Request $request, RequestHandlerInterface $handler): Response
     {
         if (in_array(strtoupper($request->getMethod()), self::SAFE_METHODS, true)) {
             return $handler->handle($request);
+        }
+
+        if ($this->postMaxBytes > 0 && (int) $request->getHeaderLine('Content-Length') > $this->postMaxBytes) {
+            return $this->reject($request, 413, self::MESSAGE_TOO_LARGE);
         }
 
         $body = $request->getParsedBody();
@@ -46,12 +51,11 @@ class CsrfMiddleware implements MiddlewareInterface
             return $handler->handle($request);
         }
 
-        $tooLarge = empty($body)
-            && $this->postMaxBytes > 0
-            && (int) $request->getHeaderLine('Content-Length') > $this->postMaxBytes;
-        $status = $tooLarge ? 413 : 403;
-        $message = $tooLarge ? self::MESSAGE_TOO_LARGE : self::MESSAGE_FORBIDDEN;
+        return $this->reject($request, 403, self::MESSAGE_FORBIDDEN);
+    }
 
+    private function reject(Request $request, int $status, string $message): Response
+    {
         $this->logger->warning('CSRF-Pruefung fehlgeschlagen', [
             'path' => $request->getUri()->getPath(),
             'method' => $request->getMethod(),
@@ -59,16 +63,34 @@ class CsrfMiddleware implements MiddlewareInterface
             'status' => $status,
         ]);
 
+        if ($status === 403 && !$this->wantsJson($request)
+            && strtoupper($request->getMethod()) === 'POST'
+            && $request->getUri()->getPath() === '/login') {
+            $body = $request->getParsedBody();
+            $email = is_array($body) && is_string($body['email'] ?? null) ? trim($body['email']) : '';
+            $response = new SlimResponse(403);
+            $response->getBody()->write($this->twig->render('auth/login.html.twig', [
+                'error' => self::MESSAGE_LOGIN_EXPIRED,
+                'email' => $email,
+            ]));
+
+            return $response->withHeader('Content-Type', 'text/html; charset=utf-8');
+        }
+
         return $this->errorResponse($request, $status, $message);
+    }
+
+    private function wantsJson(Request $request): bool
+    {
+        return str_contains($request->getHeaderLine('Accept'), 'application/json')
+            || $request->hasHeader('X-CSRF-Token');
     }
 
     private function errorResponse(Request $request, int $status, string $message): Response
     {
         $response = new SlimResponse($status);
-        $wantsJson = str_contains($request->getHeaderLine('Accept'), 'application/json')
-            || $request->hasHeader('X-CSRF-Token');
 
-        if ($wantsJson) {
+        if ($this->wantsJson($request)) {
             $response->getBody()->write('{"success":false,"error":"csrf"}');
             return $response->withHeader('Content-Type', 'application/json');
         }
@@ -99,7 +121,7 @@ class CsrfMiddleware implements MiddlewareInterface
         return str_starts_with($path, '/') && !str_starts_with($path, '//') ? $path : '/';
     }
 
-    private function parseSize(string $value): int
+    public static function parseSize(string $value): int
     {
         $value = trim($value);
         if ($value === '' || (int) $value <= 0) {

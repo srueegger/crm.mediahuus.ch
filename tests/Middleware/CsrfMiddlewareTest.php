@@ -29,6 +29,7 @@ class CsrfMiddlewareTest extends TestCase
         $_SESSION = [];
         $this->tokens = new CsrfTokenManager();
         $this->twig = new Environment(new ArrayLoader([
+            'auth/login.html.twig' => '{{ error }}|{{ email }}',
             'errors/csrf.html.twig' => '{{ title }}|{{ message }}|{{ back_url }}',
         ]));
         $this->logger = $this->createMock(LoggerInterface::class);
@@ -83,7 +84,7 @@ class CsrfMiddlewareTest extends TestCase
     public function testMissingTokenRendersHtml403WithBackLink(): void
     {
         $this->tokens->getToken();
-        $request = $this->post()->withHeader('Referer', 'http://crm.test/login');
+        $request = $this->post('/estimates')->withHeader('Referer', 'http://crm.test/login');
         $response = $this->middleware()->process($request, $this->handler);
 
         $this->assertSame(403, $response->getStatusCode());
@@ -96,7 +97,7 @@ class CsrfMiddlewareTest extends TestCase
 
     public function testForeignRefererFallsBackToRoot(): void
     {
-        $request = $this->post()->withHeader('Referer', 'https://evil.example/x');
+        $request = $this->post('/estimates')->withHeader('Referer', 'https://evil.example/x');
         $response = $this->middleware()->process($request, $this->handler);
 
         $this->assertSame(403, $response->getStatusCode());
@@ -130,6 +131,90 @@ class CsrfMiddlewareTest extends TestCase
         $this->assertSame(413, $response->getStatusCode());
         $this->assertStringContainsString('zu gross', (string) $response->getBody());
         $this->assertFalse($this->handler->called);
+    }
+
+    public function testOversizedWithValidTokenAndParsedBodyReturns413(): void
+    {
+        $token = $this->tokens->getToken();
+        $request = $this->post()->withHeader('Content-Length', '500')->withParsedBody(['_csrf' => $token, 'a' => 'b']);
+        $response = $this->middleware(100)->process($request, $this->handler);
+
+        $this->assertSame(413, $response->getStatusCode());
+        $this->assertFalse($this->handler->called);
+    }
+
+    public function testContentLengthBelowLimitWithValidTokenPasses(): void
+    {
+        $token = $this->tokens->getToken();
+        $request = $this->post()->withHeader('Content-Length', '50')->withParsedBody(['_csrf' => $token]);
+        $response = $this->middleware(100)->process($request, $this->handler);
+
+        $this->assertSame(200, $response->getStatusCode());
+        $this->assertTrue($this->handler->called);
+    }
+
+    public function testZeroLimitNeverReturns413(): void
+    {
+        $request = $this->post()->withHeader('Content-Length', '999999');
+        $response = $this->middleware(0)->process($request, $this->handler);
+
+        $this->assertSame(403, $response->getStatusCode());
+    }
+
+    public function testParseSize(): void
+    {
+        $this->assertSame(8 * 1024, CsrfMiddleware::parseSize('8K'));
+        $this->assertSame(8 * 1024 ** 2, CsrfMiddleware::parseSize('8M'));
+        $this->assertSame(2 * 1024 ** 3, CsrfMiddleware::parseSize('2g'));
+        $this->assertSame(1234, CsrfMiddleware::parseSize('1234'));
+        $this->assertSame(0, CsrfMiddleware::parseSize('0'));
+        $this->assertSame(0, CsrfMiddleware::parseSize('-1'));
+        $this->assertSame(0, CsrfMiddleware::parseSize(''));
+    }
+
+    public function testAcceptJsonGetsJson403(): void
+    {
+        $this->tokens->getToken();
+        $response = $this->middleware()->process($this->post('/estimates')->withHeader('Accept', 'application/json'), $this->handler);
+
+        $this->assertSame(403, $response->getStatusCode());
+        $this->assertStringContainsString('application/json', $response->getHeaderLine('Content-Type'));
+        $this->assertSame('{"success":false,"error":"csrf"}', (string) $response->getBody());
+    }
+
+    public function testMissingRefererBackUrlIsRoot(): void
+    {
+        $response = $this->middleware()->process($this->post('/estimates'), $this->handler);
+
+        $this->assertStringEndsWith('|/', (string) $response->getBody());
+    }
+
+    public function testExpiredLoginRendersLoginFormWithEmail(): void
+    {
+        $this->tokens->getToken();
+        $request = $this->post('/login')->withParsedBody(['email' => ' a@b.ch ', '_csrf' => 'falsch']);
+        $response = $this->middleware()->process($request, $this->handler);
+
+        $this->assertSame(403, $response->getStatusCode());
+        $this->assertSame('Ihre Sitzung ist abgelaufen. Bitte erneut anmelden.|a@b.ch', (string) $response->getBody());
+        $this->assertFalse($this->handler->called);
+    }
+
+    public function testExpiredLoginWithoutBodyHasEmptyEmail(): void
+    {
+        $response = $this->middleware()->process($this->post('/login'), $this->handler);
+
+        $this->assertSame('Ihre Sitzung ist abgelaufen. Bitte erneut anmelden.|', (string) $response->getBody());
+    }
+
+    public function testExpiredLoginJsonRequestKeepsJson(): void
+    {
+        $response = $this->middleware()->process(
+            $this->post('/login')->withHeader('Accept', 'application/json'),
+            $this->handler
+        );
+
+        $this->assertStringContainsString('application/json', $response->getHeaderLine('Content-Type'));
     }
 
     public function testLogsWarningOnRejection(): void
