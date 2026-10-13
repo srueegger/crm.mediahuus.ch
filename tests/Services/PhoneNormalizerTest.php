@@ -28,6 +28,8 @@ class PhoneNormalizerTest extends TestCase
             'international with 00' => ['0041791234567', '0791234567'],
             'foreign number with plus' => ['+49 170 1234567', '00491701234567'],
             'punctuation removed' => ['(061) 711-22-33', '0617112233'],
+            'international with (0)' => ['+41 (0)79 123 45 67', '0791234567'],
+            'double zero with (0)' => ['0041 (0)61 711 22 33', '0617112233'],
             'empty string' => ['', null],
             'null' => [null, null],
             'whitespace only' => ['  ', null],

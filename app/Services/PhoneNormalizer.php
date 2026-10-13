@@ -27,7 +27,9 @@ final class PhoneNormalizer
             return null;
         }
 
-        if (str_starts_with($digits, '0041')) {
+        if (str_starts_with($digits, '00410')) {
+            $digits = '0' . substr($digits, 5);
+        } elseif (str_starts_with($digits, '0041')) {
             $digits = '0' . substr($digits, 4);
         }
 
