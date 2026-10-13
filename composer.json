@@ -16,6 +16,8 @@
         "slim/psr7": "^1.6",
         "slim/slim": "^4.12",
         "sprain/swiss-qr-bill": "^5.3",
+        "symfony/mailer": "^7.4",
+        "symfony/mailgun-mailer": "^7.4",
         "tecnickcom/tcpdf": "^6.7",
         "twig/twig": "^3.7",
         "vlucas/phpdotenv": "^5.5"
