@@ -144,32 +144,64 @@
 <body class="bg-gray-50 min-h-screen">
     {% block header %}
     {% if user %}
-    <nav class="bg-white shadow-sm border-b">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div class="flex justify-between h-16">
-                <div class="flex items-center">
-                    <a href="/" class="flex items-center hover:opacity-75 transition-opacity">
-                        <img src="/assets/logo.png" alt="{{ app_name }}" class="h-12 w-auto">
-                    </a>
-                </div>
-                <div class="flex items-center space-x-4">
-                    <span class="text-sm text-gray-700">{{ user.name }}</span>
-                    <form method="POST" action="/logout" class="inline">
-                        {{ csrf_field() }}
-                        <button type="submit" class="bg-red-600 text-white px-4 py-2 rounded-md text-sm hover:bg-red-700">
-                            Abmelden
-                        </button>
-                    </form>
-                </div>
-            </div>
+    {% import 'partials/icons.html.twig' as icons %}
+    {% include 'partials/sidebar.html.twig' %}
+    <div class="fixed inset-0 z-30 bg-gray-900/40 hidden lg:hidden" data-sidebar-backdrop></div>
+
+    <header class="lg:hidden sticky top-0 z-20 bg-white border-b border-gray-200">
+        <div class="h-16 flex items-center justify-between px-4">
+            <button type="button" class="p-2 -ml-2 rounded-md text-gray-600 hover:bg-gray-100" data-sidebar-open
+                    aria-label="Menü öffnen" aria-controls="sidebar" aria-expanded="false">
+                {{ icons.icon('menu', 'h-6 w-6 text-emerald-600') }}
+            </button>
+            <a href="/" class="flex items-center">
+                <img src="/assets/logo.png" alt="{{ app_name }}" class="h-10 w-auto">
+            </a>
+            <span class="w-10"></span>
         </div>
-    </nav>
+    </header>
     {% endif %}
     {% endblock %}
 
-    <main>
+    <main class="{{ user is defined and user ? 'lg:pl-64' : '' }}">
         {% block content %}{% endblock %}
     </main>
+
+    {% if user is defined and user %}
+    <script>
+    (function () {
+        var sidebar = document.getElementById('sidebar');
+        var backdrop = document.querySelector('[data-sidebar-backdrop]');
+        var openBtn = document.querySelector('[data-sidebar-open]');
+        if (!sidebar || !backdrop || !openBtn) {
+            return;
+        }
+
+        function setOpen(open) {
+            sidebar.classList.toggle('-translate-x-full', !open);
+            backdrop.classList.toggle('hidden', !open);
+            openBtn.setAttribute('aria-expanded', open ? 'true' : 'false');
+            document.body.classList.toggle('overflow-hidden', open);
+        }
+
+        openBtn.addEventListener('click', function () { setOpen(true); });
+        backdrop.addEventListener('click', function () { setOpen(false); });
+        sidebar.querySelectorAll('[data-sidebar-close]').forEach(function (btn) {
+            btn.addEventListener('click', function () { setOpen(false); });
+        });
+        document.addEventListener('keydown', function (e) {
+            if (e.key === 'Escape' && !backdrop.classList.contains('hidden')) {
+                setOpen(false);
+            }
+        });
+        window.matchMedia('(min-width: 1024px)').addEventListener('change', function (e) {
+            if (e.matches) {
+                setOpen(false);
+            }
+        });
+    })();
+    </script>
+    {% endif %}
 
     {% block scripts %}{% endblock %}
 </body>

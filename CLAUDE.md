@@ -168,7 +168,8 @@ phpunit.xml.dist       # PHPUnit-Konfiguration
 
 ### ✅ Vollständig implementiert
 - **Login/Logout**: Authentifizierung für Mitarbeitende (gehashte Passwörter)
-- **Dashboard**: Kacheln für "Kostenvoranschlag", "Ankauf", "Quittung", "Versicherungsgutachten"
+- **Navigation**: Sidebar auf allen angemeldeten Seiten (`templates/partials/sidebar.html.twig`), auf Handy/Tablet per ☰ ausklappbar; aktive Seite grün markiert. Menüpunkte zentral in `app/Twig/NavigationExtension.php` (`nav_groups()`, `nav_active()`), Icons in `templates/partials/icons.html.twig`
+- **Dashboard**: Kacheln aus denselben Menüpunkten, gruppiert in «Erfassen» (Kostenvoranschlag, Quittung, Rechnung, Ankauf, Gutachten) und «Verwalten» (Kunden, Benutzer)
 - **Benutzerverwaltung**: CRUD für Mitarbeitende (Admin-Bereich)
 - **Kostenvoranschläge**:
   - Formular mit allen Pflichtfeldern (Kunde, Telefon, E-Mail, Schaden, Kosten, Filiale)

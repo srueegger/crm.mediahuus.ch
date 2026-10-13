@@ -1,0 +1,49 @@
+{% import 'partials/icons.html.twig' as icons %}
+{% set navLink = 'group flex items-center gap-3 rounded-md px-3 py-2 text-sm font-medium transition-colors' %}
+{% set navIdle = 'text-gray-700 hover:bg-gray-50 hover:text-emerald-700' %}
+{% set navActive = 'bg-emerald-50 text-emerald-700' %}
+<aside id="sidebar"
+       class="fixed inset-y-0 left-0 z-40 w-64 bg-white border-r border-gray-200 flex flex-col -translate-x-full transition-transform duration-200 ease-out lg:translate-x-0"
+       aria-label="Hauptnavigation">
+    <div class="h-16 flex items-center justify-between px-4 border-b border-gray-200">
+        <a href="/" class="flex items-center hover:opacity-75 transition-opacity">
+            <img src="/assets/logo.png" alt="{{ app_name }}" class="h-10 w-auto">
+        </a>
+        <button type="button" class="lg:hidden p-2 rounded-md text-gray-500 hover:bg-gray-100" data-sidebar-close aria-label="Menü schliessen">
+            {{ icons.icon('close', 'h-5 w-5') }}
+        </button>
+    </div>
+
+    <nav class="flex-1 overflow-y-auto px-3 py-4 space-y-6">
+        <a href="/" class="{{ navLink }} {{ nav_active('/') ? navActive : navIdle }}"{% if nav_active('/') %} aria-current="page"{% endif %}>
+            {{ icons.icon('home', 'h-5 w-5 flex-shrink-0 text-emerald-600') }}
+            Dashboard
+        </a>
+
+        {% for group in nav_groups() %}
+            <div>
+                <p class="px-3 mb-2 text-xs font-semibold uppercase tracking-wider text-gray-400">{{ group.label }}</p>
+                <div class="space-y-1">
+                    {% for item in group.items %}
+                        {% set active = nav_active(item.prefix) %}
+                        <a href="{{ item.url }}" class="{{ navLink }} {{ active ? navActive : navIdle }}"{% if active %} aria-current="page"{% endif %}>
+                            {{ icons.icon(item.icon, 'h-5 w-5 flex-shrink-0 text-emerald-600') }}
+                            {{ item.label }}
+                        </a>
+                    {% endfor %}
+                </div>
+            </div>
+        {% endfor %}
+    </nav>
+
+    <div class="border-t border-gray-200 px-3 py-4">
+        <p class="px-3 mb-2 text-sm text-gray-700 truncate" title="{{ user.name }}">{{ user.name }}</p>
+        <form method="POST" action="/logout">
+            {{ csrf_field() }}
+            <button type="submit" class="{{ navLink }} {{ navIdle }} w-full">
+                {{ icons.icon('logout', 'h-5 w-5 flex-shrink-0 text-emerald-600') }}
+                Abmelden
+            </button>
+        </form>
+    </div>
+</aside>
