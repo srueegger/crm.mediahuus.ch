@@ -42,7 +42,7 @@ return [
         $loader = new FilesystemLoader(__DIR__ . '/../templates');
         $twig = new Environment($loader, [
             'cache' => $_ENV['TWIG_CACHE'] ?? false,
-            'debug' => $_ENV['DEBUG'] ?? false,
+            'debug' => filter_var($_ENV['DEBUG'] ?? false, FILTER_VALIDATE_BOOLEAN),
         ]);
         
         // Add global variables

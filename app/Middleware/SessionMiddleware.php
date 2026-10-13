@@ -7,14 +7,24 @@ use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
 use Psr\Http\Server\MiddlewareInterface;
 use Psr\Http\Server\RequestHandlerInterface;
+use Psr\Log\LoggerInterface;
 
 class SessionMiddleware implements MiddlewareInterface
 {
     private const DEFAULT_SESSION_NAME = 'mediahuus_crm_session';
 
+    public function __construct(private LoggerInterface $logger)
+    {
+    }
+
     public function process(ServerRequestInterface $request, RequestHandlerInterface $handler): ResponseInterface
     {
-        if (session_status() === PHP_SESSION_NONE && !headers_sent()) {
+        if (session_status() === PHP_SESSION_NONE && headers_sent($file, $line)) {
+            $this->logger->warning('Session konnte nicht gestartet werden: Header bereits gesendet', [
+                'file' => $file,
+                'line' => $line,
+            ]);
+        } elseif (session_status() === PHP_SESSION_NONE) {
             ini_set('session.use_strict_mode', '1');
 
             $name = $_ENV['SESSION_NAME'] ?? '';
