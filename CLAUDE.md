@@ -290,6 +290,9 @@ Passwort: admin123
 - **Password Hashing**: PHP `password_hash()` für User-Passwörter
 - **SQL Injection**: Parameterisierte Queries über DBAL
 - **Input Validation**: Formulardaten-Validierung vor DB-Operationen
+- **CSRF-Schutz**: `CsrfMiddleware` prüft alle POST-Requests auf ein gültiges Token (Formularfeld `_csrf` oder Header `X-CSRF-Token`, Vergleich mit `hash_equals`); das Token liegt pro Session in `_csrf_token`. Ungültig/fehlend → 403-Seite (bzw. JSON `{"success":false,"error":"csrf"}` bei Header-Requests), zu grosse Uploads über `post_max_size` → 413.
+- **Session-Cookie**: Name aus `SESSION_NAME`, `HttpOnly`, `SameSite=Lax`, `Secure` bei HTTPS, `session.use_strict_mode=1`.
+- **Neue POST-Formulare** brauchen direkt nach `<form method="POST" …>` die Zeile `{{ csrf_field() }}`; **fetch-POSTs** den Header `X-CSRF-Token` (Wert aus `<meta name="csrf-token">` in `base.html.twig`).
 
 ## Routen-Architektur (Implementiert)
 
@@ -413,6 +416,7 @@ GET  /export/excel           → Excel-Export
 
 - **Lokal**: DDEV Container-Environment
 - **Staging/Produktion**: TBD (noch zu definieren); auf Produktion ist kein Composer verfügbar: `vendor/` wird lokal gebaut (`composer install --no-dev --optimize-autoloader`) und hochgeladen
+- **Rollout CSRF/Session-Härtung**: Beim ersten Deployment werden alle Benutzer einmalig abgemeldet (neue Session-Konfiguration) und müssen sich neu anmelden.
 - **Composer**: `composer.lock` ist versioniert; `config.platform.php = 8.2` stellt sicher, dass nur mit PHP 8.2 kompatible Versionen aufgelöst werden
 - **Database**: MariaDB mit SQL-Dumps für Backup
 
