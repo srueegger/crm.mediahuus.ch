@@ -25,6 +25,8 @@ use App\Services\CsrfTokenManager;
 use App\Services\PdfService;
 use App\Services\FileUploadService;
 use App\Repositories\InvoiceRepository;
+use App\Repositories\RepairRepository;
+use App\Repositories\RepairEventRepository;
 use App\Services\InvoiceCalculator;
 use App\Services\InvoiceInputValidator;
 use App\Services\InvoiceNumberGenerator;
@@ -168,6 +170,15 @@ return [
     // Estimate Repository
     EstimateRepository::class => function (Connection $connection) {
         return new EstimateRepository($connection);
+    },
+
+    // Repair Repositories
+    RepairRepository::class => function (Connection $connection) {
+        return new RepairRepository($connection);
+    },
+
+    RepairEventRepository::class => function (Connection $connection) {
+        return new RepairEventRepository($connection);
     },
 
     // Branch Repository

@@ -142,6 +142,7 @@ class DocumentRepository
             Document::TYPE_PURCHASE => 'AK',
             Document::TYPE_INSURANCE => 'VG',
             Document::TYPE_RECEIPT => 'QU',
+            Document::TYPE_REPAIR => 'RP',
             default => 'DOC'
         };
 
@@ -198,6 +199,14 @@ class DocumentRepository
     {
         $affectedRows = $this->connection->delete('documents', ['id' => $id]);
         return $affectedRows > 0;
+    }
+
+    /**
+     * Baut ein Document aus einer Datenbankzeile (für Repositories mit JOIN auf documents).
+     */
+    public function hydrateRow(array $row): Document
+    {
+        return $this->hydrateDocument($row);
     }
 
     private function hydrateDocument(array $row): Document
