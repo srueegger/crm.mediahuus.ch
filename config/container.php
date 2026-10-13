@@ -53,6 +53,7 @@ return [
         
         // Add global variables
         $twig->addGlobal('app_name', $_ENV['APP_NAME'] ?? 'Mediahuus CRM');
+        $twig->addExtension(new \App\Twig\NavigationExtension());
         
         // Add simple url_for function
         $twig->addFunction(new \Twig\TwigFunction('url_for', function ($routeName, $params = []) {

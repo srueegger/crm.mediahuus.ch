@@ -17,99 +17,27 @@
         </div>
 
         <!-- Action Cards -->
-        <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-7 gap-4 mb-8">
-            <a href="{{ url_for('estimates.create') }}" class="bg-white shadow rounded-lg p-4 hover:shadow-lg transition-shadow group">
-                <div class="flex items-center space-x-3">
-                    <div class="flex-shrink-0 h-10 w-10 rounded-full bg-emerald-100 flex items-center justify-center">
-                        <svg class="h-5 w-5 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-                        </svg>
-                    </div>
-                    <div>
-                        <p class="text-sm font-medium text-gray-900 group-hover:text-emerald-600 transition-colors">Kostenvoranschlag</p>
-                        <p class="text-xs text-gray-500">Erstellen</p>
-                    </div>
+        {% import 'partials/icons.html.twig' as icons %}
+        {% for group in nav_groups() %}
+            <section class="mb-8">
+                <h3 class="text-xs font-semibold uppercase tracking-wider text-gray-500 mb-3">{{ group.label }}</h3>
+                <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-5 gap-4">
+                    {% for item in group.items %}
+                        <a href="{{ item.url }}" class="bg-white shadow rounded-lg p-4 hover:shadow-lg transition-shadow group">
+                            <div class="flex items-center space-x-3">
+                                <div class="flex-shrink-0 h-10 w-10 rounded-full bg-emerald-100 flex items-center justify-center">
+                                    {{ icons.icon(item.icon, 'h-5 w-5 text-emerald-600') }}
+                                </div>
+                                <div class="min-w-0">
+                                    <p class="text-sm font-medium text-gray-900 group-hover:text-emerald-600 transition-colors">{{ item.label }}</p>
+                                    <p class="text-xs text-gray-500">{{ group.action }}</p>
+                                </div>
+                            </div>
+                        </a>
+                    {% endfor %}
                 </div>
-            </a>
-            <a href="{{ url_for('receipts.create') }}" class="bg-white shadow rounded-lg p-4 hover:shadow-lg transition-shadow group">
-                <div class="flex items-center space-x-3">
-                    <div class="flex-shrink-0 h-10 w-10 rounded-full bg-emerald-100 flex items-center justify-center">
-                        <svg class="h-5 w-5 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 14l6-6m-5.5.5h.01m4.99 5h.01M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16l3.5-2 3.5 2 3.5-2 3.5 2zM13 8.5a1.5 1.5 0 11-3 0 1.5 1.5 0 013 0zm-3 4a1.5 1.5 0 11-3 0 1.5 1.5 0 013 0z" />
-                        </svg>
-                    </div>
-                    <div>
-                        <p class="text-sm font-medium text-gray-900 group-hover:text-emerald-600 transition-colors">Quittung</p>
-                        <p class="text-xs text-gray-500">Erstellen</p>
-                    </div>
-                </div>
-            </a>
-            <a href="{{ url_for('invoices.create') }}" class="bg-white shadow rounded-lg p-4 hover:shadow-lg transition-shadow group">
-                <div class="flex items-center space-x-3">
-                    <div class="flex-shrink-0 h-10 w-10 rounded-full bg-emerald-100 flex items-center justify-center">
-                        <svg class="h-5 w-5 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 7h6m-6 4h6m-6 4h3M5 3h14a1 1 0 011 1v16l-3-2-2 2-2-2-2 2-2-2-3 2V4a1 1 0 011-1z" />
-                        </svg>
-                    </div>
-                    <div>
-                        <p class="text-sm font-medium text-gray-900 group-hover:text-emerald-600 transition-colors">Rechnung</p>
-                        <p class="text-xs text-gray-500">Erstellen</p>
-                    </div>
-                </div>
-            </a>
-            <a href="{{ url_for('purchases.create') }}" class="bg-white shadow rounded-lg p-4 hover:shadow-lg transition-shadow group">
-                <div class="flex items-center space-x-3">
-                    <div class="flex-shrink-0 h-10 w-10 rounded-full bg-emerald-100 flex items-center justify-center">
-                        <svg class="h-5 w-5 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                        </svg>
-                    </div>
-                    <div>
-                        <p class="text-sm font-medium text-gray-900 group-hover:text-emerald-600 transition-colors">Ankauf</p>
-                        <p class="text-xs text-gray-500">Erstellen</p>
-                    </div>
-                </div>
-            </a>
-            <a href="{{ url_for('insurance.create') }}" class="bg-white shadow rounded-lg p-4 hover:shadow-lg transition-shadow group">
-                <div class="flex items-center space-x-3">
-                    <div class="flex-shrink-0 h-10 w-10 rounded-full bg-emerald-100 flex items-center justify-center">
-                        <svg class="h-5 w-5 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
-                        </svg>
-                    </div>
-                    <div>
-                        <p class="text-sm font-medium text-gray-900 group-hover:text-emerald-600 transition-colors">Gutachten</p>
-                        <p class="text-xs text-gray-500">Erstellen</p>
-                    </div>
-                </div>
-            </a>
-            <a href="{{ url_for('users.index') }}" class="bg-white shadow rounded-lg p-4 hover:shadow-lg transition-shadow group">
-                <div class="flex items-center space-x-3">
-                    <div class="flex-shrink-0 h-10 w-10 rounded-full bg-emerald-100 flex items-center justify-center">
-                        <svg class="h-5 w-5 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197m13.5-9a2.5 2.5 0 11-5 0 2.5 2.5 0 015 0z" />
-                        </svg>
-                    </div>
-                    <div>
-                        <p class="text-sm font-medium text-gray-900 group-hover:text-emerald-600 transition-colors">Benutzer</p>
-                        <p class="text-xs text-gray-500">Verwalten</p>
-                    </div>
-                </div>
-            </a>
-            <a href="{{ url_for('customers.index') }}" class="bg-white shadow rounded-lg p-4 hover:shadow-lg transition-shadow group">
-                <div class="flex items-center space-x-3">
-                    <div class="flex-shrink-0 h-10 w-10 rounded-full bg-emerald-100 flex items-center justify-center">
-                        <svg class="h-5 w-5 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z" />
-                        </svg>
-                    </div>
-                    <div>
-                        <p class="text-sm font-medium text-gray-900 group-hover:text-emerald-600 transition-colors">Kunden</p>
-                        <p class="text-xs text-gray-500">Verwalten</p>
-                    </div>
-                </div>
-            </a>
-        </div>
+            </section>
+        {% endfor %}
 
         <!-- Documents Section -->
         <div class="bg-white shadow overflow-hidden sm:rounded-md">
