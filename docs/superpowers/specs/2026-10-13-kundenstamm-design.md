@@ -30,7 +30,7 @@ Erfolgskriterien:
 | Formular | bleibt wie bisher; Kunde wählen ist optional und füllt nur die Felder vor |
 | Zuordnung beim Speichern | automatisch über `CustomerResolver` (Regeln siehe unten) |
 | Barkauf-Quittung | Quittung ohne Kundennamen erhält keinen Kunden |
-| Abgleich | gleiche normalisierte Telefonnummer **oder** gleiche E-Mail **und** gleicher Name |
+| Abgleich | (gleiche normalisierte Telefonnummer **oder** gleiche E-Mail **oder** gleiche Adresse Strasse+PLZ) **und** gleicher Name |
 | Altdaten | einmaliger Import per CLI-Skript mit denselben Regeln |
 | Kundendaten ändern | ändert nur den Kunden, nie bestehende Dokumente |
 | Berechtigung | alle angemeldeten Mitarbeitenden (es gibt keine Rollen) |
@@ -82,7 +82,7 @@ ALTER TABLE documents
 - `App\Models\Customer` (inkl. `getDisplayName()`: «Firma, Name» bzw. nur Name)
 - `App\Repositories\CustomerRepository`: `create`, `update`, `findById`, `search(string $q, int $limit)`,
   `paginate(?string $q, int $page, int $perPage)` inkl. Anzahl Dokumente und letztes Dokumentdatum,
-  `findMatches(?string $phoneNormalized, ?string $email)`, `delete`
+  `findCandidates(?string $phoneNormalized, ?string $email, ?string $zip)`, `delete`
 - `Document` und `DocumentRepository` erhalten `customerId` (Konstruktor, `create`, `update`,
   Hydration) sowie `findByCustomerId(int $customerId)` und `reassignCustomer(int $from, int $to)`
 
@@ -136,8 +136,9 @@ baut.
    überschreiben nichts. `phone_normalized` wird mitgeführt.
 3. **`customer_id` gesetzt, aber Name abweichend** oder Kunde existiert nicht → Auswahl ignorieren,
    weiter mit 4.
-4. **Abgleich:** Kandidaten mit gleichem `phone_normalized` oder gleicher E-Mail, davon jene mit
-   gleichem normalisiertem Namen. Genau ein Treffer → verknüpfen und wie in 2 aktualisieren.
+4. **Abgleich:** Kandidaten mit gleichem `phone_normalized`, gleicher E-Mail oder gleicher Adresse
+   (normalisierte Strasse **und** PLZ), davon jene mit gleichem normalisiertem Namen. Die Adresse
+   ist nötig, weil Quittungen und Rechnungen weder Telefon noch E-Mail erfassen. Genau ein Treffer → verknüpfen und wie in 2 aktualisieren.
    Kein oder mehrere Treffer → neuen Kunden anlegen.
 
 ### Transaktionen
