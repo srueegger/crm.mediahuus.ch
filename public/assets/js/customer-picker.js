@@ -28,7 +28,17 @@
         var controller = null;
         var requestSeq = 0;
 
+        var pending = false;
+
+        function cancelPending() {
+            clearTimeout(timer);
+            requestSeq++;
+            if (controller) { controller.abort(); controller = null; }
+            pending = false;
+        }
+
         function closeList() {
+            cancelPending();
             list.classList.add('hidden');
             list.textContent = '';
             hits = [];
@@ -49,6 +59,7 @@
 
         function render(results) {
             list.textContent = '';
+            pending = false;
             hits = results;
             active = -1;
             if (!results.length) {
@@ -101,12 +112,15 @@
             Object.keys(fieldMap).forEach(function (key) {
                 if (!ATTR[key]) { return; }
                 var value = customer[ATTR[key]];
-                setField(fieldMap[key], value === null || value === undefined ? '' : String(value));
+                if (value === null || value === undefined || String(value) === '') { return; }
+                setField(fieldMap[key], String(value));
             });
             showLinked(customer);
             search.value = '';
             closeList();
-            if (autosubmit && form) { form.submit(); }
+            if (autosubmit && form) {
+                if (typeof form.requestSubmit === 'function') { form.requestSubmit(); } else { form.submit(); }
+            }
         }
 
         function clearLink() {
@@ -139,11 +153,11 @@
             clearTimeout(timer);
             var q = search.value.trim();
             if (q.length < MIN_CHARS) {
-                requestSeq++;
-                if (controller) { controller.abort(); }
                 closeList();
                 return;
             }
+            cancelPending();
+            pending = true;
             timer = setTimeout(function () { runSearch(q); }, DEBOUNCE_MS);
         });
 
@@ -157,7 +171,7 @@
                 setActive(active <= 0 ? hits.length - 1 : active - 1);
             } else if (e.key === 'Enter') {
                 e.preventDefault(); // Formular nie über das Suchfeld absenden
-                if (open) { select(hits[active >= 0 ? active : 0]); }
+                if (open && !pending) { select(hits[active >= 0 ? active : 0]); }
             } else if (e.key === 'Escape') {
                 closeList();
             }
