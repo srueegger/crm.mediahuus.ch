@@ -72,6 +72,7 @@ return [
                 'customers.show' => '/customers/' . ($params['id'] ?? '{id}'),
                 'customers.edit' => '/customers/' . ($params['id'] ?? '{id}') . '/edit',
                 'customers.update' => '/customers/' . ($params['id'] ?? '{id}'),
+                'customers.merge' => '/customers/' . ($params['id'] ?? '{id}') . '/merge',
                 'invoices.create' => '/invoices/create',
                 'invoices.store' => '/invoices',
                 'invoices.show' => '/invoices/' . ($params['id'] ?? '{id}'),

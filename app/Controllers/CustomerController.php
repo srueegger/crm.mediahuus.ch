@@ -9,6 +9,7 @@ use App\Models\User;
 use App\Repositories\BranchRepository;
 use App\Repositories\CustomerRepository;
 use App\Repositories\DocumentRepository;
+use App\Services\CustomerMergeService;
 use Psr\Log\LoggerInterface;
 use Psr\Http\Message\ResponseInterface as Response;
 use Psr\Http\Message\ServerRequestInterface as Request;
@@ -55,7 +56,8 @@ class CustomerController extends BaseController
         private CustomerRepository $customers,
         private DocumentRepository $documents,
         private BranchRepository $branches,
-        private LoggerInterface $logger
+        private LoggerInterface $logger,
+        private CustomerMergeService $mergeService
     ) {
         parent::__construct($twig);
     }
@@ -106,14 +108,63 @@ class CustomerController extends BaseController
             ];
         }
 
-        $success = $request->getQueryParams()['success'] ?? null;
+        $query = $request->getQueryParams();
+        $success = $query['success'] ?? null;
+        $error = $query['error'] ?? null;
 
         return $this->render($response, 'customers/show.html.twig', [
             'user' => $this->currentUser($request),
             'customer' => $customer->toArray(),
             'documents' => $documents,
             'success' => is_string($success) ? $success : null,
+            'error' => is_string($error) ? $error : null,
         ]);
+    }
+
+    public function mergeForm(Request $request, Response $response, array $args): Response
+    {
+        $sourceId = (int) $args['id'];
+        $source = $this->customers->findById($sourceId);
+        if ($source === null) {
+            return $response->withHeader('Location', '/customers?error=notfound')->withStatus(302);
+        }
+
+        $targetParam = $request->getQueryParams()['target'] ?? null;
+        $targetId = is_string($targetParam) && ctype_digit($targetParam) ? (int) $targetParam : 0;
+        $target = $targetId > 0 && $targetId !== $sourceId ? $this->customers->findById($targetId) : null;
+        if ($target === null) {
+            return $response->withHeader('Location', '/customers/' . $sourceId . '?error=merge')->withStatus(302);
+        }
+
+        return $this->render($response, 'customers/merge.html.twig', [
+            'user' => $this->currentUser($request),
+            'source' => $source->toArray(),
+            'target' => $target->toArray(),
+            'sourceDocCount' => count($this->documents->findByCustomerId($sourceId)),
+            'targetDocCount' => count($this->documents->findByCustomerId($targetId)),
+        ]);
+    }
+
+    public function merge(Request $request, Response $response, array $args): Response
+    {
+        $sourceId = (int) $args['id'];
+        $body = $request->getParsedBody();
+        $targetParam = is_array($body) ? ($body['target_id'] ?? null) : null;
+        $targetId = is_string($targetParam) && ctype_digit($targetParam) ? (int) $targetParam : 0;
+
+        try {
+            $this->mergeService->merge($sourceId, $targetId);
+        } catch (\InvalidArgumentException $e) {
+            return $response->withHeader('Location', '/customers/' . $sourceId . '?error=merge')->withStatus(302);
+        } catch (\Exception $e) {
+            $this->logger->error('Failed to merge customers', ['source' => $sourceId, 'target' => $targetId, 'error' => $e->getMessage()]);
+
+            return $response->withHeader('Location', '/customers/' . $sourceId . '?error=merge')->withStatus(302);
+        }
+
+        $this->logger->info('Customers merged', ['source' => $sourceId, 'target' => $targetId]);
+
+        return $response->withHeader('Location', '/customers/' . $targetId . '?success=merged')->withStatus(302);
     }
 
     public function create(Request $request, Response $response): Response

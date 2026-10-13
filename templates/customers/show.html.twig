@@ -17,6 +17,11 @@
             <div class="mb-6 bg-green-50 border border-green-200 text-green-700 px-4 py-3 rounded">Kunde erfolgreich erstellt.</div>
         {% elseif success == 'updated' %}
             <div class="mb-6 bg-green-50 border border-green-200 text-green-700 px-4 py-3 rounded">Kunde erfolgreich aktualisiert.</div>
+        {% elseif success == 'merged' %}
+            <div class="mb-6 bg-green-50 border border-green-200 text-green-700 px-4 py-3 rounded">Kunden erfolgreich zusammengeführt.</div>
+        {% endif %}
+        {% if error == 'merge' %}
+            <div class="mb-6 bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded">Zusammenführen nicht möglich: Bitte einen anderen, existierenden Kunden wählen.</div>
         {% endif %}
 
         <div class="mediahuus-form-section mb-6">
@@ -36,6 +41,14 @@
             <a href="{{ url_for('invoices.create') }}?customer_id={{ customer.id }}" class="mediahuus-button-secondary">Neue Rechnung</a>
             <a href="{{ url_for('purchases.create') }}?customer_id={{ customer.id }}" class="mediahuus-button-secondary">Neuer Ankauf</a>
             <a href="{{ url_for('insurance.create') }}?customer_id={{ customer.id }}" class="mediahuus-button-secondary">Neues Gutachten</a>
+        </div>
+
+        <div class="mediahuus-form-section mb-6">
+            <h3 class="text-lg font-medium text-gray-900 mb-1">Mit anderem Kunden zusammenführen</h3>
+            <p class="text-sm text-gray-500 mb-4">Der hier gewählte Kunde bleibt bestehen und erhält alle Dokumente; der aktuelle Kunde «{{ customer.display_name }}» wird gelöscht.</p>
+            <form method="get" action="{{ url_for('customers.merge', {id: customer.id}) }}">
+                {% include 'customers/_picker.html.twig' with { fieldMap: {}, linkedCustomer: null, customerId: '', inputName: 'target', autosubmit: true } %}
+            </form>
         </div>
 
         <div class="bg-white shadow overflow-hidden sm:rounded-md">
@@ -74,4 +87,8 @@
         </div>
     </div>
 </div>
+{% endblock %}
+
+{% block scripts %}
+<script src="/assets/js/customer-picker.js" defer></script>
 {% endblock %}

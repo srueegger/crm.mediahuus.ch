@@ -40,6 +40,8 @@ $app->group('', function () use ($app) {
     $app->get('/customers/{id:[0-9]+}', [CustomerController::class, 'show'])->setName('customers.show');
     $app->get('/customers/{id:[0-9]+}/edit', [CustomerController::class, 'edit'])->setName('customers.edit');
     $app->post('/customers/{id:[0-9]+}', [CustomerController::class, 'update'])->setName('customers.update');
+    $app->get('/customers/{id:[0-9]+}/merge', [CustomerController::class, 'mergeForm'])->setName('customers.merge');
+    $app->post('/customers/{id:[0-9]+}/merge', [CustomerController::class, 'merge'])->setName('customers.merge.store');
 
     // Estimates
     $app->get('/estimates/create', [EstimateController::class, 'create'])->setName('estimates.create');
