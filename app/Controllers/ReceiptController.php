@@ -14,6 +14,10 @@ use App\Repositories\BranchRepository;
 use App\Services\PdfService;
 use Psr\Http\Message\ResponseInterface as Response;
 use Psr\Http\Message\ServerRequestInterface as Request;
+use App\Services\CustomerFieldMap;
+use App\Services\CustomerFormPrefill;
+use App\Services\CustomerResolver;
+use Doctrine\DBAL\Connection;
 use Psr\Log\LoggerInterface;
 use Twig\Environment;
 
@@ -25,6 +29,9 @@ class ReceiptController extends BaseController
     private BranchRepository $branchRepository;
     private PdfService $pdfService;
     private LoggerInterface $logger;
+    private Connection $connection;
+    private CustomerResolver $customerResolver;
+    private CustomerFormPrefill $customerFormPrefill;
 
     public function __construct(
         Environment $twig,
@@ -33,7 +40,10 @@ class ReceiptController extends BaseController
         ReceiptItemRepository $receiptItemRepository,
         BranchRepository $branchRepository,
         PdfService $pdfService,
-        LoggerInterface $logger
+        LoggerInterface $logger,
+        Connection $connection,
+        CustomerResolver $customerResolver,
+        CustomerFormPrefill $customerFormPrefill
     ) {
         parent::__construct($twig);
         $this->documentRepository = $documentRepository;
@@ -42,6 +52,9 @@ class ReceiptController extends BaseController
         $this->branchRepository = $branchRepository;
         $this->pdfService = $pdfService;
         $this->logger = $logger;
+        $this->connection = $connection;
+        $this->customerResolver = $customerResolver;
+        $this->customerFormPrefill = $customerFormPrefill;
     }
 
     public function create(Request $request, Response $response): Response
@@ -49,12 +62,20 @@ class ReceiptController extends BaseController
         /** @var User $currentUser */
         $currentUser = $request->getAttribute('current_user');
         
+        $prefill = $this->customerFormPrefill->forRequest(
+            Document::TYPE_RECEIPT,
+            $request->getQueryParams()['customer_id'] ?? null
+        );
+
         try {
             $branches = $this->branchRepository->findAll();
             
             return $this->render($response, 'receipts/create.html.twig', [
                 'user' => $currentUser->toArray(),
                 'branches' => array_map(fn($branch) => $branch->toArray(), $branches),
+                'formData' => $prefill['formData'],
+                'linkedCustomer' => $prefill['linkedCustomer'],
+                'customerFieldMap' => CustomerFieldMap::for(Document::TYPE_RECEIPT),
             ]);
         } catch (\Exception $e) {
             $this->logger->error('Failed to load branches for receipt creation', ['error' => $e->getMessage()]);
@@ -62,6 +83,9 @@ class ReceiptController extends BaseController
             return $this->render($response, 'receipts/create.html.twig', [
                 'user' => $currentUser->toArray(),
                 'branches' => [],
+                'formData' => $prefill['formData'],
+                'linkedCustomer' => $prefill['linkedCustomer'],
+                'customerFieldMap' => CustomerFieldMap::for(Document::TYPE_RECEIPT),
                 'error' => 'Fehler beim Laden der Filialen'
             ]);
         }
@@ -96,6 +120,8 @@ class ReceiptController extends BaseController
                     'branches' => array_map(fn($branch) => $branch->toArray(), $branches),
                     'errors' => $errors,
                     'formData' => $data,
+                    'linkedCustomer' => $this->customerFormPrefill->linked($data['customer_id'] ?? null),
+                    'customerFieldMap' => CustomerFieldMap::for(Document::TYPE_RECEIPT),
                 ]);
             } catch (\Exception $e) {
                 $this->logger->error('Failed to load branches after validation error', ['error' => $e->getMessage()]);
@@ -104,55 +130,63 @@ class ReceiptController extends BaseController
         }
 
         try {
-            // Generate document number
-            $docNumber = $this->documentRepository->generateDocNumber(Document::TYPE_RECEIPT);
+            $selectedCustomerId = $this->selectedCustomerId($data);
 
-            // Customer name: use provided name or default
-            $customerName = trim($data['customer_name'] ?? '');
-            if (empty($customerName)) {
-                $customerName = 'Barkauf';
-            }
-
-            // Create document
-            $document = new Document(
-                docType: Document::TYPE_RECEIPT,
-                docNumber: $docNumber,
-                branchId: (int) $data['branch_id'],
-                userId: $currentUser->getId(),
-                customerName: $customerName,
-                customerPhone: null,
-                customerEmail: null,
-                customerStreet: !empty(trim($data['customer_street'] ?? '')) ? trim($data['customer_street']) : null,
-                customerZip: !empty(trim($data['customer_zip'] ?? '')) ? trim($data['customer_zip']) : null,
-                customerCity: !empty(trim($data['customer_city'] ?? '')) ? trim($data['customer_city']) : null
-            );
-
-            $documentId = $this->documentRepository->create($document);
-            
             // Parse and calculate receipt items
             $items = $this->parseReceiptItems($data['items'] ?? []);
             $totalAmount = array_sum(array_map(fn($item) => $item['line_total_chf'], $items));
-            
-            // Create receipt
-            $receipt = new Receipt(
-                documentId: $documentId,
-                totalAmountChf: $totalAmount
-            );
 
-            $receiptId = $this->receiptRepository->create($receipt);
-            
-            // Create receipt items
-            foreach ($items as $itemData) {
-                $item = new ReceiptItem(
-                    receiptId: $receiptId,
-                    itemDescription: $itemData['description'],
-                    quantity: $itemData['quantity'],
-                    unitPriceChf: $itemData['unit_price_chf'],
-                    lineTotalChf: $itemData['line_total_chf'],
-                    warranty: $itemData['warranty']
-                );
-                $this->receiptItemRepository->create($item);
-            }
+            [$documentId, $receiptId, $docNumber] = $this->connection->transactional(
+                function () use ($data, $currentUser, $selectedCustomerId, $items, $totalAmount): array {
+                    $docNumber = $this->documentRepository->generateDocNumber(Document::TYPE_RECEIPT);
+
+                    // Kundenzuordnung mit dem echten Namen (vor dem «Barkauf»-Fallback)
+                    $customerId = $this->customerResolver->resolve(
+                        CustomerFieldMap::dataFromForm(Document::TYPE_RECEIPT, $data),
+                        $selectedCustomerId
+                    );
+
+                    // Customer name: use provided name or default
+                    $customerName = trim($data['customer_name'] ?? '');
+                    if (empty($customerName)) {
+                        $customerName = 'Barkauf';
+                    }
+
+                    $document = new Document(
+                        docType: Document::TYPE_RECEIPT,
+                        docNumber: $docNumber,
+                        branchId: (int) $data['branch_id'],
+                        userId: $currentUser->getId(),
+                        customerName: $customerName,
+                        customerPhone: null,
+                        customerEmail: null,
+                        customerStreet: !empty(trim($data['customer_street'] ?? '')) ? trim($data['customer_street']) : null,
+                        customerZip: !empty(trim($data['customer_zip'] ?? '')) ? trim($data['customer_zip']) : null,
+                        customerCity: !empty(trim($data['customer_city'] ?? '')) ? trim($data['customer_city']) : null,
+                        customerId: $customerId
+                    );
+
+                    $documentId = $this->documentRepository->create($document);
+
+                    $receiptId = $this->receiptRepository->create(new Receipt(
+                        documentId: $documentId,
+                        totalAmountChf: $totalAmount
+                    ));
+
+                    foreach ($items as $itemData) {
+                        $this->receiptItemRepository->create(new ReceiptItem(
+                            receiptId: $receiptId,
+                            itemDescription: $itemData['description'],
+                            quantity: $itemData['quantity'],
+                            unitPriceChf: $itemData['unit_price_chf'],
+                            lineTotalChf: $itemData['line_total_chf'],
+                            warranty: $itemData['warranty']
+                        ));
+                    }
+
+                    return [$documentId, $receiptId, $docNumber];
+                }
+            );
             
             $this->logger->info('Receipt created', [
                 'document_id' => $documentId,

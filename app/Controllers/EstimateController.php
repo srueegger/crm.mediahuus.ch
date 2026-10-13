@@ -13,6 +13,10 @@ use App\Services\PdfService;
 use App\Services\DamageTypeService;
 use Psr\Http\Message\ResponseInterface as Response;
 use Psr\Http\Message\ServerRequestInterface as Request;
+use App\Services\CustomerFieldMap;
+use App\Services\CustomerFormPrefill;
+use App\Services\CustomerResolver;
+use Doctrine\DBAL\Connection;
 use Psr\Log\LoggerInterface;
 use Twig\Environment;
 
@@ -23,6 +27,9 @@ class EstimateController extends BaseController
     private BranchRepository $branchRepository;
     private PdfService $pdfService;
     private LoggerInterface $logger;
+    private Connection $connection;
+    private CustomerResolver $customerResolver;
+    private CustomerFormPrefill $customerFormPrefill;
 
     public function __construct(
         Environment $twig,
@@ -30,7 +37,10 @@ class EstimateController extends BaseController
         EstimateRepository $estimateRepository,
         BranchRepository $branchRepository,
         PdfService $pdfService,
-        LoggerInterface $logger
+        LoggerInterface $logger,
+        Connection $connection,
+        CustomerResolver $customerResolver,
+        CustomerFormPrefill $customerFormPrefill
     ) {
         parent::__construct($twig);
         $this->documentRepository = $documentRepository;
@@ -38,6 +48,9 @@ class EstimateController extends BaseController
         $this->branchRepository = $branchRepository;
         $this->pdfService = $pdfService;
         $this->logger = $logger;
+        $this->connection = $connection;
+        $this->customerResolver = $customerResolver;
+        $this->customerFormPrefill = $customerFormPrefill;
     }
 
     public function create(Request $request, Response $response): Response
@@ -45,6 +58,11 @@ class EstimateController extends BaseController
         /** @var User $currentUser */
         $currentUser = $request->getAttribute('current_user');
         
+        $prefill = $this->customerFormPrefill->forRequest(
+            Document::TYPE_ESTIMATE,
+            $request->getQueryParams()['customer_id'] ?? null
+        );
+
         try {
             $branches = $this->branchRepository->findAll();
             
@@ -53,6 +71,9 @@ class EstimateController extends BaseController
                 'branches' => array_map(fn($branch) => $branch->toArray(), $branches),
                 'damageTypes' => DamageTypeService::getDamageTypes(),
                 'damageTemplates' => DamageTypeService::getDamageTemplates(),
+                'formData' => $prefill['formData'],
+                'linkedCustomer' => $prefill['linkedCustomer'],
+                'customerFieldMap' => CustomerFieldMap::for(Document::TYPE_ESTIMATE),
             ]);
         } catch (\Exception $e) {
             $this->logger->error('Failed to load branches for estimate creation', ['error' => $e->getMessage()]);
@@ -60,6 +81,9 @@ class EstimateController extends BaseController
             return $this->render($response, 'estimates/create.html.twig', [
                 'user' => $currentUser->toArray(),
                 'branches' => [],
+                'formData' => $prefill['formData'],
+                'linkedCustomer' => $prefill['linkedCustomer'],
+                'customerFieldMap' => CustomerFieldMap::for(Document::TYPE_ESTIMATE),
                 'error' => 'Fehler beim Laden der Filialen'
             ]);
         }
@@ -84,6 +108,8 @@ class EstimateController extends BaseController
                     'damageTemplates' => DamageTypeService::getDamageTemplates(),
                     'errors' => $errors,
                     'formData' => $data,
+                    'linkedCustomer' => $this->customerFormPrefill->linked($data['customer_id'] ?? null),
+                    'customerFieldMap' => CustomerFieldMap::for(Document::TYPE_ESTIMATE),
                 ]);
             } catch (\Exception $e) {
                 $this->logger->error('Failed to load branches after validation error', ['error' => $e->getMessage()]);
@@ -92,33 +118,42 @@ class EstimateController extends BaseController
         }
 
         try {
-            // Generate document number
-            $docNumber = $this->documentRepository->generateDocNumber(Document::TYPE_ESTIMATE);
-            
-            // Create document
-            $document = new Document(
-                docType: Document::TYPE_ESTIMATE,
-                docNumber: $docNumber,
-                branchId: (int) $data['branch_id'],
-                userId: $currentUser->getId(),
-                customerName: trim($data['customer_name']),
-                customerPhone: trim($data['customer_phone']) ?: null,
-                customerEmail: trim($data['customer_email']) ?: null
-            );
+            $selectedCustomerId = $this->selectedCustomerId($data);
 
-            $documentId = $this->documentRepository->create($document);
-            
-            // Create estimate details
-            $estimate = new Estimate(
-                documentId: $documentId,
-                damageType: $data['damage_type'],
-                deviceName: trim($data['device_name']),
-                serialNumber: trim($data['serial_number']),
-                issueText: trim($data['issue_text']),
-                priceChf: (float) $data['price_chf']
-            );
+            [$documentId, $estimateId, $docNumber] = $this->connection->transactional(
+                function () use ($data, $currentUser, $selectedCustomerId): array {
+                    $docNumber = $this->documentRepository->generateDocNumber(Document::TYPE_ESTIMATE);
 
-            $estimateId = $this->estimateRepository->create($estimate);
+                    $customerId = $this->customerResolver->resolve(
+                        CustomerFieldMap::dataFromForm(Document::TYPE_ESTIMATE, $data),
+                        $selectedCustomerId
+                    );
+
+                    $document = new Document(
+                        docType: Document::TYPE_ESTIMATE,
+                        docNumber: $docNumber,
+                        branchId: (int) $data['branch_id'],
+                        userId: $currentUser->getId(),
+                        customerName: trim($data['customer_name']),
+                        customerPhone: trim($data['customer_phone']) ?: null,
+                        customerEmail: trim($data['customer_email']) ?: null,
+                        customerId: $customerId
+                    );
+
+                    $documentId = $this->documentRepository->create($document);
+
+                    $estimate = new Estimate(
+                        documentId: $documentId,
+                        damageType: $data['damage_type'],
+                        deviceName: trim($data['device_name']),
+                        serialNumber: trim($data['serial_number']),
+                        issueText: trim($data['issue_text']),
+                        priceChf: (float) $data['price_chf']
+                    );
+
+                    return [$documentId, $this->estimateRepository->create($estimate), $docNumber];
+                }
+            );
             
             $this->logger->info('Estimate created', [
                 'document_id' => $documentId,

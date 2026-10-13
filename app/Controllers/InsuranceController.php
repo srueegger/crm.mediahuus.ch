@@ -13,6 +13,10 @@ use App\Services\PdfService;
 use App\Services\DamageTypeService;
 use Psr\Http\Message\ResponseInterface as Response;
 use Psr\Http\Message\ServerRequestInterface as Request;
+use App\Services\CustomerFieldMap;
+use App\Services\CustomerFormPrefill;
+use App\Services\CustomerResolver;
+use Doctrine\DBAL\Connection;
 use Psr\Log\LoggerInterface;
 use Twig\Environment;
 
@@ -23,6 +27,9 @@ class InsuranceController extends BaseController
     private BranchRepository $branchRepository;
     private PdfService $pdfService;
     private LoggerInterface $logger;
+    private Connection $connection;
+    private CustomerResolver $customerResolver;
+    private CustomerFormPrefill $customerFormPrefill;
 
     public function __construct(
         Environment $twig,
@@ -30,7 +37,10 @@ class InsuranceController extends BaseController
         InsuranceAssessmentRepository $insuranceRepository,
         BranchRepository $branchRepository,
         PdfService $pdfService,
-        LoggerInterface $logger
+        LoggerInterface $logger,
+        Connection $connection,
+        CustomerResolver $customerResolver,
+        CustomerFormPrefill $customerFormPrefill
     ) {
         parent::__construct($twig);
         $this->documentRepository = $documentRepository;
@@ -38,12 +48,20 @@ class InsuranceController extends BaseController
         $this->branchRepository = $branchRepository;
         $this->pdfService = $pdfService;
         $this->logger = $logger;
+        $this->connection = $connection;
+        $this->customerResolver = $customerResolver;
+        $this->customerFormPrefill = $customerFormPrefill;
     }
 
     public function create(Request $request, Response $response): Response
     {
         /** @var User $currentUser */
         $currentUser = $request->getAttribute('current_user');
+
+        $prefill = $this->customerFormPrefill->forRequest(
+            Document::TYPE_INSURANCE,
+            $request->getQueryParams()['customer_id'] ?? null
+        );
 
         try {
             $branches = $this->branchRepository->findAll();
@@ -54,6 +72,9 @@ class InsuranceController extends BaseController
                 'damageTypes' => DamageTypeService::getDamageTypes(),
                 'damageTemplates' => DamageTypeService::getDamageTemplates(),
                 'resultOptions' => InsuranceAssessment::getResultOptions(),
+                'formData' => $prefill['formData'],
+                'linkedCustomer' => $prefill['linkedCustomer'],
+                'customerFieldMap' => CustomerFieldMap::for(Document::TYPE_INSURANCE),
             ]);
         } catch (\Exception $e) {
             $this->logger->error('Failed to load data for insurance creation', ['error' => $e->getMessage()]);
@@ -61,6 +82,9 @@ class InsuranceController extends BaseController
             return $this->render($response, 'insurance/create.html.twig', [
                 'user' => $currentUser->toArray(),
                 'branches' => [],
+                'formData' => $prefill['formData'],
+                'linkedCustomer' => $prefill['linkedCustomer'],
+                'customerFieldMap' => CustomerFieldMap::for(Document::TYPE_INSURANCE),
                 'error' => 'Fehler beim Laden der Daten'
             ]);
         }
@@ -85,6 +109,8 @@ class InsuranceController extends BaseController
                     'resultOptions' => InsuranceAssessment::getResultOptions(),
                     'errors' => $errors,
                     'formData' => $data,
+                    'linkedCustomer' => $this->customerFormPrefill->linked($data['customer_id'] ?? null),
+                    'customerFieldMap' => CustomerFieldMap::for(Document::TYPE_INSURANCE),
                 ]);
             } catch (\Exception $e) {
                 $this->logger->error('Failed to load branches after validation error', ['error' => $e->getMessage()]);
@@ -93,38 +119,50 @@ class InsuranceController extends BaseController
         }
 
         try {
-            $docNumber = $this->documentRepository->generateDocNumber(Document::TYPE_INSURANCE);
+            $selectedCustomerId = $this->selectedCustomerId($data);
 
-            $document = new Document(
-                docType: Document::TYPE_INSURANCE,
-                docNumber: $docNumber,
-                branchId: (int) $data['branch_id'],
-                userId: $currentUser->getId(),
-                customerName: trim($data['customer_name']),
-                customerPhone: trim($data['customer_phone'] ?? '') ?: null,
-                customerEmail: trim($data['customer_email'] ?? '') ?: null
+            [$documentId, $assessmentId, $docNumber] = $this->connection->transactional(
+                function () use ($data, $currentUser, $selectedCustomerId): array {
+                    $docNumber = $this->documentRepository->generateDocNumber(Document::TYPE_INSURANCE);
+
+                    $customerId = $this->customerResolver->resolve(
+                        CustomerFieldMap::dataFromForm(Document::TYPE_INSURANCE, $data),
+                        $selectedCustomerId
+                    );
+
+                    $document = new Document(
+                        docType: Document::TYPE_INSURANCE,
+                        docNumber: $docNumber,
+                        branchId: (int) $data['branch_id'],
+                        userId: $currentUser->getId(),
+                        customerName: trim($data['customer_name']),
+                        customerPhone: trim($data['customer_phone'] ?? '') ?: null,
+                        customerEmail: trim($data['customer_email'] ?? '') ?: null,
+                        customerId: $customerId
+                    );
+
+                    $documentId = $this->documentRepository->create($document);
+
+                    $deviceValue = trim($data['device_value_chf'] ?? '');
+                    $repairCost = trim($data['repair_cost_chf'] ?? '');
+
+                    $assessment = new InsuranceAssessment(
+                        documentId: $documentId,
+                        damageType: $data['damage_type'],
+                        deviceName: trim($data['device_name']),
+                        serialNumber: trim($data['serial_number']),
+                        damageDescription: trim($data['damage_description'] ?? ''),
+                        assessmentResult: $data['assessment_result'],
+                        customerStreet: trim($data['customer_street'] ?? ''),
+                        customerZip: trim($data['customer_zip'] ?? ''),
+                        customerCity: trim($data['customer_city'] ?? ''),
+                        deviceValueChf: $deviceValue !== '' ? (float) $deviceValue : null,
+                        repairCostChf: $repairCost !== '' ? (float) $repairCost : null
+                    );
+
+                    return [$documentId, $this->insuranceRepository->create($assessment), $docNumber];
+                }
             );
-
-            $documentId = $this->documentRepository->create($document);
-
-            $deviceValue = trim($data['device_value_chf'] ?? '');
-            $repairCost = trim($data['repair_cost_chf'] ?? '');
-
-            $assessment = new InsuranceAssessment(
-                documentId: $documentId,
-                damageType: $data['damage_type'],
-                deviceName: trim($data['device_name']),
-                serialNumber: trim($data['serial_number']),
-                damageDescription: trim($data['damage_description'] ?? ''),
-                assessmentResult: $data['assessment_result'],
-                customerStreet: trim($data['customer_street'] ?? ''),
-                customerZip: trim($data['customer_zip'] ?? ''),
-                customerCity: trim($data['customer_city'] ?? ''),
-                deviceValueChf: $deviceValue !== '' ? (float) $deviceValue : null,
-                repairCostChf: $repairCost !== '' ? (float) $repairCost : null
-            );
-
-            $assessmentId = $this->insuranceRepository->create($assessment);
 
             $this->logger->info('Insurance assessment created', [
                 'document_id' => $documentId,

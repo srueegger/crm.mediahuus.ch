@@ -8,6 +8,8 @@ use App\Models\User;
 use App\Repositories\BranchRepository;
 use App\Repositories\DocumentRepository;
 use App\Repositories\InvoiceRepository;
+use App\Services\CustomerFieldMap;
+use App\Services\CustomerFormPrefill;
 use App\Services\InvoiceInputValidator;
 use App\Services\InvoicePdfService;
 use App\Services\InvoiceService;
@@ -30,14 +32,20 @@ class InvoiceController extends BaseController
         private InvoiceService $invoiceService,
         private InvoicePdfService $pdfService,
         private array $invoiceConfig,
-        private LoggerInterface $logger
+        private LoggerInterface $logger,
+        private CustomerFormPrefill $customerFormPrefill
     ) {
         parent::__construct($twig);
     }
 
     public function create(Request $request, Response $response): Response
     {
-        return $this->renderForm($response, $request, [], [], null);
+        $prefill = $this->customerFormPrefill->forRequest(
+            Document::TYPE_INVOICE,
+            $request->getQueryParams()['customer_id'] ?? null
+        );
+
+        return $this->renderForm($response, $request, $prefill['formData'], [], null, $prefill['linkedCustomer'], true);
     }
 
     public function store(Request $request, Response $response): Response
@@ -50,17 +58,17 @@ class InvoiceController extends BaseController
         $result = $this->validator->validate($post);
 
         if (!empty($result['errors'])) {
-            return $this->renderForm($response, $request, $post, $result['errors'], null);
+            return $this->renderForm($response, $request, $post, $result['errors'], null, $this->customerFormPrefill->linked($post['customer_id'] ?? null));
         }
 
         try {
-            $documentId = $this->invoiceService->create($result['data'], $currentUser->getId());
+            $documentId = $this->invoiceService->create($result['data'], $currentUser->getId(), $this->selectedCustomerId($post));
         } catch (\RuntimeException $e) {
             $this->logger->error('Invoice creation failed', [
                 'error' => $e->getMessage(),
                 'created_by' => $currentUser->getId(),
             ]);
-            return $this->renderForm($response, $request, $post, [], $e->getMessage());
+            return $this->renderForm($response, $request, $post, [], $e->getMessage(), $this->customerFormPrefill->linked($post['customer_id'] ?? null));
         } catch (\Throwable $e) {
             $this->logger->error('Invoice creation failed unexpectedly', [
                 'error' => $e->getMessage(),
@@ -71,7 +79,8 @@ class InvoiceController extends BaseController
                 $request,
                 $post,
                 [],
-                'Die Rechnung konnte nicht gespeichert werden. Bitte erneut versuchen.'
+                'Die Rechnung konnte nicht gespeichert werden. Bitte erneut versuchen.',
+                $this->customerFormPrefill->linked($post['customer_id'] ?? null)
             );
         }
 
@@ -164,7 +173,15 @@ class InvoiceController extends BaseController
      * @param array<string, mixed> $post Roh-POST (Positionszeilen behalten ihre Schlüssel)
      * @param array<string, string> $errors
      */
-    private function renderForm(Response $response, Request $request, array $post, array $errors, ?string $error): Response
+    private function renderForm(
+        Response $response,
+        Request $request,
+        array $post,
+        array $errors,
+        ?string $error,
+        ?array $linkedCustomer = null,
+        bool $freshForm = false
+    ): Response
     {
         /** @var User $currentUser */
         $currentUser = $request->getAttribute('current_user');
@@ -188,8 +205,9 @@ class InvoiceController extends BaseController
             'street' => $this->scalar($post['street'] ?? ''),
             'zip' => $this->scalar($post['zip'] ?? ''),
             'city' => $this->scalar($post['city'] ?? ''),
-            'invoice_date' => $post === [] ? date('Y-m-d') : $this->scalar($post['invoice_date'] ?? ''),
-            'payment_term_days' => $post === []
+            'customer_id' => $this->scalar($post['customer_id'] ?? ''),
+            'invoice_date' => $freshForm ? date('Y-m-d') : $this->scalar($post['invoice_date'] ?? ''),
+            'payment_term_days' => $freshForm
                 ? (string) $this->invoiceConfig['default_payment_term_days']
                 : $this->scalar($post['payment_term_days'] ?? ''),
             'items' => $items,
@@ -198,6 +216,8 @@ class InvoiceController extends BaseController
         return $this->render($response, 'invoices/create.html.twig', [
             'user' => $currentUser->toArray(),
             'formData' => $formData,
+            'linkedCustomer' => $linkedCustomer,
+            'customerFieldMap' => CustomerFieldMap::for(Document::TYPE_INVOICE),
             'errors' => $errors,
             'error' => $error,
             'vat_rates' => $this->invoiceConfig['vat_rates'],
