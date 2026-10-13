@@ -1,4 +1,5 @@
-{% autoescape false %}Guten Tag
+{% autoescape false -%}
+Guten Tag
 
 Wir haben Ihr Gerät {{ device_name }} zur Reparatur entgegengenommen. Ihre Reparaturnummer lautet {{ doc_number }}.
 
@@ -9,9 +10,14 @@ Die Auftragsbestätigung finden Sie im Anhang. Sobald Ihr Gerät abholbereit ist
 
 Freundliche Grüsse
 {{ branch.name }}
-{{ branch.street }}, {{ branch.zip }} {{ branch.city }}{% if branch.phone %}
+{{ branch.street }}, {{ branch.zip }} {{ branch.city }}
+{%- if branch.phone %}
 
-Telefon {{ branch.phone }}{% endif %}{% if branch.email %}
+Telefon {{ branch.phone }}
+{%- endif %}
+{%- if branch.email %}
 
-{{ branch.email }}{% endif %}
+{{ branch.email }}
+{%- endif %}
+
 {% endautoescape %}

@@ -183,4 +183,57 @@ class RepairMailerTest extends TestCase
         $this->assertSame('email_failed', $captured->getEventType());
         $this->assertStringContainsString('fehlgeschlagen: Timeout', $captured->getMessage());
     }
+
+    public function testPdfFailureWritesFailedEventAndDoesNotThrow(): void
+    {
+        $this->pdf->method('generateRepairPdf')->willThrowException(new \RuntimeException('PDF kaputt'));
+        $this->mail->expects($this->never())->method('send');
+        $captured = null;
+        $this->events->expects($this->once())->method('add')->willReturnCallback(function (RepairEvent $e) use (&$captured) {
+            $captured = $e;
+        });
+
+        $result = $this->mailer->sendCreated($this->document(), $this->repair(), $this->branch(), 1);
+
+        $this->assertSame(MailResult::FAILED, $result->status);
+        $this->assertSame('email_failed', $captured->getEventType());
+        $this->assertStringContainsString('PDF kaputt', $captured->getMessage());
+    }
+
+    public function testDeviceNameIsEscapedInHtml(): void
+    {
+        $repair = new Repair(
+            7, 5, 'received', self::TOKEN, '<script>alert(1)</script>', null, null,
+            'x', null, null, null, null, null, null
+        );
+        $sent = null;
+        $this->mail->method('send')->willReturnCallback(function (Email $e) use (&$sent) {
+            $sent = $e;
+            return MailResult::sent();
+        });
+
+        $this->mailer->sendReady($this->document(), $repair, $this->branch(), 1);
+
+        $this->assertStringNotContainsString('<script>', $sent->getHtmlBody());
+        $this->assertStringContainsString('&lt;script&gt;', $sent->getHtmlBody());
+    }
+
+    public function testNoPriceLineWhenPriceIsNull(): void
+    {
+        $repair = new Repair(
+            7, 5, 'received', self::TOKEN, 'iPhone 13', null, null,
+            'x', null, null, null, null, null, null
+        );
+        $sent = null;
+        $this->mail->method('send')->willReturnCallback(function (Email $e) use (&$sent) {
+            $sent = $e;
+            return MailResult::sent();
+        });
+
+        $this->mailer->sendReady($this->document(), $repair, $this->branch(), 1);
+
+        $this->assertStringNotContainsString('CHF', $sent->getTextBody());
+        $this->assertStringNotContainsString('CHF', $sent->getHtmlBody());
+        $this->assertDoesNotMatchRegularExpression("/\n{3,}/", $sent->getTextBody());
+    }
 }

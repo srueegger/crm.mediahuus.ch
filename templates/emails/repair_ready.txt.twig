@@ -1,14 +1,19 @@
-{% autoescape false %}Guten Tag
+{% autoescape false -%}
+Guten Tag
 
 Gute Nachrichten: Ihr Gerät {{ device_name }} ({{ doc_number }}) ist repariert und abholbereit.
-{% if price_chf %}
+{%- if price_chf %}
+
 Der Betrag für die Reparatur beträgt CHF {{ price_chf }}.
-{% endif %}
+{%- endif %}
+
 Sie können es in unserer Filiale abholen:
 {{ branch.name }}
-{{ branch.street }}, {{ branch.zip }} {{ branch.city }}{% if branch.phone %}
+{{ branch.street }}, {{ branch.zip }} {{ branch.city }}
+{%- if branch.phone %}
 
-Telefon {{ branch.phone }}{% endif %}
+Telefon {{ branch.phone }}
+{%- endif %}
 
 Reparaturstatus: {{ status_url }}
 

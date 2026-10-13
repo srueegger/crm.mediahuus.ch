@@ -40,23 +40,27 @@ class RepairMailer
             return null;
         }
 
-        $statusUrl = $this->url->repairStatus($repair->getStatusToken());
-        $context = $this->context($document, $repair, $branch, $statusUrl);
-
-        $email = $this->buildEmail(
-            $to,
-            'Ihre Reparatur ' . $document->getDocNumber() . ' bei Mediahuus',
-            'repair_created',
-            $context,
-            $branch
+        return $this->deliver(
+            function () use ($document, $repair, $branch, $to): Email {
+                $statusUrl = $this->url->repairStatus($repair->getStatusToken());
+                $email = $this->buildEmail(
+                    $to,
+                    'Ihre Reparatur ' . $document->getDocNumber() . ' bei Mediahuus',
+                    'repair_created',
+                    $this->context($document, $repair, $branch, $statusUrl),
+                    $branch
+                );
+                $email->attach(
+                    $this->pdf->generateRepairPdf($document, $repair, $branch, $statusUrl),
+                    $this->pdf->getRepairPdfFilename($document),
+                    'application/pdf'
+                );
+                return $email;
+            },
+            $repair,
+            $userId,
+            'Erfassungs-E-Mail an ' . $to
         );
-        $email->attach(
-            $this->pdf->generateRepairPdf($document, $repair, $branch, $statusUrl),
-            $this->pdf->getRepairPdfFilename($document),
-            'application/pdf'
-        );
-
-        return $this->deliver($email, $repair, $userId, 'Erfassungs-E-Mail an ' . $to);
     }
 
     /**
@@ -69,25 +73,30 @@ class RepairMailer
             return null;
         }
 
-        $context = $this->context(
-            $document,
+        return $this->deliver(
+            function () use ($document, $repair, $branch, $to): Email {
+                $context = $this->context(
+                    $document,
+                    $repair,
+                    $branch,
+                    $this->url->repairStatus($repair->getStatusToken())
+                );
+                $context['price_chf'] = $repair->getPriceChf() !== null
+                    ? number_format((float) $repair->getPriceChf(), 2, '.', "'")
+                    : null;
+
+                return $this->buildEmail(
+                    $to,
+                    'Ihr Gerät ist abholbereit (' . $document->getDocNumber() . ')',
+                    'repair_ready',
+                    $context,
+                    $branch
+                );
+            },
             $repair,
-            $branch,
-            $this->url->repairStatus($repair->getStatusToken())
+            $userId,
+            'Abholbereit-E-Mail an ' . $to
         );
-        $context['price_chf'] = $repair->getPriceChf() !== null
-            ? number_format((float) $repair->getPriceChf(), 2, '.', "'")
-            : null;
-
-        $email = $this->buildEmail(
-            $to,
-            'Ihr Gerät ist abholbereit (' . $document->getDocNumber() . ')',
-            'repair_ready',
-            $context,
-            $branch
-        );
-
-        return $this->deliver($email, $repair, $userId, 'Abholbereit-E-Mail an ' . $to);
     }
 
     private function recipient(Document $document): ?string
@@ -139,8 +148,20 @@ class RepairMailer
         return $email;
     }
 
-    private function deliver(Email $email, Repair $repair, ?int $userId, string $label): MailResult
+    /**
+     * @param callable(): Email $build
+     */
+    private function deliver(callable $build, Repair $repair, ?int $userId, string $label): MailResult
     {
+        try {
+            $email = $build();
+        } catch (\Throwable $e) {
+            $this->logger->error('Reparatur-E-Mail konnte nicht erstellt werden: ' . $e->getMessage());
+            $result = MailResult::failed($e->getMessage());
+            $this->logEvent($repair, $userId, RepairEvent::TYPE_EMAIL_FAILED, $label . ' fehlgeschlagen: ' . $e->getMessage());
+            return $result;
+        }
+
         $result = $this->mail->send($email);
 
         if ($result->isSent()) {
