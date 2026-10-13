@@ -56,10 +56,13 @@ Hinweis: Durch den neuen Cookie-Namen sind beim Deployment alle Mitarbeitenden e
 ### `App\Middleware\CsrfMiddleware` (global)
 
 - Methoden `GET`, `HEAD`, `OPTIONS` → durchlassen.
+- Zuerst: `Content-Length` > `post_max_size` (und `post_max_size` > 0) → 413 mit Seite
+  «Die hochgeladenen Dateien sind zu gross.», vor der Token-Prüfung und unabhängig vom geparsten Body
+  (Slim parst urlencoded-Bodies aus `php://input` neu, der Body ist daher nie leer).
 - Sonst Token aus Body-Feld `_csrf` (geparster Body, auch multipart) oder Header `X-CSRF-Token`.
 - Gültig → weiter. Ungültig →
-  - **Upload zu gross:** Body leer und `Content-Length` > `post_max_size` → 413 mit Seite
-    «Die hochgeladenen Dateien sind zu gross.»
+  - `POST /login` (kein JSON-Request): Login-Formular (`auth/login.html.twig`) erneut mit Status 403,
+    `error` = «Ihre Sitzung ist abgelaufen. Bitte erneut anmelden.» und der übermittelten E-Mail.
   - sonst 403, Template `errors/csrf.html.twig`: «Die Sitzung ist abgelaufen oder das Formular ist
     veraltet. Bitte Seite neu laden und erneut versuchen.» mit Link zurück
     (Referer, falls gleiche Herkunft, sonst `/`).
@@ -83,8 +86,8 @@ Csrf sieht so den geparsten Body und eine gestartete Session.
 
 ### Token-Wechsel
 
-- `AuthService::startSession()` (Login) und `endSession()` (Logout) rufen
-  `CsrfTokenManager::regenerate()` auf.
+- `AuthController` ruft nach `AuthService::startSession()` (Login) und `endSession()` (Logout)
+  `CsrfTokenManager::regenerate()` auf (nicht der `AuthService` selbst).
 - Sonst bleibt das Token für die ganze Session gleich (mehrere Tabs funktionieren).
 
 ### Twig
