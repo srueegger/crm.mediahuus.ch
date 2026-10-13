@@ -36,6 +36,9 @@ use App\Services\QrBillFactory;
 use App\Services\MailService;
 use App\Services\AppUrl;
 use App\Services\RepairMailer;
+use App\Services\RepairInputValidator;
+use App\Services\RepairService;
+use App\Services\RepairStatusTokenGenerator;
 use App\Controllers\UserController;
 use App\Controllers\EstimateController;
 use App\Controllers\ReceiptController;
@@ -165,6 +168,31 @@ return [
         LoggerInterface $logger
     ) {
         return new RepairMailer($mail, $twig, $pdf, $url, $events, $logger);
+    },
+
+    RepairInputValidator::class => function () {
+        return new RepairInputValidator();
+    },
+
+    RepairService::class => function (
+        Connection $connection,
+        DocumentRepository $documents,
+        RepairRepository $repairs,
+        RepairEventRepository $events,
+        BranchRepository $branches,
+        CustomerResolver $customerResolver,
+        RepairMailer $mailer
+    ) {
+        return new RepairService(
+            $connection,
+            $documents,
+            $repairs,
+            $events,
+            $branches,
+            $customerResolver,
+            $mailer,
+            new RepairStatusTokenGenerator()
+        );
     },
 
     // PDF Service

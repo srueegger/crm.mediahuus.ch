@@ -26,6 +26,11 @@ final class CustomerFieldMap
                 'phone' => 'customer_phone',
                 'email' => 'customer_email',
             ],
+            Document::TYPE_REPAIR => [
+                'name' => 'customer_name',
+                'phone' => 'customer_phone',
+                'email' => 'customer_email',
+            ],
             Document::TYPE_PURCHASE => [
                 'name' => 'customer_name',
                 'phone' => 'customer_phone',
