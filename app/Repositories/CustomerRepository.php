@@ -90,10 +90,13 @@ class CustomerRepository
         );
 
         $rows = $this->connection->fetchAllAssociative(
-            'SELECT c.*, COUNT(d.id) AS document_count, MAX(d.created_at) AS last_document_at '
-            . 'FROM customers c LEFT JOIN documents d ON d.customer_id = c.id'
+            'SELECT c.*, COALESCE(d.document_count, 0) AS document_count, d.last_document_at AS last_document_at '
+            . 'FROM customers c LEFT JOIN ('
+            . 'SELECT customer_id, COUNT(*) AS document_count, MAX(created_at) AS last_document_at '
+            . 'FROM documents WHERE customer_id IS NOT NULL GROUP BY customer_id'
+            . ') d ON d.customer_id = c.id'
             . $whereSql
-            . ' GROUP BY c.id ORDER BY c.name ASC, c.id ASC'
+            . ' ORDER BY c.name ASC, c.id ASC'
             . ' LIMIT ' . $perPage . ' OFFSET ' . (($page - 1) * $perPage),
             $params
         );
