@@ -6,6 +6,9 @@ namespace App\Services;
 
 use App\Models\CustomerData;
 use App\Models\Document;
+use App\Models\InsuranceAssessment;
+use App\Models\Invoice;
+use App\Models\Purchase;
 
 /**
  * Einzige Stelle, die weiss, welches Formularfeld welches Kundenattribut enthält.
@@ -85,5 +88,54 @@ final class CustomerFieldMap
             $get('zip'),
             $get('city'),
         );
+    }
+
+    /**
+     * Baut die Kundendaten eines bestehenden Dokuments (Altdaten-Import).
+     * Eine Quittung mit dem Namen «Barkauf» gilt als anonym (leerer Name).
+     */
+    public static function dataFromDocument(
+        Document $doc,
+        ?Purchase $purchase,
+        ?InsuranceAssessment $assessment,
+        ?Invoice $invoice
+    ): CustomerData {
+        $name = $doc->getCustomerName();
+        $company = null;
+        $phone = $doc->getCustomerPhone();
+        $email = $doc->getCustomerEmail();
+        $street = $doc->getCustomerStreet();
+        $zip = $doc->getCustomerZip();
+        $city = $doc->getCustomerCity();
+
+        switch ($doc->getDocType()) {
+            case Document::TYPE_ESTIMATE:
+                $street = $zip = $city = null;
+                break;
+            case Document::TYPE_PURCHASE:
+                $street = $purchase?->getSellerStreet();
+                $zip = $purchase?->getSellerZip();
+                $city = $purchase?->getSellerCity();
+                break;
+            case Document::TYPE_INSURANCE:
+                $street = $assessment?->getCustomerStreet();
+                $zip = $assessment?->getCustomerZip();
+                $city = $assessment?->getCustomerCity();
+                break;
+            case Document::TYPE_RECEIPT:
+                $phone = $email = null;
+                if (mb_strtolower(trim($name)) === 'barkauf') {
+                    $name = '';
+                }
+                break;
+            case Document::TYPE_INVOICE:
+                $phone = $email = null;
+                $company = $invoice?->getCompanyName();
+                $contact = trim((string) $invoice?->getContactName());
+                $name = $contact !== '' ? $contact : (string) $company;
+                break;
+        }
+
+        return new CustomerData($name, $company, $phone, $email, $street, $zip, $city);
     }
 }
