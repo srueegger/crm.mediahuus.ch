@@ -9,6 +9,7 @@ use Monolog\Logger;
 use Monolog\Handler\StreamHandler;
 use Psr\Log\LoggerInterface;
 use App\Repositories\UserRepository;
+use App\Repositories\CustomerRepository;
 use App\Repositories\DocumentRepository;
 use App\Repositories\EstimateRepository;
 use App\Repositories\BranchRepository;
@@ -137,6 +138,11 @@ return [
     // Document Repository
     DocumentRepository::class => function (Connection $connection) {
         return new DocumentRepository($connection);
+    },
+
+    // Customer Repository
+    CustomerRepository::class => function (Connection $connection) {
+        return new CustomerRepository($connection);
     },
 
     // Estimate Repository
