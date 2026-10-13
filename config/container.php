@@ -34,6 +34,7 @@ use App\Services\InvoicePdfService;
 use App\Services\InvoiceService;
 use App\Services\QrBillFactory;
 use App\Services\MailService;
+use App\Services\AppUrl;
 use App\Controllers\UserController;
 use App\Controllers\EstimateController;
 use App\Controllers\ReceiptController;
@@ -145,6 +146,12 @@ return [
     // Mail Service (zentraler E-Mail-Versand)
     MailService::class => function (LoggerInterface $logger) {
         return MailService::fromEnv($_ENV, $logger);
+    },
+
+    // Basis-URL der Anwendung
+    AppUrl::class => function () {
+        $base = trim((string) ($_ENV['APP_URL'] ?? ''));
+        return new AppUrl($base !== '' ? $base : 'https://crm.mediahuus.ch');
     },
 
     // PDF Service

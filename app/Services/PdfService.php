@@ -6,6 +6,7 @@ namespace App\Services;
 use App\Models\Document;
 use App\Models\Estimate;
 use App\Models\Receipt;
+use App\Models\Repair;
 use App\Models\Purchase;
 use App\Models\InsuranceAssessment;
 use App\Models\Branch;
@@ -377,6 +378,142 @@ class PdfService
             $this->logger->error('Receipt PDF generation failed', [
                 'document_id' => $document->getId(),
                 'error' => $e->getMessage()
+            ]);
+            throw $e;
+        }
+    }
+
+    public function getRepairPdfFilename(Document $document): string
+    {
+        return 'Reparatur_' . $document->getDocNumber() . '.pdf';
+    }
+
+    /**
+     * Datenzeilen der Reparatur-Auftragsbestätigung (ohne Entsperrcode, leere Felder entfallen).
+     *
+     * @return list<array{label: string, value: string}>
+     */
+    public function repairPdfLines(Document $document, Repair $repair): array
+    {
+        $lines = [
+            ['label' => 'Reparaturnummer', 'value' => $document->getDocNumber()],
+            ['label' => 'Datum', 'value' => $document->getCreatedAt()->format('d.m.Y')],
+            ['label' => 'Kunde', 'value' => $document->getCustomerName()],
+        ];
+
+        $optional = [
+            'Telefon' => $document->getCustomerPhone(),
+            'E-Mail' => $document->getCustomerEmail(),
+            'Gerät' => $repair->getDeviceName(),
+            'IMEI / Seriennummer' => $repair->getImeiSerial(),
+            'Schadenstyp' => $repair->getDamageType() !== null
+                ? (DamageTypeService::getDamageTypes()[$repair->getDamageType()] ?? $repair->getDamageType())
+                : null,
+            'Fehlerbeschreibung' => $repair->getIssueText(),
+            'Geplante Arbeiten' => $repair->getWorkText(),
+            'Zubehör' => $repair->getAccessories(),
+            'Voraussichtlicher Preis' => $repair->getPriceChf() !== null && $repair->getPriceChf() !== ''
+                ? 'CHF ' . number_format((float) $repair->getPriceChf(), 2, '.', '')
+                : null,
+            'Fertig bis' => $repair->getDueDate()?->format('d.m.Y'),
+        ];
+
+        foreach ($optional as $label => $value) {
+            $value = $value === null ? '' : trim($value);
+            if ($value !== '') {
+                $lines[] = ['label' => $label, 'value' => $value];
+            }
+        }
+
+        return $lines;
+    }
+
+    public function generateRepairPdf(Document $document, Repair $repair, Branch $branch, string $statusUrl): string
+    {
+        try {
+            $pdf = new TCPDF(PDF_PAGE_ORIENTATION, PDF_UNIT, PDF_PAGE_FORMAT, true, 'UTF-8', false);
+            $pdf->SetCreator('Mediahuus CRM');
+            $pdf->SetAuthor('Mediahuus');
+            $pdf->SetTitle('Reparaturauftrag ' . $document->getDocNumber());
+            $pdf->SetSubject('Reparaturauftrag');
+            $pdf->setPrintHeader(false);
+            $pdf->setPrintFooter(false);
+            $pdf->SetMargins(20, 15, 20);
+            $pdf->SetAutoPageBreak(true, 25);
+            $pdf->AddPage();
+            $pdf->SetFont('helvetica', '', 10);
+
+            $currentY = $this->addHeader($pdf, $branch, 15);
+
+            // Titel
+            $pdf->SetLineWidth(0.3);
+            $pdf->SetDrawColor(200, 200, 200);
+            $pdf->Line(20, $currentY, 190, $currentY);
+            $currentY += 10;
+            $pdf->SetFont('helvetica', 'B', 16);
+            $pdf->SetXY(20, $currentY);
+            $pdf->Cell(0, 8, 'Reparaturauftrag', 0, 1, 'L');
+            $currentY += 14;
+
+            // Datenzeilen
+            foreach ($this->repairPdfLines($document, $repair) as $line) {
+                $pdf->SetFont('helvetica', '', 10);
+                $valueHeight = $pdf->getStringHeight(110, $line['value']);
+                $rowHeight = max(6, $valueHeight);
+                if ($currentY + $rowHeight > $pdf->getPageHeight() - 25) {
+                    $pdf->AddPage();
+                    $currentY = 15;
+                }
+                $pdf->SetXY(20, $currentY);
+                $pdf->Cell(55, 6, $line['label'] . ':', 0, 0, 'L');
+                $pdf->SetFont('helvetica', 'B', 10);
+                $pdf->SetXY(75, $currentY);
+                $pdf->MultiCell(115, 6, $line['value'], 0, 'L', false, 1);
+                $currentY = max($pdf->GetY(), $currentY + 6) + 1;
+            }
+
+            // QR-Code zur Statusseite
+            $currentY += 6;
+            if ($currentY + 32 > $pdf->getPageHeight() - 25) {
+                $pdf->AddPage();
+                $currentY = 15;
+            }
+            $pdf->write2DBarcode($statusUrl, 'QRCODE,M', 20, $currentY, 28, 28);
+            $pdf->SetFont('helvetica', 'B', 10);
+            $pdf->SetXY(54, $currentY + 8);
+            $pdf->Cell(0, 6, 'Status jederzeit online abrufen', 0, 1, 'L');
+            $pdf->SetFont('helvetica', '', 8);
+            $pdf->SetTextColor(100, 100, 100);
+            $pdf->SetXY(54, $currentY + 14);
+            $pdf->Cell(0, 5, $statusUrl, 0, 1, 'L');
+            $pdf->SetTextColor(0, 0, 0);
+            $currentY += 40;
+
+            // Unterschriftenlinien
+            if ($currentY + 25 > $pdf->getPageHeight() - 25) {
+                $pdf->AddPage();
+                $currentY = 15;
+            }
+            $currentY += 12;
+            $pdf->SetDrawColor(0, 0, 0);
+            $pdf->Line(20, $currentY, 85, $currentY);
+            $pdf->Line(125, $currentY, 190, $currentY);
+            $pdf->SetFont('helvetica', '', 9);
+            $pdf->SetXY(20, $currentY + 1);
+            $pdf->Cell(65, 5, 'Abgabe (Datum, Unterschrift)', 0, 0, 'L');
+            $pdf->SetXY(125, $currentY + 1);
+            $pdf->Cell(65, 5, 'Abholung (Datum, Unterschrift)', 0, 0, 'L');
+
+            $this->logger->info('Repair PDF generated successfully', [
+                'document_id' => $document->getId(),
+                'doc_number' => $document->getDocNumber(),
+            ]);
+
+            return $pdf->Output('', 'S');
+        } catch (\Exception $e) {
+            $this->logger->error('Repair PDF generation failed', [
+                'document_id' => $document->getId(),
+                'error' => $e->getMessage(),
             ]);
             throw $e;
         }
