@@ -111,6 +111,8 @@
             idInput.value = customer.id;
             Object.keys(fieldMap).forEach(function (key) {
                 if (!ATTR[key]) { return; }
+                // Firmenkunde ohne Ansprechperson: Firma nicht zusätzlich als Name eintragen
+                if (key === 'name' && fieldMap.company && customer.name === customer.company_name) { return; }
                 var value = customer[ATTR[key]];
                 if (value === null || value === undefined || String(value) === '') { return; }
                 setField(fieldMap[key], String(value));
