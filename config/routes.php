@@ -10,6 +10,7 @@ use App\Controllers\PurchaseController;
 use App\Controllers\InvoiceController;
 use App\Controllers\InsuranceController;
 use App\Controllers\ExportController;
+use App\Controllers\CustomerController;
 use App\Middleware\AuthMiddleware;
 use Slim\App;
 
@@ -31,6 +32,17 @@ $app->group('', function () use ($app) {
     $app->post('/users/{id:[0-9]+}', [UserController::class, 'update'])->setName('users.update');
     $app->post('/users/{id:[0-9]+}/toggle-status', [UserController::class, 'toggleStatus'])->setName('users.toggle');
     
+    // Customers (Kundenstamm)
+    $app->get('/customers', [CustomerController::class, 'index'])->setName('customers.index');
+    $app->get('/customers/search', [CustomerController::class, 'search'])->setName('customers.search');
+    $app->get('/customers/create', [CustomerController::class, 'create'])->setName('customers.create');
+    $app->post('/customers', [CustomerController::class, 'store'])->setName('customers.store');
+    $app->get('/customers/{id:[0-9]+}', [CustomerController::class, 'show'])->setName('customers.show');
+    $app->get('/customers/{id:[0-9]+}/edit', [CustomerController::class, 'edit'])->setName('customers.edit');
+    $app->post('/customers/{id:[0-9]+}', [CustomerController::class, 'update'])->setName('customers.update');
+    $app->get('/customers/{id:[0-9]+}/merge', [CustomerController::class, 'mergeForm'])->setName('customers.merge');
+    $app->post('/customers/{id:[0-9]+}/merge', [CustomerController::class, 'merge'])->setName('customers.merge.store');
+
     // Estimates
     $app->get('/estimates/create', [EstimateController::class, 'create'])->setName('estimates.create');
     $app->post('/estimates', [EstimateController::class, 'store'])->setName('estimates.store');

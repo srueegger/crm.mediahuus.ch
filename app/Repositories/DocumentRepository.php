@@ -22,6 +22,7 @@ class DocumentRepository
             'doc_number' => $document->getDocNumber(),
             'branch_id' => $document->getBranchId(),
             'user_id' => $document->getUserId(),
+            'customer_id' => $document->getCustomerId(),
             'customer_name' => $document->getCustomerName(),
             'customer_phone' => $document->getCustomerPhone(),
             'customer_email' => $document->getCustomerEmail(),
@@ -84,6 +85,47 @@ class DocumentRepository
 
         $rows = $this->connection->fetchAllAssociative($sql, $params);
         
+        return array_map([$this, 'hydrateDocument'], $rows);
+    }
+
+    /**
+     * @return Document[] neueste zuerst
+     */
+    public function findByCustomerId(int $customerId): array
+    {
+        $rows = $this->connection->fetchAllAssociative(
+            'SELECT * FROM documents WHERE customer_id = ? ORDER BY created_at DESC, id DESC',
+            [$customerId]
+        );
+
+        return array_map([$this, 'hydrateDocument'], $rows);
+    }
+
+    public function setCustomerId(int $documentId, int $customerId): void
+    {
+        $this->connection->update('documents', ['customer_id' => $customerId], ['id' => $documentId]);
+    }
+
+    /**
+     * Verschiebt alle Dokumente eines Kunden zu einem anderen; liefert die Anzahl.
+     */
+    public function reassignCustomer(int $fromCustomerId, int $toCustomerId): int
+    {
+        return (int) $this->connection->executeStatement(
+            'UPDATE documents SET customer_id = ? WHERE customer_id = ?',
+            [$toCustomerId, $fromCustomerId]
+        );
+    }
+
+    /**
+     * @return Document[] älteste zuerst
+     */
+    public function findWithoutCustomer(): array
+    {
+        $rows = $this->connection->fetchAllAssociative(
+            'SELECT * FROM documents WHERE customer_id IS NULL ORDER BY created_at ASC, id ASC'
+        );
+
         return array_map([$this, 'hydrateDocument'], $rows);
     }
 
@@ -173,7 +215,8 @@ class DocumentRepository
             updatedAt: new \DateTime($row['updated_at']),
             customerStreet: $row['customer_street'] ?? null,
             customerZip: $row['customer_zip'] ?? null,
-            customerCity: $row['customer_city'] ?? null
+            customerCity: $row['customer_city'] ?? null,
+            customerId: isset($row['customer_id']) ? (int) $row['customer_id'] : null
         );
     }
 }

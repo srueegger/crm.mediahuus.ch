@@ -42,6 +42,7 @@ app/
 ├── Controllers/        # HTTP Request Handler
 │   ├── AuthController.php
 │   ├── BaseController.php
+│   ├── CustomerController.php
 │   ├── DashboardController.php
 │   ├── EstimateController.php
 │   ├── InvoiceController.php
@@ -50,6 +51,8 @@ app/
 │   └── UserController.php
 ├── Models/            # Datenmodelle
 │   ├── Branch.php
+│   ├── Customer.php
+│   ├── CustomerData.php
 │   ├── Document.php
 │   ├── Estimate.php
 │   ├── Invoice.php
@@ -60,6 +63,7 @@ app/
 │   └── User.php
 ├── Repositories/      # Datenzugriff
 │   ├── BranchRepository.php
+│   ├── CustomerRepository.php
 │   ├── DocumentRepository.php
 │   ├── EstimateRepository.php
 │   ├── InvoiceRepository.php
@@ -69,6 +73,10 @@ app/
 │   └── UserRepository.php
 ├── Services/          # Business Logic
 │   ├── AuthService.php
+│   ├── CustomerFieldMap.php        # Zuordnung Kundenattribute ↔ Formularfelder je Dokumenttyp
+│   ├── CustomerFormPrefill.php     # Vorbelegung per ?customer_id=
+│   ├── CustomerMergeService.php    # Kunden zusammenführen
+│   ├── CustomerResolver.php        # Automatische Kundenzuordnung beim Speichern
 │   ├── DamageTypeService.php
 │   ├── FileUploadService.php
 │   ├── InvoiceCalculator.php
@@ -77,6 +85,7 @@ app/
 │   ├── InvoicePdfService.php
 │   ├── InvoiceService.php
 │   ├── PdfService.php
+│   ├── PhoneNormalizer.php         # Telefonnummern für den Abgleich normalisieren
 │   └── QrBillFactory.php
 └── Middleware/        # Request Middleware
     └── AuthMiddleware.php
@@ -99,12 +108,18 @@ database/
 │   ├── 008_create_receipts_table.sql
 │   ├── 009_add_receipt_type_to_documents.sql
 │   ├── 010-012 (Versicherungsgutachten, Kundenadresse, Quittungs-Garantie)
-│   └── 013_create_invoices_tables.sql
+│   ├── 013_create_invoices_tables.sql
+│   └── 014_create_customers_table.sql (Kundenstamm: customers, documents.customer_id)
 └── backups/          # SQL Dumps
+
+bin/                  # CLI-Skripte
+├── migrate.php       # Migrations ausführen
+├── seed.php          # Test-Daten laden
+└── import-customers.php  # Altdaten-Import Kundenstamm (--dry-run)
 
 public/
 ├── index.php         # Application Entry Point
-├── assets/           # CSS, JS, Images (u.a. js/invoice-form.js: Live-Vorschau Rechnung)
+├── assets/           # CSS, JS, Images (u.a. js/invoice-form.js: Live-Vorschau Rechnung; js/customer-picker.js: Kundensuche in den Formularen)
 └── uploads/          # User Uploads
     └── id_documents/ # Ausweis-Fotos (Ankauf)
 
@@ -112,6 +127,12 @@ templates/            # Twig Templates
 ├── auth/
 │   └── login.html.twig
 ├── base.html.twig
+├── customers/
+│   ├── _picker.html.twig     # Kunden-Picker (in allen fünf Erfassungsformularen eingebunden)
+│   ├── form.html.twig
+│   ├── index.html.twig
+│   ├── merge.html.twig
+│   └── show.html.twig
 ├── dashboard.html.twig
 ├── estimates/
 │   ├── create.html.twig
@@ -135,7 +156,9 @@ templates/            # Twig Templates
 
 tests/                 # PHPUnit
 ├── AuthServiceTest.php
-└── Services/          # Invoice*Test, QrBillFactoryTest
+├── Middleware/        # CSRF- und Session-Middleware
+├── Models/            # Customer*Test
+└── Services/          # Invoice*Test, QrBillFactoryTest, Customer*Test, PhoneNormalizerTest, CsrfTokenManagerTest
 
 phpunit.xml.dist       # PHPUnit-Konfiguration
 ```
@@ -179,6 +202,15 @@ phpunit.xml.dist       # PHPUnit-Konfiguration
 - **Versicherungsgutachten**: Formular, Detailansicht und PDF (`InsuranceController`, VG-YYYY-NNNNNN)
 - **Excel-Export**: `GET /export/excel` (`ExportController`)
 - **Dokumentenliste**: Tabellarisch mit Filtern (Filiale, Typ, Datum) pro Modul
+- **Kundenstamm** (`CustomerController`, Tabelle `customers`):
+  - Kundenliste mit Suche (Name, Firma, E-Mail, Telefon; 25 pro Seite), Detailansicht mit Stammdaten, Notizen und allen Dokumenten des Kunden, Bearbeiten
+  - Kunden-Picker in allen fünf Erfassungsformularen (`customer-picker.js`, `GET /customers/search`, max. 10 Treffer): Auswahl füllt die Kundenfelder vor, Anzeige «Verknüpft mit» mit Entfernen-Button; Vorbelegung ohne JS über `?customer_id=`
+  - Automatische Zuordnung beim Speichern über `CustomerResolver`: Kein Name → kein Kunde (z. B. Barkauf-Quittung). Ausgewählter Kunde mit gleichem Namen → verknüpft, ausgefüllte Felder aktualisieren den Kunden (leere Felder nie). Sonst Abgleich über gleiche normalisierte Telefonnummer **oder** E-Mail **oder** Adresse (Strasse + PLZ) **und** gleicher Name; genau ein Treffer → verknüpfen, sonst neuer Kunde
+  - Dokumente speichern die Kundendaten als **Momentaufnahme** weiter; PDFs, Detailansichten und Export lesen daraus. Änderungen am Kunden wirken nur auf den Kunden, nie auf bestehende Dokumente
+  - Zusammenführen zweier Kunden (`CustomerMergeService`): Dokumente werden umgehängt, leere Felder ergänzt, Notizen aneinandergehängt, Quelle gelöscht
+  - Excel-Export: Spalte «Kunden-Nr.» (= `customers.id`) in den Blättern mit Kundendaten; Detailansichten verlinken den Kundennamen
+  - Altdaten: einmaliger Import per `bin/import-customers.php` mit denselben Regeln (siehe Deployment)
+  - Nicht im Umfang: Kunden löschen, Datenschutz-Löschfristen, Umhängen eines einzelnen Dokuments, Marketing-Felder
 - **Filialen-System**: Clara & Reinach mit separaten Adressen
 
 ### ⏳ Noch zu implementieren
@@ -191,16 +223,19 @@ phpunit.xml.dist       # PHPUnit-Konfiguration
 ```sql
 users (id, name, email [unique], password_hash, is_active, created_at, updated_at)
 branches (id, name, street, zip, city, phone, email, created_at, updated_at)
-documents (id, doc_type ENUM["estimate","purchase","insurance","receipt","invoice"], doc_number UNIQUE, branch_id FK, user_id FK, customer_name, customer_phone, customer_email, created_at, updated_at)
+documents (id, doc_type ENUM["estimate","purchase","insurance","receipt","invoice"], doc_number UNIQUE, branch_id FK, user_id FK, customer_id FK NULL, customer_name, customer_phone, customer_email, created_at, updated_at)
 estimates (id, document_id FK UNIQUE, device_name, serial_number, damage_type ENUM, issue_text TEXT, price_chf DECIMAL(10,2))
 purchases (id, document_id FK UNIQUE, seller_street, seller_zip, seller_city, device_type, device_brand, device_model, imei, serial_number, device_condition, accessories, purchase_price_chf DECIMAL(10,2), id_document_front, id_document_back)
 receipts (id, document_id FK UNIQUE, notes TEXT, total_amount DECIMAL(10,2))
 receipt_items (id, receipt_id FK, item_description, quantity INT, unit_price DECIMAL(10,2), line_total DECIMAL(10,2))
 invoices (id, document_id FK UNIQUE, company_name, contact_name, invoice_date, payment_term_days, due_date, total_net_chf, total_vat_chf, total_gross_chf, qr_reference)
 invoice_items (id, invoice_id FK, position, description, quantity DECIMAL(10,2), unit_price_gross_chf, vat_rate DECIMAL(4,2), line_total_gross_chf)
+customers (id, company_name, name, phone, phone_normalized, email, street, zip, city, notes, created_at, updated_at)
 ```
 
 Rechnungen: `documents.customer_name` enthält den Anzeigenamen (Firma, sonst Name), `customer_street/zip/city` die Empfängeradresse (`customer_zip` seit Migration 013 VARCHAR(16)), `branch_id` ist immer Reinach.
+
+Kundenstamm (Migration 014): `documents.customer_id` ist ein nullable FK auf `customers.id` (`ON DELETE SET NULL`). Die Kundenfelder in `documents` (sowie `purchases.seller_*` und `insurance_assessments.customer_*`) bleiben als Momentaufnahme bestehen. `customers.phone_normalized` ist die normalisierte Telefonnummer (`PhoneNormalizer`) für den Abgleich. Keine UNIQUE-Bedingung auf Telefon/E-Mail; Duplikate löst das Zusammenführen.
 
 ### Design-Prinzip
 - **Generische Dokumente**: `documents` als Basis-Tabelle
@@ -257,6 +292,7 @@ ddev composer update     # Dependencies aktualisieren
 # Database-Operations
 ddev composer migrate    # Database Migrations
 ddev composer seed       # Test-Daten laden
+ddev exec php bin/import-customers.php --dry-run   # Kunden-Altdatenimport (Testlauf)
 
 # Tests
 ddev exec vendor/bin/phpunit   # PHPUnit Tests
@@ -344,6 +380,19 @@ GET  /receipts/{id}          → Detailansicht
 GET  /receipts/{id}/pdf      → PDF-Download (Quittung)
 ```
 
+### Kundenstamm
+```
+GET  /customers                    → Kundenliste mit Suche (25 pro Seite)
+GET  /customers/search?q=          → JSON für den Kunden-Picker (max. 10 Treffer)
+GET  /customers/create             → Neuer Kunde
+POST /customers                    → Kunde speichern
+GET  /customers/{id}               → Detailansicht (Stammdaten, Notizen, Dokumente)
+GET  /customers/{id}/edit          → Kunde bearbeiten
+POST /customers/{id}               → Kunde aktualisieren
+GET  /customers/{id}/merge?target= → Bestätigungsseite Zusammenführen
+POST /customers/{id}/merge         → Zusammenführen (Feld target_id)
+```
+
 ### Benutzerverwaltung
 ```
 GET  /users                  → User-Liste
@@ -412,11 +461,25 @@ GET  /export/excel           → Excel-Export
 - [✅] Dashboard-Kachel, Excel-Export
 - [✅] PHPUnit-Tests für Rechnungs-Services
 
+### ✅ Kundenstamm (Feature-Branch `feat/customers`)
+- [✅] Tabelle `customers` und `documents.customer_id` (Migration 014)
+- [✅] Automatische Kundenzuordnung beim Speichern (`CustomerResolver`, `PhoneNormalizer`)
+- [✅] Kunden-Picker und Vorbelegung in allen fünf Erfassungsformularen
+- [✅] Kundenliste, Suche, Detailansicht, Bearbeiten, Zusammenführen
+- [✅] Dokumentdetails und Excel-Export mit Kunden-Nr.
+- [✅] Altdaten-Import (`bin/import-customers.php`), PHPUnit-Tests für Resolver, Merge, Normalisierung und Feldzuordnung
+
 ## Deployment
 
 - **Lokal**: DDEV Container-Environment
 - **Staging/Produktion**: TBD (noch zu definieren); auf Produktion ist kein Composer verfügbar: `vendor/` wird lokal gebaut (`composer install --no-dev --optimize-autoloader`) und hochgeladen
 - **Rollout CSRF/Session-Härtung**: Beim ersten Deployment werden alle Benutzer einmalig abgemeldet (neue Session-Konfiguration) und müssen sich neu anmelden.
+- **Rollout Kundenstamm** (in dieser Reihenfolge):
+  1. DB-Backup erstellen (SQL-Dump)
+  2. Code und `vendor/` hochladen
+  3. `php bin/migrate.php` (Migration 014: Tabelle `customers`, Spalte `documents.customer_id`)
+  4. `php bin/import-customers.php --dry-run` prüfen (Testlauf in Transaktion mit Rollback, zeigt Anzahl neuer Kunden und verknüpfter Dokumente)
+  5. `php bin/import-customers.php` ausführen. Wiederholbar: verarbeitet nur Dokumente ohne `customer_id`, ältestes zuerst, damit die neuesten Angaben gewinnen. Barkauf-Quittungen ohne Kundennamen bleiben ohne Kunde.
 - **Composer**: `composer.lock` ist versioniert; `config.platform.php = 8.2` stellt sicher, dass nur mit PHP 8.2 kompatible Versionen aufgelöst werden
 - **Database**: MariaDB mit SQL-Dumps für Backup
 

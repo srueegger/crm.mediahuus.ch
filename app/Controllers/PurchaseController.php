@@ -13,6 +13,10 @@ use App\Services\PdfService;
 use App\Services\FileUploadService;
 use Psr\Http\Message\ResponseInterface as Response;
 use Psr\Http\Message\ServerRequestInterface as Request;
+use App\Services\CustomerFieldMap;
+use App\Services\CustomerFormPrefill;
+use App\Services\CustomerResolver;
+use Doctrine\DBAL\Connection;
 use Psr\Log\LoggerInterface;
 use Twig\Environment;
 
@@ -24,6 +28,9 @@ class PurchaseController extends BaseController
     private PdfService $pdfService;
     private FileUploadService $fileUploadService;
     private LoggerInterface $logger;
+    private Connection $connection;
+    private CustomerResolver $customerResolver;
+    private CustomerFormPrefill $customerFormPrefill;
 
     public function __construct(
         Environment $twig,
@@ -32,7 +39,10 @@ class PurchaseController extends BaseController
         BranchRepository $branchRepository,
         PdfService $pdfService,
         FileUploadService $fileUploadService,
-        LoggerInterface $logger
+        LoggerInterface $logger,
+        Connection $connection,
+        CustomerResolver $customerResolver,
+        CustomerFormPrefill $customerFormPrefill
     ) {
         parent::__construct($twig);
         $this->documentRepository = $documentRepository;
@@ -41,12 +51,20 @@ class PurchaseController extends BaseController
         $this->pdfService = $pdfService;
         $this->fileUploadService = $fileUploadService;
         $this->logger = $logger;
+        $this->connection = $connection;
+        $this->customerResolver = $customerResolver;
+        $this->customerFormPrefill = $customerFormPrefill;
     }
 
     public function create(Request $request, Response $response): Response
     {
         /** @var User $currentUser */
         $currentUser = $request->getAttribute('current_user');
+
+        $prefill = $this->customerFormPrefill->forRequest(
+            Document::TYPE_PURCHASE,
+            $request->getQueryParams()['customer_id'] ?? null
+        );
 
         try {
             $branches = $this->branchRepository->findAll();
@@ -55,6 +73,9 @@ class PurchaseController extends BaseController
                 'user' => $currentUser->toArray(),
                 'branches' => array_map(fn($branch) => $branch->toArray(), $branches),
                 'deviceTypes' => $this->getDeviceTypes(),
+                'formData' => $prefill['formData'],
+                'linkedCustomer' => $prefill['linkedCustomer'],
+                'customerFieldMap' => CustomerFieldMap::for(Document::TYPE_PURCHASE),
             ]);
         } catch (\Exception $e) {
             $this->logger->error('Failed to load branches for purchase creation', ['error' => $e->getMessage()]);
@@ -62,6 +83,9 @@ class PurchaseController extends BaseController
             return $this->render($response, 'purchases/create.html.twig', [
                 'user' => $currentUser->toArray(),
                 'branches' => [],
+                'formData' => $prefill['formData'],
+                'linkedCustomer' => $prefill['linkedCustomer'],
+                'customerFieldMap' => CustomerFieldMap::for(Document::TYPE_PURCHASE),
                 'error' => 'Fehler beim Laden der Filialen'
             ]);
         }
@@ -94,6 +118,8 @@ class PurchaseController extends BaseController
                     'deviceTypes' => $this->getDeviceTypes(),
                     'errors' => $errors,
                     'formData' => $data,
+                    'linkedCustomer' => $this->customerFormPrefill->linked($data['customer_id'] ?? null),
+                    'customerFieldMap' => CustomerFieldMap::for(Document::TYPE_PURCHASE),
                 ]);
             } catch (\Exception $e) {
                 $this->logger->error('Failed to load branches after validation error', ['error' => $e->getMessage()]);
@@ -140,6 +166,8 @@ class PurchaseController extends BaseController
                 'deviceTypes' => $this->getDeviceTypes(),
                 'errors' => [$uploadField => $e->getMessage()],
                 'formData' => $data,
+                'linkedCustomer' => $this->customerFormPrefill->linked($data['customer_id'] ?? null),
+                'customerFieldMap' => CustomerFieldMap::for(Document::TYPE_PURCHASE),
             ]);
         }
 
@@ -149,41 +177,50 @@ class PurchaseController extends BaseController
                 throw new \RuntimeException('ID document front is required');
             }
 
-            // Generate document number
-            $docNumber = $this->documentRepository->generateDocNumber(Document::TYPE_PURCHASE);
+            $selectedCustomerId = $this->selectedCustomerId($data);
 
-            // Create document
-            $document = new Document(
-                docType: Document::TYPE_PURCHASE,
-                docNumber: $docNumber,
-                branchId: (int) $data['branch_id'],
-                userId: $currentUser->getId(),
-                customerName: trim($data['customer_name']),
-                customerPhone: trim($data['customer_phone']) ?: null,
-                customerEmail: trim($data['customer_email']) ?: null
+            [$documentId, $purchaseId, $docNumber] = $this->connection->transactional(
+                function () use ($data, $currentUser, $selectedCustomerId, $idDocumentFront, $idDocumentBack): array {
+                    $docNumber = $this->documentRepository->generateDocNumber(Document::TYPE_PURCHASE);
+
+                    $customerId = $this->customerResolver->resolve(
+                        CustomerFieldMap::dataFromForm(Document::TYPE_PURCHASE, $data),
+                        $selectedCustomerId
+                    );
+
+                    $document = new Document(
+                        docType: Document::TYPE_PURCHASE,
+                        docNumber: $docNumber,
+                        branchId: (int) $data['branch_id'],
+                        userId: $currentUser->getId(),
+                        customerName: trim($data['customer_name']),
+                        customerPhone: trim($data['customer_phone']) ?: null,
+                        customerEmail: trim($data['customer_email']) ?: null,
+                        customerId: $customerId
+                    );
+
+                    $documentId = $this->documentRepository->create($document);
+
+                    $purchase = new Purchase(
+                        documentId: $documentId,
+                        sellerStreet: trim($data['seller_street']),
+                        sellerZip: trim($data['seller_zip']),
+                        sellerCity: trim($data['seller_city']),
+                        deviceType: $data['device_type'],
+                        deviceBrand: trim($data['device_brand']),
+                        deviceModel: trim($data['device_model']),
+                        purchasePriceChf: (float) $data['purchase_price_chf'],
+                        idDocumentFront: $idDocumentFront,
+                        imei: !empty($data['imei']) ? trim($data['imei']) : null,
+                        serialNumber: !empty($data['serial_number']) ? trim($data['serial_number']) : null,
+                        deviceCondition: !empty($data['device_condition']) ? trim($data['device_condition']) : null,
+                        accessories: !empty($data['accessories']) ? trim($data['accessories']) : null,
+                        idDocumentBack: $idDocumentBack
+                    );
+
+                    return [$documentId, $this->purchaseRepository->create($purchase), $docNumber];
+                }
             );
-
-            $documentId = $this->documentRepository->create($document);
-
-            // Create purchase details
-            $purchase = new Purchase(
-                documentId: $documentId,
-                sellerStreet: trim($data['seller_street']),
-                sellerZip: trim($data['seller_zip']),
-                sellerCity: trim($data['seller_city']),
-                deviceType: $data['device_type'],
-                deviceBrand: trim($data['device_brand']),
-                deviceModel: trim($data['device_model']),
-                purchasePriceChf: (float) $data['purchase_price_chf'],
-                idDocumentFront: $idDocumentFront,
-                imei: !empty($data['imei']) ? trim($data['imei']) : null,
-                serialNumber: !empty($data['serial_number']) ? trim($data['serial_number']) : null,
-                deviceCondition: !empty($data['device_condition']) ? trim($data['device_condition']) : null,
-                accessories: !empty($data['accessories']) ? trim($data['accessories']) : null,
-                idDocumentBack: $idDocumentBack
-            );
-
-            $purchaseId = $this->purchaseRepository->create($purchase);
 
             $this->logger->info('Purchase created', [
                 'document_id' => $documentId,
@@ -323,10 +360,14 @@ class PurchaseController extends BaseController
 
         if (empty(trim($data['seller_zip'] ?? ''))) {
             $errors['seller_zip'] = 'PLZ ist erforderlich';
+        } elseif (mb_strlen(trim($data['seller_zip'])) > 10) {
+            $errors['seller_zip'] = 'PLZ ist zu lang';
         }
 
         if (empty(trim($data['seller_city'] ?? ''))) {
             $errors['seller_city'] = 'Ort ist erforderlich';
+        } elseif (mb_strlen(trim($data['seller_city'])) > 100) {
+            $errors['seller_city'] = 'Ort ist zu lang';
         }
 
         // Device type

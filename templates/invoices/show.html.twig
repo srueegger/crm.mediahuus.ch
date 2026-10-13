@@ -26,13 +26,13 @@
                         {% if invoice.company_name %}
                         <div>
                             <dt class="text-sm font-medium text-gray-500">Firma:</dt>
-                            <dd class="text-sm text-gray-900">{{ invoice.company_name }}</dd>
+                            <dd class="text-sm text-gray-900">{% if document.customer_id %}<a href="{{ url_for('customers.show', {id: document.customer_id}) }}" class="text-emerald-700 hover:underline">{{ invoice.company_name }}</a>{% else %}{{ invoice.company_name }}{% endif %}</dd>
                         </div>
                         {% endif %}
                         {% if invoice.contact_name %}
                         <div>
                             <dt class="text-sm font-medium text-gray-500">Name:</dt>
-                            <dd class="text-sm text-gray-900">{{ invoice.contact_name }}</dd>
+                            <dd class="text-sm text-gray-900">{% if document.customer_id %}<a href="{{ url_for('customers.show', {id: document.customer_id}) }}" class="text-emerald-700 hover:underline">{{ invoice.contact_name }}</a>{% else %}{{ invoice.contact_name }}{% endif %}</dd>
                         </div>
                         {% endif %}
                         <div>

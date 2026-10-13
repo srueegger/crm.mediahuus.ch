@@ -28,7 +28,8 @@ class InvoiceService
         private InvoiceCalculator $calculator,
         private InvoiceNumberGenerator $numberGenerator,
         private QrBillFactory $qrBillFactory,
-        private array $invoiceConfig
+        private array $invoiceConfig,
+        private CustomerResolver $customerResolver
     ) {
     }
 
@@ -39,7 +40,7 @@ class InvoiceService
      * @return int document_id
      * @throws \RuntimeException bei ungültiger QR-Rechnung, fehlender Filiale oder Nummernkollision
      */
-    public function create(array $data, int $userId): int
+    public function create(array $data, int $userId, ?int $selectedCustomerId = null): int
     {
         $branchName = (string) $this->invoiceConfig['creditor']['branch_name'];
         $branch = $this->branchRepository->findByName($branchName);
@@ -83,7 +84,12 @@ class InvoiceService
 
             try {
                 return $this->connection->transactional(
-                    function () use ($number, $branch, $userId, $displayName, $data, $company, $contact, $invoiceDate, $termDays, $dueDate, $calc): int {
+                    function () use ($selectedCustomerId, $number, $branch, $userId, $displayName, $data, $company, $contact, $invoiceDate, $termDays, $dueDate, $calc): int {
+                        $customerId = $this->customerResolver->resolve(
+                            CustomerFieldMap::dataFromForm(Document::TYPE_INVOICE, $data),
+                            $selectedCustomerId
+                        );
+
                         $documentId = $this->documentRepository->create(new Document(
                             Document::TYPE_INVOICE,
                             $number,
@@ -97,7 +103,8 @@ class InvoiceService
                             null,
                             (string) $data['street'],
                             (string) $data['zip'],
-                            (string) $data['city']
+                            (string) $data['city'],
+                            $customerId
                         ));
 
                         $items = [];

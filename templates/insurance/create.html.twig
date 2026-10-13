@@ -45,6 +45,7 @@
                 <!-- Kundendaten -->
                 <div class="border-b border-gray-200 pb-8">
                     <h3 class="text-lg font-medium text-gray-900 mb-4">Kundendaten</h3>
+                    {% include 'customers/_picker.html.twig' with { fieldMap: customerFieldMap, linkedCustomer: linkedCustomer, customerId: formData.customer_id|default('') } %}
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                         <div class="md:col-span-2">
                             <label for="customer_name" class="mediahuus-label">Name des Kunden *</label>
@@ -68,7 +69,7 @@
                         </div>
                         <div>
                             <label for="customer_zip" class="mediahuus-label">PLZ *</label>
-                            <input type="text" name="customer_zip" id="customer_zip" required
+                            <input type="text" name="customer_zip" id="customer_zip" required maxlength="10"
                                    value="{{ formData.customer_zip|default('') }}"
                                    class="mediahuus-input {{ errors.customer_zip is defined ? 'error' : '' }}"
                                    placeholder="4000">
@@ -78,7 +79,7 @@
                         </div>
                         <div>
                             <label for="customer_city" class="mediahuus-label">Ort *</label>
-                            <input type="text" name="customer_city" id="customer_city" required
+                            <input type="text" name="customer_city" id="customer_city" required maxlength="100"
                                    value="{{ formData.customer_city|default('') }}"
                                    class="mediahuus-input {{ errors.customer_city is defined ? 'error' : '' }}"
                                    placeholder="Basel">
@@ -253,6 +254,7 @@
 {% endblock %}
 
 {% block scripts %}
+<script src="/assets/js/customer-picker.js" defer></script>
 <script>
 var damageTemplates = {{ damageTemplates|json_encode|raw }};
 

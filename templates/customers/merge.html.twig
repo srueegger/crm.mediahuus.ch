@@ -1,0 +1,49 @@
+{% extends "base.html.twig" %}
+
+{% block title %}Kunden zusammenführen - {{ parent() }}{% endblock %}
+
+{% macro card(customer, docCount, heading, tone) %}
+<div class="mediahuus-form-section {{ tone == 'target' ? 'border-2 border-emerald-600' : '' }}">
+    <h3 class="text-sm font-semibold uppercase tracking-wider {{ tone == 'target' ? 'text-emerald-700' : 'text-gray-500' }} mb-3">{{ heading }}</h3>
+    <p class="text-lg font-bold text-gray-900 mb-1">{{ customer.display_name }}</p>
+    <p class="text-xs text-gray-500 mb-4">Kunden-Nr. {{ customer.id }}</p>
+    <dl class="space-y-3 text-sm">
+        <div><dt class="text-gray-500">Firma</dt><dd class="text-gray-900">{{ customer.company_name|default('–') }}</dd></div>
+        <div><dt class="text-gray-500">Name</dt><dd class="text-gray-900">{{ customer.name }}</dd></div>
+        <div><dt class="text-gray-500">Telefon</dt><dd class="text-gray-900">{{ customer.phone|default('–') }}</dd></div>
+        <div><dt class="text-gray-500">E-Mail</dt><dd class="text-gray-900">{{ customer.email|default('–') }}</dd></div>
+        <div><dt class="text-gray-500">Strasse</dt><dd class="text-gray-900">{{ customer.street|default('–') }}</dd></div>
+        <div><dt class="text-gray-500">PLZ / Ort</dt><dd class="text-gray-900">{% if customer.zip or customer.city %}{{ customer.zip }} {{ customer.city }}{% else %}–{% endif %}</dd></div>
+        <div><dt class="text-gray-500">Notizen</dt><dd class="text-gray-900 whitespace-pre-line">{{ customer.notes|default('–') }}</dd></div>
+        <div><dt class="text-gray-500">Dokumente</dt><dd class="text-gray-900 font-medium">{{ docCount }}</dd></div>
+    </dl>
+</div>
+{% endmacro %}
+
+{% block content %}
+<div class="max-w-5xl mx-auto py-6 sm:px-6 lg:px-8">
+    <div class="px-4 py-6 sm:px-0">
+        <div class="mb-6">
+            <a href="{{ url_for('customers.show', {id: source.id}) }}" class="text-sm text-emerald-600 hover:text-emerald-700">&larr; Zurück zu {{ source.display_name }}</a>
+            <h2 class="text-2xl font-bold text-gray-900 mt-2">Kunden zusammenführen</h2>
+        </div>
+
+        <div class="mb-6 bg-emerald-50 border border-emerald-100 text-emerald-700 px-4 py-3 rounded">
+            Der Kunde links wird gelöscht, alle Dokumente gehen an den Kunden rechts.
+            Leere Felder des Kunden rechts werden aus dem Kunden links ergänzt, die Notizen werden zusammengefügt.
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+            {{ _self.card(source, sourceDocCount, 'Wird gelöscht', 'source') }}
+            {{ _self.card(target, targetDocCount, 'Bleibt bestehen', 'target') }}
+        </div>
+
+        <form method="post" action="{{ url_for('customers.merge', {id: source.id}) }}" class="flex flex-wrap gap-3">
+            {{ csrf_field() }}
+            <input type="hidden" name="target_id" value="{{ target.id }}">
+            <button type="submit" class="mediahuus-button-primary">Zusammenführen</button>
+            <a href="{{ url_for('customers.show', {id: source.id}) }}" class="mediahuus-button-secondary">Abbrechen</a>
+        </form>
+    </div>
+</div>
+{% endblock %}

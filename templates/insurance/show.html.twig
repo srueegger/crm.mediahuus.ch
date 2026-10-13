@@ -50,7 +50,7 @@
                 <div class="space-y-2">
                     <div>
                         <p class="text-sm font-medium text-gray-500">Name</p>
-                        <p class="text-gray-900">{{ document.customer_name }}</p>
+                        <p class="text-gray-900">{% if document.customer_id %}<a href="{{ url_for('customers.show', {id: document.customer_id}) }}" class="text-emerald-700 hover:underline">{{ document.customer_name }}</a>{% else %}{{ document.customer_name }}{% endif %}</p>
                     </div>
                     <div>
                         <p class="text-sm font-medium text-gray-500">Adresse</p>

@@ -9,6 +9,7 @@ use Monolog\Logger;
 use Monolog\Handler\StreamHandler;
 use Psr\Log\LoggerInterface;
 use App\Repositories\UserRepository;
+use App\Repositories\CustomerRepository;
 use App\Repositories\DocumentRepository;
 use App\Repositories\EstimateRepository;
 use App\Repositories\BranchRepository;
@@ -17,6 +18,8 @@ use App\Repositories\ReceiptItemRepository;
 use App\Repositories\PurchaseRepository;
 use App\Repositories\InsuranceAssessmentRepository;
 use App\Services\AuthService;
+use App\Services\CustomerFormPrefill;
+use App\Services\CustomerResolver;
 use App\Services\CsrfTokenManager;
 use App\Services\PdfService;
 use App\Services\FileUploadService;
@@ -62,6 +65,14 @@ return [
                 'purchases.create' => '/purchases/create',
                 'purchases.show' => '/purchases/' . ($params['id'] ?? '{id}'),
                 'purchases.pdf' => '/purchases/' . ($params['id'] ?? '{id}') . '/pdf',
+                'customers.index' => '/customers',
+                'customers.search' => '/customers/search',
+                'customers.create' => '/customers/create',
+                'customers.store' => '/customers',
+                'customers.show' => '/customers/' . ($params['id'] ?? '{id}'),
+                'customers.edit' => '/customers/' . ($params['id'] ?? '{id}') . '/edit',
+                'customers.update' => '/customers/' . ($params['id'] ?? '{id}'),
+                'customers.merge' => '/customers/' . ($params['id'] ?? '{id}') . '/merge',
                 'invoices.create' => '/invoices/create',
                 'invoices.store' => '/invoices',
                 'invoices.show' => '/invoices/' . ($params['id'] ?? '{id}'),
@@ -139,6 +150,11 @@ return [
         return new DocumentRepository($connection);
     },
 
+    // Customer Repository
+    CustomerRepository::class => function (Connection $connection) {
+        return new CustomerRepository($connection);
+    },
+
     // Estimate Repository
     EstimateRepository::class => function (Connection $connection) {
         return new EstimateRepository($connection);
@@ -184,7 +200,8 @@ return [
         BranchRepository $branchRepository,
         InvoiceCalculator $calculator,
         InvoiceNumberGenerator $numberGenerator,
-        QrBillFactory $qrBillFactory
+        QrBillFactory $qrBillFactory,
+        CustomerResolver $customerResolver
     ) {
         return new InvoiceService(
             $connection,
@@ -194,7 +211,8 @@ return [
             $calculator,
             $numberGenerator,
             $qrBillFactory,
-            require __DIR__ . '/invoice.php'
+            require __DIR__ . '/invoice.php',
+            $customerResolver
         );
     },
 
@@ -207,7 +225,8 @@ return [
         InvoiceInputValidator $validator,
         InvoiceService $invoiceService,
         InvoicePdfService $pdfService,
-        LoggerInterface $logger
+        LoggerInterface $logger,
+        CustomerFormPrefill $customerFormPrefill
     ) {
         return new InvoiceController(
             $twig,
@@ -218,18 +237,19 @@ return [
             $invoiceService,
             $pdfService,
             require __DIR__ . '/invoice.php',
-            $logger
+            $logger,
+            $customerFormPrefill
         );
     },
 
     // Estimate Controller
-    EstimateController::class => function (Environment $twig, DocumentRepository $documentRepository, EstimateRepository $estimateRepository, BranchRepository $branchRepository, PdfService $pdfService, LoggerInterface $logger) {
-        return new EstimateController($twig, $documentRepository, $estimateRepository, $branchRepository, $pdfService, $logger);
+    EstimateController::class => function (Environment $twig, DocumentRepository $documentRepository, EstimateRepository $estimateRepository, BranchRepository $branchRepository, PdfService $pdfService, LoggerInterface $logger, Connection $connection, CustomerResolver $customerResolver, CustomerFormPrefill $customerFormPrefill) {
+        return new EstimateController($twig, $documentRepository, $estimateRepository, $branchRepository, $pdfService, $logger, $connection, $customerResolver, $customerFormPrefill);
     },
 
     // Receipt Controller
-    ReceiptController::class => function (Environment $twig, DocumentRepository $documentRepository, ReceiptRepository $receiptRepository, ReceiptItemRepository $receiptItemRepository, BranchRepository $branchRepository, PdfService $pdfService, LoggerInterface $logger) {
-        return new ReceiptController($twig, $documentRepository, $receiptRepository, $receiptItemRepository, $branchRepository, $pdfService, $logger);
+    ReceiptController::class => function (Environment $twig, DocumentRepository $documentRepository, ReceiptRepository $receiptRepository, ReceiptItemRepository $receiptItemRepository, BranchRepository $branchRepository, PdfService $pdfService, LoggerInterface $logger, Connection $connection, CustomerResolver $customerResolver, CustomerFormPrefill $customerFormPrefill) {
+        return new ReceiptController($twig, $documentRepository, $receiptRepository, $receiptItemRepository, $branchRepository, $pdfService, $logger, $connection, $customerResolver, $customerFormPrefill);
     },
 
     // Purchase Repository
@@ -244,8 +264,8 @@ return [
     },
 
     // Purchase Controller
-    PurchaseController::class => function (Environment $twig, DocumentRepository $documentRepository, PurchaseRepository $purchaseRepository, BranchRepository $branchRepository, PdfService $pdfService, FileUploadService $fileUploadService, LoggerInterface $logger) {
-        return new PurchaseController($twig, $documentRepository, $purchaseRepository, $branchRepository, $pdfService, $fileUploadService, $logger);
+    PurchaseController::class => function (Environment $twig, DocumentRepository $documentRepository, PurchaseRepository $purchaseRepository, BranchRepository $branchRepository, PdfService $pdfService, FileUploadService $fileUploadService, LoggerInterface $logger, Connection $connection, CustomerResolver $customerResolver, CustomerFormPrefill $customerFormPrefill) {
+        return new PurchaseController($twig, $documentRepository, $purchaseRepository, $branchRepository, $pdfService, $fileUploadService, $logger, $connection, $customerResolver, $customerFormPrefill);
     },
 
     // Insurance Assessment Repository
@@ -254,8 +274,8 @@ return [
     },
 
     // Insurance Controller
-    InsuranceController::class => function (Environment $twig, DocumentRepository $documentRepository, InsuranceAssessmentRepository $insuranceRepository, BranchRepository $branchRepository, PdfService $pdfService, LoggerInterface $logger) {
-        return new InsuranceController($twig, $documentRepository, $insuranceRepository, $branchRepository, $pdfService, $logger);
+    InsuranceController::class => function (Environment $twig, DocumentRepository $documentRepository, InsuranceAssessmentRepository $insuranceRepository, BranchRepository $branchRepository, PdfService $pdfService, LoggerInterface $logger, Connection $connection, CustomerResolver $customerResolver, CustomerFormPrefill $customerFormPrefill) {
+        return new InsuranceController($twig, $documentRepository, $insuranceRepository, $branchRepository, $pdfService, $logger, $connection, $customerResolver, $customerFormPrefill);
     },
 
     // Dashboard Controller

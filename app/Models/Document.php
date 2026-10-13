@@ -22,6 +22,7 @@ class Document
     private ?string $customerStreet;
     private ?string $customerZip;
     private ?string $customerCity;
+    private ?int $customerId;
     private \DateTime $createdAt;
     private \DateTime $updatedAt;
 
@@ -38,7 +39,8 @@ class Document
         ?\DateTime $updatedAt = null,
         ?string $customerStreet = null,
         ?string $customerZip = null,
-        ?string $customerCity = null
+        ?string $customerCity = null,
+        ?int $customerId = null
     ) {
         $this->validateDocType($docType);
 
@@ -53,6 +55,7 @@ class Document
         $this->customerStreet = $customerStreet;
         $this->customerZip = $customerZip;
         $this->customerCity = $customerCity;
+        $this->customerId = $customerId;
         $this->createdAt = $createdAt ?? new \DateTime();
         $this->updatedAt = $updatedAt ?? new \DateTime();
     }
@@ -112,6 +115,11 @@ class Document
         return $this->customerCity;
     }
 
+    public function getCustomerId(): ?int
+    {
+        return $this->customerId;
+    }
+
     public function getCustomerAddress(): ?string
     {
         if (!$this->customerStreet && !$this->customerZip && !$this->customerCity) {
@@ -152,6 +160,7 @@ class Document
             'customer_zip' => $this->customerZip,
             'customer_city' => $this->customerCity,
             'customer_address' => $this->getCustomerAddress(),
+            'customer_id' => $this->customerId,
             'created_at' => $this->createdAt->format('Y-m-d H:i:s'),
             'updated_at' => $this->updatedAt->format('Y-m-d H:i:s'),
         ];
