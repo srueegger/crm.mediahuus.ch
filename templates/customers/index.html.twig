@@ -18,7 +18,7 @@
         {% endif %}
 
         <form method="get" action="{{ url_for('customers.index') }}" class="mb-6 flex gap-3">
-            <input type="text" name="q" value="{{ q }}" class="mediahuus-input" placeholder="Suche nach Name, Firma, Telefon, E-Mail oder Dokumentnummer">
+            <input type="text" name="q" value="{{ q }}" class="mediahuus-input" placeholder="Suche nach Name, Firma, Telefon oder E-Mail">
             <button type="submit" class="mediahuus-button-primary">Suchen</button>
             {% if q %}<a href="{{ url_for('customers.index') }}" class="mediahuus-button-secondary">Zurücksetzen</a>{% endif %}
         </form>

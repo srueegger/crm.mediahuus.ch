@@ -67,7 +67,7 @@ class CustomerController extends BaseController
         $params = $request->getQueryParams();
         $q = isset($params['q']) && is_string($params['q']) ? trim($params['q']) : '';
         $page = isset($params['page']) && is_string($params['page']) && ctype_digit($params['page'])
-            ? max(1, (int) $params['page']) : 1;
+            ? min(100000, max(1, (int) $params['page'])) : 1;
         $error = isset($params['error']) && is_string($params['error']) ? $params['error'] : null;
 
         $result = $this->customers->paginate($q !== '' ? $q : null, $page, self::PER_PAGE);
