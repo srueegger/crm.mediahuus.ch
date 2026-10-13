@@ -141,8 +141,12 @@ class ReceiptController extends BaseController
                     $docNumber = $this->documentRepository->generateDocNumber(Document::TYPE_RECEIPT);
 
                     // Kundenzuordnung mit dem echten Namen (vor dem «Barkauf»-Fallback)
+                    $resolverInput = $data;
+                    if (CustomerFieldMap::isAnonymousReceiptName((string) ($data['customer_name'] ?? ''))) {
+                        $resolverInput['customer_name'] = '';
+                    }
                     $customerId = $this->customerResolver->resolve(
-                        CustomerFieldMap::dataFromForm(Document::TYPE_RECEIPT, $data),
+                        CustomerFieldMap::dataFromForm(Document::TYPE_RECEIPT, $resolverInput),
                         $selectedCustomerId
                     );
 

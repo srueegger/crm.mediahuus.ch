@@ -360,10 +360,14 @@ class PurchaseController extends BaseController
 
         if (empty(trim($data['seller_zip'] ?? ''))) {
             $errors['seller_zip'] = 'PLZ ist erforderlich';
+        } elseif (mb_strlen(trim($data['seller_zip'])) > 10) {
+            $errors['seller_zip'] = 'PLZ ist zu lang';
         }
 
         if (empty(trim($data['seller_city'] ?? ''))) {
             $errors['seller_city'] = 'Ort ist erforderlich';
+        } elseif (mb_strlen(trim($data['seller_city'])) > 100) {
+            $errors['seller_city'] = 'Ort ist zu lang';
         }
 
         // Device type

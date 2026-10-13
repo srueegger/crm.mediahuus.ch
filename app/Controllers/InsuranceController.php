@@ -305,10 +305,14 @@ class InsuranceController extends BaseController
 
         if (empty(trim($data['customer_zip'] ?? ''))) {
             $errors['customer_zip'] = 'PLZ ist erforderlich';
+        } elseif (mb_strlen(trim($data['customer_zip'])) > 10) {
+            $errors['customer_zip'] = 'PLZ ist zu lang';
         }
 
         if (empty(trim($data['customer_city'] ?? ''))) {
             $errors['customer_city'] = 'Ort ist erforderlich';
+        } elseif (mb_strlen(trim($data['customer_city'])) > 100) {
+            $errors['customer_city'] = 'Ort ist zu lang';
         }
 
         if (empty($data['assessment_result'] ?? '')) {

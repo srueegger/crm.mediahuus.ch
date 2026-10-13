@@ -141,6 +141,13 @@ class CustomerFieldMapTest extends TestCase
         $this->assertSame('Muster AG', $companyOnly->company);
     }
 
+    public function testIsAnonymousReceiptName(): void
+    {
+        $this->assertTrue(CustomerFieldMap::isAnonymousReceiptName(' BarKauf '));
+        $this->assertFalse(CustomerFieldMap::isAnonymousReceiptName('Barkauf AG'));
+        $this->assertFalse(CustomerFieldMap::isAnonymousReceiptName(''));
+    }
+
     public function testBarkaufReceiptIsEmpty(): void
     {
         $data = CustomerFieldMap::dataFromDocument($this->doc(Document::TYPE_RECEIPT, '  barkauf '), null, null, null);

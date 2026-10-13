@@ -91,6 +91,14 @@ final class CustomerFieldMap
     }
 
     /**
+     * Der Name «Barkauf» (beliebige Schreibweise) kennzeichnet eine anonyme Quittung.
+     */
+    public static function isAnonymousReceiptName(string $name): bool
+    {
+        return mb_strtolower(trim($name)) === 'barkauf';
+    }
+
+    /**
      * Baut die Kundendaten eines bestehenden Dokuments (Altdaten-Import).
      * Eine Quittung mit dem Namen «Barkauf» gilt als anonym (leerer Name).
      */
@@ -124,7 +132,7 @@ final class CustomerFieldMap
                 break;
             case Document::TYPE_RECEIPT:
                 $phone = $email = null;
-                if (mb_strtolower(trim($name)) === 'barkauf') {
+                if (self::isAnonymousReceiptName($name)) {
                     $name = '';
                 }
                 break;
