@@ -12,12 +12,14 @@ use App\Controllers\InsuranceController;
 use App\Controllers\ExportController;
 use App\Controllers\CustomerController;
 use App\Controllers\RepairController;
+use App\Controllers\RepairStatusController;
 use App\Middleware\AuthMiddleware;
 use Slim\App;
 
 // Public routes
 $app->get('/login', [AuthController::class, 'showLogin'])->setName('login');
 $app->post('/login', [AuthController::class, 'login']);
+$app->get('/r/{token:[a-f0-9]{32}}', [RepairStatusController::class, 'show'])->setName('repairs.public');
 
 // Protected routes
 $app->group('', function () use ($app) {

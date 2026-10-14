@@ -1,0 +1,11 @@
+{% extends "public/base.html.twig" %}
+
+{% block title %}Link nicht mehr gültig{% endblock %}
+
+{% block content %}
+<div class="bg-white rounded-lg shadow p-6 text-center">
+    <h1 class="text-xl font-semibold mb-2">Dieser Link ist nicht mehr gültig</h1>
+    <p class="text-gray-600">Die Reparatur ist seit längerer Zeit abgeschlossen. Bei Fragen wenden Sie sich bitte an Ihre Filiale.</p>
+</div>
+{% include "public/_branch.html.twig" with {branch: branch} only %}
+{% endblock %}

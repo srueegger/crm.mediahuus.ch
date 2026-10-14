@@ -1,0 +1,53 @@
+{% extends "public/base.html.twig" %}
+
+{% block title %}Reparatur {{ page.doc_number }}{% endblock %}
+
+{% block content %}
+<div class="bg-white rounded-lg shadow p-4 sm:p-6">
+    <p class="text-sm text-gray-500">Reparatur {{ page.doc_number }}</p>
+    <h1 class="text-xl font-semibold mt-1">{{ page.device_name }}</h1>
+
+    {% if page.cancelled %}
+    <div class="mt-4 bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded">
+        Diese Reparatur wurde storniert. Bei Fragen wenden Sie sich bitte an Ihre Filiale.
+    </div>
+    {% else %}
+    <ol class="mt-6 space-y-4">
+        {% for step in page.steps %}
+        <li class="flex items-center">
+            <span class="flex-shrink-0 w-8 h-8 rounded-full flex items-center justify-center text-sm font-semibold
+                {% if step.done %}bg-emerald-600 text-white{% else %}bg-gray-200 text-gray-500{% endif %}
+                {% if step.current %}ring-4 ring-emerald-100{% endif %}">
+                {% if step.done %}&#10003;{% else %}{{ loop.index }}{% endif %}
+            </span>
+            <span class="ml-3 {% if step.current %}font-semibold text-emerald-700{% elseif step.done %}text-gray-900{% else %}text-gray-400{% endif %}">{{ step.label }}</span>
+        </li>
+        {% endfor %}
+    </ol>
+    {% endif %}
+
+    {% if page.due_date or page.price_chf %}
+    <dl class="mt-6 border-t pt-4 space-y-2 text-sm">
+        {% if page.due_date %}
+        <div class="flex justify-between"><dt class="text-gray-500">Fertig bis</dt><dd class="font-medium">{{ page.due_date }}</dd></div>
+        {% endif %}
+        {% if page.price_chf %}
+        <div class="flex justify-between"><dt class="text-gray-500">Preis (voraussichtlich, inkl. MWST)</dt><dd class="font-medium">{{ page.price_chf }}</dd></div>
+        {% endif %}
+    </dl>
+    {% endif %}
+</div>
+
+{% if page.history %}
+<div class="bg-white rounded-lg shadow p-4 sm:p-6 mt-4">
+    <h2 class="text-sm font-semibold text-gray-500 uppercase tracking-wide mb-2">Statusverlauf</h2>
+    <ul class="divide-y divide-gray-100 text-sm">
+        {% for entry in page.history|reverse %}
+        <li class="py-2 flex justify-between"><span>{{ entry.status_label }}</span><span class="text-gray-500">{{ entry.date }}</span></li>
+        {% endfor %}
+    </ul>
+</div>
+{% endif %}
+
+{% include "public/_branch.html.twig" with {branch: page.branch} only %}
+{% endblock %}

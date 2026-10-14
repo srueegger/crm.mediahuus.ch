@@ -48,6 +48,7 @@ use App\Controllers\InsuranceController;
 use App\Controllers\DashboardController;
 use App\Controllers\ExportController;
 use App\Controllers\RepairController;
+use App\Controllers\RepairStatusController;
 
 return [
     // Twig Template Engine
@@ -355,6 +356,17 @@ return [
             $customerFormPrefill,
             $logger
         );
+    },
+
+    // Öffentliche Statusseite
+    RepairStatusController::class => function (
+        Environment $twig,
+        RepairRepository $repairs,
+        RepairEventRepository $events,
+        DocumentRepository $documents,
+        BranchRepository $branches
+    ) {
+        return new RepairStatusController($twig, $repairs, $events, $documents, $branches, new \App\Services\RepairStatusPage());
     },
 
     // Receipt Controller
