@@ -16,7 +16,7 @@ use Symfony\Component\Mime\Email;
  */
 class MailService
 {
-    private const DEFAULT_FROM = 'info@mediahuus.ch';
+    private const DEFAULT_FROM = 'noreply@crm.mediahuus.ch';
     private const DEFAULT_FROM_NAME = 'Mediahuus';
 
     public function __construct(

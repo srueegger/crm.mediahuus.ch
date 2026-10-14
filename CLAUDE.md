@@ -310,8 +310,8 @@ TWIG_CACHE=false   # false/leer = kein Cache, true = var/cache/twig, sonst Pfad 
 SESSION_NAME=mediahuus_crm_session
 
 # Mail (alle E-Mails laufen über MailService)
-MAILER_DSN=        # leer = kein Versand (nur Log); Mailgun: mailgun+https://KEY:DOMAIN@default?region=eu; lokal: smtp://localhost:1025 (DDEV Mailpit)
-MAIL_FROM=info@mediahuus.ch
+MAILER_DSN=        # leer = kein Versand (nur Log); Mailgun: mailgun+https://API_KEY:crm.mediahuus.ch@default?region=eu; lokal: smtp://localhost:1025 (DDEV Mailpit)
+MAIL_FROM=noreply@crm.mediahuus.ch
 MAIL_FROM_NAME="Mediahuus"
 APP_URL=https://crm.mediahuus.ch   # Basis für Links in E-Mails und QR-Code
 ```

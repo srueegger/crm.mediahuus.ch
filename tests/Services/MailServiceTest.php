@@ -120,7 +120,7 @@ class MailServiceTest extends TestCase
             $prop = new \ReflectionProperty(MailService::class, 'from');
             $from = $prop->getValue($service);
 
-            $this->assertSame('info@mediahuus.ch', $from->getAddress());
+            $this->assertSame('noreply@crm.mediahuus.ch', $from->getAddress());
             $this->assertSame('Mediahuus', $from->getName());
         }
     }

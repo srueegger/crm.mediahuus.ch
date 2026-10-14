@@ -209,7 +209,7 @@ GET /r/{token:[a-f0-9]{32}}      → Statusseite
 
   ```
   MAILER_DSN=           # z. B. mailgun+https://KEY:DOMAIN@default?region=eu ; leer = kein Versand
-  MAIL_FROM=info@mediahuus.ch
+  MAIL_FROM=noreply@crm.mediahuus.ch
   MAIL_FROM_NAME="Mediahuus"
   APP_URL=https://crm.mediahuus.ch   # Basis für Links in E-Mails und QR-Code
   ```
