@@ -389,12 +389,12 @@ return [
     },
 
     // Dashboard Controller
-    DashboardController::class => function (Environment $twig, DocumentRepository $documentRepository, BranchRepository $branchRepository, EstimateRepository $estimateRepository, PurchaseRepository $purchaseRepository, ReceiptRepository $receiptRepository, InsuranceAssessmentRepository $insuranceRepository, InvoiceRepository $invoiceRepository) {
-        return new DashboardController($twig, $documentRepository, $branchRepository, $estimateRepository, $purchaseRepository, $receiptRepository, $insuranceRepository, $invoiceRepository);
+    DashboardController::class => function (Environment $twig, DocumentRepository $documentRepository, BranchRepository $branchRepository, EstimateRepository $estimateRepository, PurchaseRepository $purchaseRepository, ReceiptRepository $receiptRepository, InsuranceAssessmentRepository $insuranceRepository, InvoiceRepository $invoiceRepository, RepairRepository $repairRepository) {
+        return new DashboardController($twig, $documentRepository, $branchRepository, $estimateRepository, $purchaseRepository, $receiptRepository, $insuranceRepository, $invoiceRepository, $repairRepository);
     },
 
     // Export Controller
-    ExportController::class => function (DocumentRepository $documentRepository, BranchRepository $branchRepository, EstimateRepository $estimateRepository, PurchaseRepository $purchaseRepository, ReceiptRepository $receiptRepository, InsuranceAssessmentRepository $insuranceRepository, InvoiceRepository $invoiceRepository, UserRepository $userRepository, LoggerInterface $logger) {
-        return new ExportController($documentRepository, $branchRepository, $estimateRepository, $purchaseRepository, $receiptRepository, $insuranceRepository, $invoiceRepository, $userRepository, $logger);
+    ExportController::class => function (DocumentRepository $documentRepository, BranchRepository $branchRepository, EstimateRepository $estimateRepository, PurchaseRepository $purchaseRepository, ReceiptRepository $receiptRepository, InsuranceAssessmentRepository $insuranceRepository, InvoiceRepository $invoiceRepository, RepairRepository $repairRepository, UserRepository $userRepository, LoggerInterface $logger) {
+        return new ExportController($documentRepository, $branchRepository, $estimateRepository, $purchaseRepository, $receiptRepository, $insuranceRepository, $invoiceRepository, $repairRepository, $userRepository, $logger);
     },
 ];

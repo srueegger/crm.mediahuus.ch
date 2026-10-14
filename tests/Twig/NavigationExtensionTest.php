@@ -38,12 +38,20 @@ class NavigationExtensionTest extends TestCase
 
         $this->assertSame(['Erfassen', 'Verwalten'], array_column($groups, 'label'));
         $this->assertSame(
-            ['estimates', 'receipts', 'invoices', 'purchases', 'insurance'],
+            ['estimates', 'repairs', 'receipts', 'invoices', 'purchases', 'insurance'],
             array_column($groups[0]['items'], 'key')
         );
-        $this->assertSame(['customers', 'users'], array_column($groups[1]['items'], 'key'));
+        $this->assertSame(['repairs_open', 'customers', 'users'], array_column($groups[1]['items'], 'key'));
         $this->assertSame('/estimates/create', $groups[0]['items'][0]['url']);
         $this->assertSame('/estimates', $groups[0]['items'][0]['prefix']);
-        $this->assertSame('/customers', $groups[1]['items'][0]['url']);
+        $this->assertSame('/repairs', $groups[1]['items'][0]['url']);
+        $this->assertSame('/customers', $groups[1]['items'][1]['url']);
+    }
+
+    public function testRepairDetailActivatesOpenRepairs(): void
+    {
+        $nav = new NavigationExtension('/repairs/12');
+        $this->assertTrue($nav->isActive('/repairs'));
+        $this->assertFalse($nav->isActive('/repairs/create'));
     }
 }

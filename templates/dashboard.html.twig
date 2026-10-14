@@ -39,6 +39,35 @@
             </section>
         {% endfor %}
 
+        {# === Reparaturen-Hinweis === #}
+        <section class="mb-8">
+            <h3 class="text-xs font-semibold uppercase tracking-wider text-gray-500 mb-3">Reparaturen</h3>
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <a href="/repairs" class="bg-white shadow rounded-lg p-4 hover:shadow-lg transition-shadow group">
+                    <div class="flex items-center space-x-3">
+                        <div class="flex-shrink-0 h-10 w-10 rounded-full bg-emerald-100 flex items-center justify-center">
+                            {{ icons.icon('repair', 'h-5 w-5 text-emerald-600') }}
+                        </div>
+                        <div class="min-w-0">
+                            <p class="text-2xl font-bold text-gray-900 group-hover:text-emerald-600 transition-colors">{{ repairs_open }}</p>
+                            <p class="text-xs text-gray-500">Offene Reparaturen</p>
+                        </div>
+                    </div>
+                </a>
+                <a href="/repairs?status=ready" class="bg-white shadow rounded-lg p-4 hover:shadow-lg transition-shadow group">
+                    <div class="flex items-center space-x-3">
+                        <div class="flex-shrink-0 h-10 w-10 rounded-full bg-emerald-100 flex items-center justify-center">
+                            {{ icons.icon('insurance', 'h-5 w-5 text-emerald-600') }}
+                        </div>
+                        <div class="min-w-0">
+                            <p class="text-2xl font-bold text-gray-900 group-hover:text-emerald-600 transition-colors">{{ repairs_ready }}</p>
+                            <p class="text-xs text-gray-500">Abholbereit</p>
+                        </div>
+                    </div>
+                </a>
+            </div>
+        </section>
+
         <!-- Documents Section -->
         <div class="bg-white shadow overflow-hidden sm:rounded-md">
             <div class="px-4 py-4 sm:px-6 border-b border-gray-200">
@@ -51,6 +80,7 @@
                         <select name="type" onchange="this.form.submit()" class="text-sm border-gray-300 rounded-md shadow-sm focus:ring-emerald-500 focus:border-emerald-500">
                             <option value="">Alle Typen</option>
                             <option value="estimate" {{ filter_type == 'estimate' ? 'selected' : '' }}>Kostenvoranschlag</option>
+                            <option value="repair" {{ filter_type == 'repair' ? 'selected' : '' }}>Reparatur</option>
                             <option value="receipt" {{ filter_type == 'receipt' ? 'selected' : '' }}>Quittung</option>
                             <option value="invoice" {{ filter_type == 'invoice' ? 'selected' : '' }}>Rechnung</option>
                             <option value="purchase" {{ filter_type == 'purchase' ? 'selected' : '' }}>Ankauf</option>
@@ -106,6 +136,10 @@
                                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
                                                 </svg>
                                             </div>
+                                        {% elseif item.document.doc_type == 'repair' %}
+                                            <div class="h-10 w-10 rounded-full bg-emerald-100 flex items-center justify-center">
+                                                {{ icons.icon('repair', 'h-5 w-5 text-emerald-600') }}
+                                            </div>
                                         {% elseif item.document.doc_type == 'receipt' %}
                                             <div class="h-10 w-10 rounded-full bg-emerald-100 flex items-center justify-center">
                                                 <svg class="h-5 w-5 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -137,6 +171,8 @@
                                             <p class="text-sm font-medium text-gray-900">{{ item.document.doc_number }}</p>
                                             {% if item.document.doc_type == 'estimate' %}
                                                 <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">Kostenvoranschlag</span>
+                                            {% elseif item.document.doc_type == 'repair' %}
+                                                <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-emerald-100 text-emerald-800">Reparatur</span>
                                             {% elseif item.document.doc_type == 'receipt' %}
                                                 <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-emerald-100 text-emerald-800">Quittung</span>
                                             {% elseif item.document.doc_type == 'invoice' %}
@@ -152,6 +188,9 @@
                                             {% if item.estimate %}
                                                 <span>{{ item.estimate.device_name }}</span>
                                                 <span class="font-medium text-gray-700">{{ item.estimate.formatted_price }}</span>
+                                            {% elseif item.repair %}
+                                                <span>{{ item.repair.device_name }}</span>
+                                                <span class="font-medium text-gray-700">{{ item.repair.status_label }}</span>
                                             {% elseif item.invoice %}
                                                 <span>{{ item.invoice.items|length }} Positionen</span>
                                                 <span class="font-medium text-gray-700">CHF {{ item.invoice.total_gross_chf|number_format(2, '.', "'") }}</span>
@@ -173,6 +212,14 @@
                                 <div class="flex items-center ml-4 flex-shrink-0">
                                     {% if item.document.doc_type == 'estimate' %}
                                         <a href="{{ url_for('estimates.pdf', {id: item.document.id}) }}"
+                                           onclick="event.stopPropagation()"
+                                           class="text-emerald-600 hover:text-emerald-800 p-1.5 rounded hover:bg-emerald-50 transition-colors" title="PDF herunterladen">
+                                            <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                                            </svg>
+                                        </a>
+                                    {% elseif item.document.doc_type == 'repair' %}
+                                        <a href="{{ url_for('repairs.pdf', {id: item.document.id}) }}"
                                            onclick="event.stopPropagation()"
                                            class="text-emerald-600 hover:text-emerald-800 p-1.5 rounded hover:bg-emerald-50 transition-colors" title="PDF herunterladen">
                                             <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -247,6 +294,8 @@
                     <div style="display: flex; align-items: center; gap: 12px;">
                         {% if item.document.doc_type == 'estimate' %}
                             <span style="background-color: #dbeafe; color: #1e40af; padding: 4px 10px; border-radius: 9999px; font-size: 12px; font-weight: 500;">Kostenvoranschlag</span>
+                        {% elseif item.document.doc_type == 'repair' %}
+                            <span style="background-color: #d1fae5; color: #065f46; padding: 4px 10px; border-radius: 9999px; font-size: 12px; font-weight: 500;">Reparatur</span>
                         {% elseif item.document.doc_type == 'receipt' %}
                             <span style="background-color: #d1fae5; color: #065f46; padding: 4px 10px; border-radius: 9999px; font-size: 12px; font-weight: 500;">Quittung</span>
                         {% elseif item.document.doc_type == 'invoice' %}
@@ -308,6 +357,26 @@
                         <div style="background: #eff6ff; border-radius: 8px; padding: 16px; display: flex; align-items: center; justify-content: space-between; margin-bottom: 24px;">
                             <span style="font-size: 14px; font-weight: 500; color: #1e40af;">Voraussichtliche Kosten</span>
                             <span style="font-size: 20px; font-weight: 700; color: #1e3a8a;">{{ item.estimate.formatted_price }}</span>
+                        </div>
+
+                    {# ============ REPARATUR ============ #}
+                    {% elseif item.document.doc_type == 'repair' and item.repair %}
+                        <div style="margin-bottom: 20px;">
+                            <p style="font-size: 11px; font-weight: 600; color: #9ca3af; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 6px;">Gerät</p>
+                            <p style="font-size: 14px; font-weight: 500; color: #111827;">{{ item.repair.device_name }}</p>
+                            {% if item.repair.imei_serial %}
+                                <p style="font-size: 14px; color: #4b5563;">IMEI/Seriennummer: {{ item.repair.imei_serial }}</p>
+                            {% endif %}
+                        </div>
+
+                        <div style="margin-bottom: 20px;">
+                            <p style="font-size: 11px; font-weight: 600; color: #9ca3af; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 6px;">Schaden / Fehler</p>
+                            <div style="font-size: 14px; color: #374151; background: #f9fafb; border-radius: 8px; padding: 12px;">{{ item.repair.issue_text }}</div>
+                        </div>
+
+                        <div style="background: #ecfdf5; border-radius: 8px; padding: 16px; display: flex; align-items: center; justify-content: space-between; margin-bottom: 24px;">
+                            <span style="font-size: 14px; font-weight: 500; color: #065f46;">Status</span>
+                            <span style="font-size: 16px; font-weight: 700; color: #064e3b;">{{ item.repair.status_label }}</span>
                         </div>
 
                     {# ============ QUITTUNG ============ #}
@@ -511,6 +580,16 @@
                                 PDF herunterladen
                             </a>
                             <a href="{{ url_for('estimates.show', {id: item.document.id}) }}" class="mediahuus-button-secondary" style="text-align: center;">
+                                Detailseite
+                            </a>
+                        {% elseif item.document.doc_type == 'repair' %}
+                            <a href="{{ url_for('repairs.pdf', {id: item.document.id}) }}" class="mediahuus-button-primary" style="flex: 1; text-align: center; display: flex; align-items: center; justify-content: center; gap: 8px;">
+                                <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                                </svg>
+                                PDF herunterladen
+                            </a>
+                            <a href="{{ url_for('repairs.show', {id: item.document.id}) }}" class="mediahuus-button-secondary" style="text-align: center;">
                                 Detailseite
                             </a>
                         {% elseif item.document.doc_type == 'receipt' %}

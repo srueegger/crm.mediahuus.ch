@@ -45,6 +45,7 @@ class CustomerController extends BaseController
 
     private const DOC_ROUTES = [
         Document::TYPE_ESTIMATE => 'estimates',
+        Document::TYPE_REPAIR => 'repairs',
         Document::TYPE_RECEIPT => 'receipts',
         Document::TYPE_INVOICE => 'invoices',
         Document::TYPE_PURCHASE => 'purchases',
