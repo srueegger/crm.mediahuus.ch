@@ -44,8 +44,8 @@ final class RepairInputValidator
         $price = $get('price_chf');
         if ($price !== '') {
             $normalized = str_replace(',', '.', $price);
-            if (!preg_match('/^\d+(\.\d+)?$/', $normalized)) {
-                $errors['price_chf'] = 'Bitte einen gültigen Preis (0 oder höher) angeben.';
+            if (!preg_match('/^\d{1,8}(\.\d{1,2})?$/', $normalized)) {
+                $errors['price_chf'] = 'Bitte einen gültigen Preis eingeben (max. 2 Nachkommastellen).';
             }
         }
 

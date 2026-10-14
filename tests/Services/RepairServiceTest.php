@@ -175,6 +175,18 @@ class RepairServiceTest extends TestCase
         $this->assertNull($this->service->changeStatus(10, 'in_progress', null, 3));
     }
 
+    public function testSameStatusWithNoteWritesNoteEventOnly(): void
+    {
+        $this->expectLoaded('in_progress');
+        $this->repairs->expects($this->never())->method('update');
+        $this->mailer->expects($this->never())->method('sendReady');
+        $this->events->expects($this->once())->method('add')
+            ->with($this->callback(fn (RepairEvent $e) => $e->getEventType() === RepairEvent::TYPE_NOTE
+                && $e->getMessage() === 'Teil bestellt' && $e->getStatus() === null));
+
+        $this->assertNull($this->service->changeStatus(10, 'in_progress', '  Teil bestellt ', 3));
+    }
+
     public function testPickedUpClearsUnlockCode(): void
     {
         $this->expectLoaded('ready');

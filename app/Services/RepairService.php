@@ -190,11 +190,14 @@ class RepairService
         if ($document === null || $repair === null) {
             throw new \RuntimeException('Reparatur nicht gefunden.');
         }
+        $note = $note !== null && trim($note) !== '' ? trim($note) : null;
         if ($repair->getStatus() === $status) {
+            if ($note !== null) {
+                $this->events->add(new RepairEvent(null, (int) $repair->getId(), RepairEvent::TYPE_NOTE, null, $note, $userId));
+            }
+
             return null;
         }
-
-        $note = $note !== null && trim($note) !== '' ? trim($note) : null;
         $updated = $repair->withStatus($status, new \DateTimeImmutable());
 
         $this->connection->transactional(function () use ($repair, $updated, $status, $note, $userId): void {

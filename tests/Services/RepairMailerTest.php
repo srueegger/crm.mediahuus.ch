@@ -112,7 +112,9 @@ class RepairMailerTest extends TestCase
 
         $this->assertSame('Ihr Gerät ist abholbereit (RP-2026-000001)', $sent->getSubject());
         $this->assertCount(0, $sent->getAttachments());
-        $this->assertStringContainsString('CHF 120.50', $sent->getTextBody());
+        $this->assertStringContainsString('Voraussichtlicher Betrag: CHF 120.50 (inkl. MWST)', $sent->getTextBody());
+        $this->assertStringContainsString('Voraussichtlicher Betrag: <strong>CHF 120.50</strong> (inkl. MWST)', $sent->getHtmlBody());
+        $this->assertStringNotContainsString('Der Betrag für die Reparatur', $sent->getTextBody());
         $this->assertStringContainsString('https://crm.test/r/' . self::TOKEN, $sent->getHtmlBody());
     }
 

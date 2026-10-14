@@ -39,6 +39,9 @@ class RepairInputValidatorTest extends TestCase
         $this->assertSame([], $v->validate($this->valid(['price_chf' => ''])));
         $this->assertArrayHasKey('price_chf', $v->validate($this->valid(['price_chf' => '-5'])));
         $this->assertArrayHasKey('price_chf', $v->validate($this->valid(['price_chf' => 'abc'])));
+        $this->assertArrayHasKey('price_chf', $v->validate($this->valid(['price_chf' => '1.999'])));
+        $this->assertArrayHasKey('price_chf', $v->validate($this->valid(['price_chf' => '123456789'])));
+        $this->assertSame([], $v->validate($this->valid(['price_chf' => '99999999.99'])));
     }
 
     public function testInvalidDueDate(): void

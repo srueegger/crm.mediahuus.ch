@@ -48,6 +48,13 @@ class NavigationExtensionTest extends TestCase
         $this->assertSame('/customers', $groups[1]['items'][1]['url']);
     }
 
+    public function testOnlyOneItemActiveOnRepairCreate(): void
+    {
+        $nav = new NavigationExtension('/repairs/create');
+        $this->assertFalse($nav->isActive('/repairs'));
+        $this->assertTrue($nav->isActive('/repairs/create'));
+    }
+
     public function testRepairDetailActivatesOpenRepairs(): void
     {
         $nav = new NavigationExtension('/repairs/12');

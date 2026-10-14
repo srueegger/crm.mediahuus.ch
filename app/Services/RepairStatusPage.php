@@ -38,11 +38,22 @@ class RepairStatusPage
         $status = $repair->getStatus();
         $currentIndex = array_search($status, self::STEPS, true);
 
+        $visited = [];
+        foreach ($events as $event) {
+            if ($event->getEventType() === RepairEvent::TYPE_STATUS && $event->getStatus() !== null) {
+                $visited[$event->getStatus()] = true;
+            }
+        }
+
         $steps = [];
         foreach (self::STEPS as $index => $step) {
+            $done = $currentIndex !== false && (
+                $index === $currentIndex
+                || ($index < $currentIndex && ($step === Repair::STATUS_RECEIVED || isset($visited[$step])))
+            );
             $steps[] = [
                 'label' => Repair::STATUS_LABELS[$step],
-                'done' => $currentIndex !== false && $index <= $currentIndex,
+                'done' => $done,
                 'current' => $currentIndex !== false && $index === $currentIndex,
             ];
         }

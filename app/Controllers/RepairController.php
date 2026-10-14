@@ -147,7 +147,7 @@ class RepairController extends BaseController
 
         return $this->redirect(
             $response,
-            '/repairs/' . $result->documentId . ($result->mailFailed() ? '?mail=failed' : '')
+            '/repairs/' . $result->documentId . ($result->mail === null || $result->mail->isSent() ? '' : $this->mailQuery($result->mail, false))
         );
     }
 
@@ -441,7 +441,11 @@ class RepairController extends BaseController
             return $noneIfNull ? '?mail=none' : '';
         }
 
-        return $mail->isSent() ? '?mail=sent' : '?mail=failed';
+        if ($mail->isSent()) {
+            return '?mail=sent';
+        }
+
+        return $mail->status === MailResult::NOT_CONFIGURED ? '?mail=notconfigured' : '?mail=failed';
     }
 
     /**

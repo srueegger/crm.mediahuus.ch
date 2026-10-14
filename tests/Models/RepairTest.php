@@ -76,7 +76,15 @@ final class RepairTest extends TestCase
         $this->assertTrue($open->toArray()['is_overdue']);
         $this->assertSame($yesterday->format('Y-m-d'), $open->toArray()['due_date']);
 
+        $ready = $open->withStatus(Repair::STATUS_READY, new \DateTimeImmutable());
+        $this->assertFalse($ready->toArray()['is_overdue']);
+
         $closed = $open->withStatus(Repair::STATUS_PICKED_UP, new \DateTimeImmutable());
         $this->assertFalse($closed->toArray()['is_overdue']);
+    }
+
+    public function testDueTodayIsNotOverdue(): void
+    {
+        $this->assertFalse($this->make(Repair::STATUS_RECEIVED, new \DateTimeImmutable('today'))->toArray()['is_overdue']);
     }
 }

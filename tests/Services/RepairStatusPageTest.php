@@ -82,13 +82,33 @@ class RepairStatusPageTest extends TestCase
 
     public function testStepsMarkCurrent(): void
     {
-        $data = (new RepairStatusPage())->build($this->document(), $this->repair('waiting_parts'), [], $this->branch());
+        $data = (new RepairStatusPage())->build($this->document(), $this->repair('waiting_parts'), [
+            new RepairEvent(1, 1, RepairEvent::TYPE_STATUS, 'received', null, 1),
+            new RepairEvent(2, 1, RepairEvent::TYPE_STATUS, 'in_progress', null, 1),
+            new RepairEvent(3, 1, RepairEvent::TYPE_STATUS, 'waiting_parts', null, 1),
+        ], $this->branch());
         $this->assertCount(5, $data['steps']);
         $this->assertTrue($data['steps'][2]['current']);
         $this->assertTrue($data['steps'][0]['done']);
         $this->assertTrue($data['steps'][1]['done']);
         $this->assertFalse($data['steps'][3]['done']);
         $this->assertFalse($data['steps'][0]['current']);
+    }
+
+    public function testSkippedStepIsNotDone(): void
+    {
+        $events = [
+            new RepairEvent(1, 1, RepairEvent::TYPE_STATUS, 'received', null, 1),
+            new RepairEvent(2, 1, RepairEvent::TYPE_STATUS, 'in_progress', null, 1),
+            new RepairEvent(3, 1, RepairEvent::TYPE_STATUS, 'ready', null, 1),
+        ];
+        $data = (new RepairStatusPage())->build($this->document(), $this->repair('ready'), $events, $this->branch());
+        $this->assertTrue($data['steps'][0]['done']);
+        $this->assertTrue($data['steps'][1]['done']);
+        $this->assertFalse($data['steps'][2]['done']);
+        $this->assertTrue($data['steps'][3]['done']);
+        $this->assertTrue($data['steps'][3]['current']);
+        $this->assertFalse($data['steps'][4]['done']);
     }
 
     public function testCancelledFlag(): void

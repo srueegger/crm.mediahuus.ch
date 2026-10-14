@@ -19,9 +19,16 @@ class RepairEventRepository
             'repair_id' => $event->getRepairId(),
             'event_type' => $event->getEventType(),
             'status' => $event->getStatus(),
-            'message' => $event->getMessage(),
+            'message' => self::truncateMessage($event->getMessage()),
             'user_id' => $event->getUserId(),
         ]);
+    }
+
+    public const MESSAGE_MAX_LENGTH = 500;
+
+    public static function truncateMessage(?string $message): ?string
+    {
+        return $message === null ? null : mb_substr($message, 0, self::MESSAGE_MAX_LENGTH);
     }
 
     /**

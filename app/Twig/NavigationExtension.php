@@ -60,7 +60,32 @@ class NavigationExtension extends AbstractExtension
             return $this->path === '/';
         }
 
+        $best = $this->bestPrefix();
+
+        return $best === null ? $this->matches($prefix) : $prefix === $best;
+    }
+
+    private function matches(string $prefix): bool
+    {
         return $this->path === $prefix || str_starts_with($this->path, $prefix . '/');
+    }
+
+    /**
+     * Längster passender Prefix aller Menüpunkte, damit nur ein Eintrag aktiv ist.
+     */
+    private function bestPrefix(): ?string
+    {
+        $best = null;
+        foreach (self::GROUPS as $group) {
+            foreach ($group['items'] as $item) {
+                $prefix = $item['prefix'];
+                if ($this->matches($prefix) && ($best === null || strlen($prefix) > strlen($best))) {
+                    $best = $prefix;
+                }
+            }
+        }
+
+        return $best;
     }
 
     /**

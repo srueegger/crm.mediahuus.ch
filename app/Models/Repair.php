@@ -163,6 +163,7 @@ final class Repair
     public function toArray(): array
     {
         $isOverdue = $this->isOpen()
+            && $this->status !== self::STATUS_READY
             && $this->dueDate !== null
             && $this->dueDate->format('Y-m-d') < (new \DateTimeImmutable('today'))->format('Y-m-d');
 
