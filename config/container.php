@@ -47,6 +47,7 @@ use App\Controllers\InvoiceController;
 use App\Controllers\InsuranceController;
 use App\Controllers\DashboardController;
 use App\Controllers\ExportController;
+use App\Controllers\RepairController;
 
 return [
     // Twig Template Engine
@@ -89,6 +90,15 @@ return [
                 'invoices.store' => '/invoices',
                 'invoices.show' => '/invoices/' . ($params['id'] ?? '{id}'),
                 'invoices.pdf' => '/invoices/' . ($params['id'] ?? '{id}') . '/pdf',
+                'repairs.index' => '/repairs',
+                'repairs.create' => '/repairs/create',
+                'repairs.store' => '/repairs',
+                'repairs.show' => '/repairs/' . ($params['id'] ?? '{id}'),
+                'repairs.edit' => '/repairs/' . ($params['id'] ?? '{id}') . '/edit',
+                'repairs.update' => '/repairs/' . ($params['id'] ?? '{id}'),
+                'repairs.status' => '/repairs/' . ($params['id'] ?? '{id}') . '/status',
+                'repairs.send_email' => '/repairs/' . ($params['id'] ?? '{id}') . '/send-email',
+                'repairs.pdf' => '/repairs/' . ($params['id'] ?? '{id}') . '/pdf',
                 'insurance.create' => '/insurance/create',
                 'insurance.show' => '/insurance/' . ($params['id'] ?? '{id}'),
                 'insurance.pdf' => '/insurance/' . ($params['id'] ?? '{id}') . '/pdf',
@@ -314,6 +324,37 @@ return [
     // Estimate Controller
     EstimateController::class => function (Environment $twig, DocumentRepository $documentRepository, EstimateRepository $estimateRepository, BranchRepository $branchRepository, PdfService $pdfService, LoggerInterface $logger, Connection $connection, CustomerResolver $customerResolver, CustomerFormPrefill $customerFormPrefill) {
         return new EstimateController($twig, $documentRepository, $estimateRepository, $branchRepository, $pdfService, $logger, $connection, $customerResolver, $customerFormPrefill);
+    },
+
+    // Repair Controller
+    RepairController::class => function (
+        Environment $twig,
+        RepairService $repairService,
+        RepairInputValidator $validator,
+        RepairRepository $repairs,
+        RepairEventRepository $events,
+        DocumentRepository $documents,
+        BranchRepository $branches,
+        UserRepository $users,
+        PdfService $pdfService,
+        AppUrl $appUrl,
+        CustomerFormPrefill $customerFormPrefill,
+        LoggerInterface $logger
+    ) {
+        return new RepairController(
+            $twig,
+            $repairService,
+            $validator,
+            $repairs,
+            $events,
+            $documents,
+            $branches,
+            $users,
+            $pdfService,
+            $appUrl,
+            $customerFormPrefill,
+            $logger
+        );
     },
 
     // Receipt Controller

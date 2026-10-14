@@ -1,0 +1,223 @@
+{% extends "base.html.twig" %}
+
+{% block title %}Reparatur {{ document.doc_number }} - {{ parent() }}{% endblock %}
+
+{% block content %}
+<div class="max-w-5xl mx-auto py-6 sm:px-6 lg:px-8">
+    <div class="px-4 py-6 sm:px-0">
+        <!-- Header -->
+        <div class="mb-8 flex flex-wrap gap-4 justify-between items-start">
+            <div>
+                <h2 class="text-2xl font-bold text-gray-900 mb-2 flex items-center gap-3">
+                    Reparatur {{ document.doc_number }}
+                    {% include 'repairs/_status_badge.html.twig' with { status: repair.status, label: repair.status_label, overdue: repair.is_overdue } only %}
+                </h2>
+                <p class="text-gray-600">{{ branch ? branch.name : '' }}</p>
+            </div>
+            <div class="flex flex-wrap gap-3">
+                <a href="{{ url_for('repairs.index') }}" class="mediahuus-button-secondary">← Zur Liste</a>
+                <a href="{{ url_for('repairs.edit', {id: document.id}) }}" class="mediahuus-button-secondary">Bearbeiten</a>
+                <a href="{{ url_for('repairs.pdf', {id: document.id}) }}" class="mediahuus-button-primary">PDF herunterladen</a>
+            </div>
+        </div>
+
+        <!-- Hinweise -->
+        {% if mail == 'sent' %}
+            <div class="mb-6 bg-emerald-50 border border-emerald-200 text-emerald-800 px-4 py-3 rounded">Die E-Mail wurde gesendet.</div>
+        {% elseif mail == 'failed' %}
+            <div class="mb-6 bg-yellow-50 border border-yellow-200 text-yellow-800 px-4 py-3 rounded">Die E-Mail konnte nicht gesendet werden. Die Reparatur ist gespeichert.</div>
+        {% elseif mail == 'none' %}
+            <div class="mb-6 bg-yellow-50 border border-yellow-200 text-yellow-800 px-4 py-3 rounded">Keine E-Mail gesendet: Beim Kunden ist keine E-Mail-Adresse hinterlegt.</div>
+        {% endif %}
+        {% if error == 'status' %}
+            <div class="mb-6 bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded">Der Status konnte nicht geändert werden. Bitte einen gültigen Status wählen.</div>
+        {% elseif error == 'update' %}
+            <div class="mb-6 bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded">Die Änderungen konnten nicht gespeichert werden. Bitte erneut versuchen.</div>
+        {% elseif error %}
+            <div class="mb-6 bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded">Es ist ein Fehler aufgetreten.</div>
+        {% endif %}
+
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            <!-- Angaben -->
+            <div class="lg:col-span-2 bg-white shadow overflow-hidden sm:rounded-lg">
+                <div class="px-4 py-5 sm:px-6 border-b border-gray-200">
+                    <h3 class="text-lg leading-6 font-medium text-gray-900">Angaben</h3>
+                </div>
+                <dl class="divide-y divide-gray-100">
+                    <div class="px-4 py-4 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
+                        <dt class="text-sm font-medium text-gray-500">Kunde</dt>
+                        <dd class="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2">
+                            <p class="font-medium">{% if document.customer_id %}<a href="{{ url_for('customers.show', {id: document.customer_id}) }}" class="text-emerald-700 hover:underline">{{ document.customer_name }}</a>{% else %}{{ document.customer_name }}{% endif %}</p>
+                            {% if document.customer_phone %}<p class="text-gray-600">Tel: {{ document.customer_phone }}</p>{% endif %}
+                            {% if document.customer_email %}<p class="text-gray-600">E-Mail: {{ document.customer_email }}</p>{% endif %}
+                        </dd>
+                    </div>
+                    <div class="px-4 py-4 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
+                        <dt class="text-sm font-medium text-gray-500">Gerät</dt>
+                        <dd class="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2">
+                            <p class="font-medium">{{ repair.device_name }}</p>
+                            {% if repair.imei_serial %}<p class="text-gray-600">IMEI / Seriennummer: {{ repair.imei_serial }}</p>{% endif %}
+                            {% if repair.accessories %}<p class="text-gray-600">Zubehör: {{ repair.accessories }}</p>{% endif %}
+                        </dd>
+                    </div>
+                    <div class="px-4 py-4 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
+                        <dt class="text-sm font-medium text-gray-500">Entsperrcode</dt>
+                        <dd class="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2 font-mono">
+                            {% if repair.unlock_code %}{{ repair.unlock_code }}{% else %}<span class="font-sans text-gray-400">{{ repair.is_open ? 'keiner' : 'gelöscht (Reparatur abgeschlossen)' }}</span>{% endif %}
+                        </dd>
+                    </div>
+                    {% if damageTypeLabel %}
+                        <div class="px-4 py-4 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
+                            <dt class="text-sm font-medium text-gray-500">Schadenstyp</dt>
+                            <dd class="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2">{{ damageTypeLabel }}</dd>
+                        </div>
+                    {% endif %}
+                    <div class="px-4 py-4 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
+                        <dt class="text-sm font-medium text-gray-500">Fehlerbeschreibung</dt>
+                        <dd class="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2">{{ repair.issue_text|nl2br }}</dd>
+                    </div>
+                    {% if repair.work_text %}
+                        <div class="px-4 py-4 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
+                            <dt class="text-sm font-medium text-gray-500">Geplante Arbeiten</dt>
+                            <dd class="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2">{{ repair.work_text|nl2br }}</dd>
+                        </div>
+                    {% endif %}
+                    <div class="px-4 py-4 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
+                        <dt class="text-sm font-medium text-gray-500">Voraussichtlicher Preis</dt>
+                        <dd class="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2">{{ repair.price_chf is not null ? 'CHF ' ~ repair.price_chf|number_format(2, '.', "'") : '–' }}</dd>
+                    </div>
+                    <div class="px-4 py-4 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
+                        <dt class="text-sm font-medium text-gray-500">Fertig bis</dt>
+                        <dd class="mt-1 text-sm sm:mt-0 sm:col-span-2 {{ repair.is_overdue ? 'text-red-600 font-semibold' : 'text-gray-900' }}">
+                            {{ repair.due_date ? repair.due_date|date('d.m.Y') : '–' }}{% if repair.is_overdue %} (überfällig){% endif %}
+                        </dd>
+                    </div>
+                    <div class="px-4 py-4 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
+                        <dt class="text-sm font-medium text-gray-500">Filiale</dt>
+                        <dd class="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2">
+                            {% if branch %}
+                                <p class="font-medium">{{ branch.name }}</p>
+                                <p class="text-gray-600">{{ branch.full_address }}</p>
+                            {% endif %}
+                        </dd>
+                    </div>
+                    <div class="px-4 py-4 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
+                        <dt class="text-sm font-medium text-gray-500">Angelegt am</dt>
+                        <dd class="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2">{{ document.created_at|date('d.m.Y H:i') }}</dd>
+                    </div>
+                </dl>
+            </div>
+
+            <div class="space-y-6">
+                <!-- Status ändern -->
+                <div class="bg-white shadow sm:rounded-lg p-5">
+                    <h3 class="text-lg font-medium text-gray-900 mb-4">Status ändern</h3>
+                    <form method="POST" action="{{ url_for('repairs.status', {id: document.id}) }}" class="space-y-4">
+                        {{ csrf_field() }}
+                        <div>
+                            <label for="status" class="mediahuus-label">Neuer Status</label>
+                            <select name="status" id="status" class="mediahuus-select">
+                                {% for value, label in statusLabels %}
+                                    <option value="{{ value }}" {% if repair.status == value %}selected{% endif %}>{{ label }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div>
+                            <label for="note" class="mediahuus-label">Notiz (optional)</label>
+                            <textarea name="note" id="note" rows="2" maxlength="500" class="mediahuus-textarea"></textarea>
+                        </div>
+                        <button type="submit" class="mediahuus-button-primary w-full">Status speichern</button>
+                    </form>
+                </div>
+
+                <!-- Kunde informieren -->
+                <div class="bg-white shadow sm:rounded-lg p-5">
+                    <h3 class="text-lg font-medium text-gray-900 mb-4">Kunde informieren</h3>
+                    <label for="status-link" class="mediahuus-label">Status-Link</label>
+                    <div class="flex gap-2 mb-4">
+                        <input type="text" id="status-link" readonly value="{{ statusUrl }}" class="mediahuus-input text-sm">
+                        <button type="button" class="shrink-0 inline-flex items-center gap-1 px-3 rounded-lg border-2 border-emerald-600 text-emerald-700 hover:bg-emerald-50 text-sm font-semibold"
+                                data-copy-target="status-link" title="Status-Link kopieren">
+                            <svg class="w-4 h-4 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"/>
+                            </svg>
+                            <span data-copy-label>Kopieren</span>
+                        </button>
+                    </div>
+                    {% if document.customer_email %}
+                        <div class="space-y-3">
+                            <form method="POST" action="{{ url_for('repairs.send_email', {id: document.id}) }}">
+                                {{ csrf_field() }}
+                                <input type="hidden" name="type" value="created">
+                                <button type="submit" class="mediahuus-button-secondary w-full">Erfassungs-E-Mail erneut senden</button>
+                            </form>
+                            <form method="POST" action="{{ url_for('repairs.send_email', {id: document.id}) }}">
+                                {{ csrf_field() }}
+                                <input type="hidden" name="type" value="ready">
+                                <button type="submit" class="mediahuus-button-secondary w-full">Abholbereit-E-Mail erneut senden</button>
+                            </form>
+                        </div>
+                    {% else %}
+                        <p class="text-sm text-gray-500">Keine E-Mail-Adresse hinterlegt.</p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Verlauf -->
+        <div class="mt-6 bg-white shadow overflow-hidden sm:rounded-lg">
+            <div class="px-4 py-5 sm:px-6 border-b border-gray-200">
+                <h3 class="text-lg leading-6 font-medium text-gray-900">Verlauf</h3>
+            </div>
+            <div class="overflow-x-auto">
+                <table class="min-w-full divide-y divide-gray-200">
+                    <thead class="bg-gray-50">
+                        <tr>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Datum</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Benutzer</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Ereignis</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Notiz</th>
+                        </tr>
+                    </thead>
+                    <tbody class="bg-white divide-y divide-gray-200">
+                        {% for entry in history %}
+                            <tr>
+                                <td class="px-6 py-3 text-sm text-gray-500 whitespace-nowrap">{{ entry.created_at ? entry.created_at|date('d.m.Y H:i') : '' }}</td>
+                                <td class="px-6 py-3 text-sm text-gray-700">{{ entry.user_name ?: '–' }}</td>
+                                <td class="px-6 py-3 text-sm {{ entry.event_type == 'email_failed' ? 'text-yellow-700' : (entry.event_type == 'status' ? 'text-gray-900 font-medium' : 'text-gray-700') }}">{{ entry.label }}</td>
+                                <td class="px-6 py-3 text-sm text-gray-600">{{ entry.message }}</td>
+                            </tr>
+                        {% else %}
+                            <tr><td colspan="4" class="px-6 py-4 text-sm text-gray-500">Noch keine Einträge.</td></tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+document.querySelectorAll('[data-copy-target]').forEach(function (button) {
+    button.addEventListener('click', function () {
+        var input = document.getElementById(button.getAttribute('data-copy-target'));
+        var label = button.querySelector('[data-copy-label]');
+        var done = function (text) {
+            label.textContent = text;
+            setTimeout(function () { label.textContent = 'Kopieren'; }, 2000);
+        };
+        if (navigator.clipboard && navigator.clipboard.writeText) {
+            navigator.clipboard.writeText(input.value).then(function () { done('Kopiert'); }, function () {
+                input.select();
+                done('Bitte manuell kopieren');
+            });
+        } else {
+            input.select();
+            done('Bitte manuell kopieren');
+        }
+    });
+});
+</script>
+{% endblock %}

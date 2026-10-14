@@ -1,0 +1,15 @@
+{#
+  Status-Badge einer Reparatur. Variablen:
+    status   Statuswert (received|in_progress|waiting_parts|ready|picked_up|cancelled)
+    label    Anzeigename aus Repair::STATUS_LABELS
+    overdue  true: überfällig, Badge rot
+#}
+{% set badgeColors = {
+    received: 'bg-gray-100 text-gray-800',
+    in_progress: 'bg-blue-100 text-blue-800',
+    waiting_parts: 'bg-amber-100 text-amber-800',
+    ready: 'bg-emerald-100 text-emerald-800',
+    picked_up: 'bg-slate-200 text-slate-700',
+    cancelled: 'bg-red-100 text-red-800'
+} %}
+<span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium {{ overdue|default(false) ? 'bg-red-100 text-red-800 ring-1 ring-red-300' : (badgeColors[status] ?? 'bg-gray-100 text-gray-800') }}">{{ label }}</span>

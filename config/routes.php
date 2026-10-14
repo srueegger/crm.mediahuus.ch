@@ -11,6 +11,7 @@ use App\Controllers\InvoiceController;
 use App\Controllers\InsuranceController;
 use App\Controllers\ExportController;
 use App\Controllers\CustomerController;
+use App\Controllers\RepairController;
 use App\Middleware\AuthMiddleware;
 use Slim\App;
 
@@ -72,6 +73,17 @@ $app->group('', function () use ($app) {
     $app->post('/insurance', [InsuranceController::class, 'store'])->setName('insurance.store');
     $app->get('/insurance/{id:[0-9]+}', [InsuranceController::class, 'show'])->setName('insurance.show');
     $app->get('/insurance/{id:[0-9]+}/pdf', [InsuranceController::class, 'generatePdf'])->setName('insurance.pdf');
+
+    // Repairs (Reparaturen)
+    $app->get('/repairs', [RepairController::class, 'index'])->setName('repairs.index');
+    $app->get('/repairs/create', [RepairController::class, 'create'])->setName('repairs.create');
+    $app->post('/repairs', [RepairController::class, 'store'])->setName('repairs.store');
+    $app->get('/repairs/{id:[0-9]+}', [RepairController::class, 'show'])->setName('repairs.show');
+    $app->get('/repairs/{id:[0-9]+}/edit', [RepairController::class, 'edit'])->setName('repairs.edit');
+    $app->post('/repairs/{id:[0-9]+}', [RepairController::class, 'update'])->setName('repairs.update');
+    $app->post('/repairs/{id:[0-9]+}/status', [RepairController::class, 'changeStatus'])->setName('repairs.status');
+    $app->post('/repairs/{id:[0-9]+}/send-email', [RepairController::class, 'sendEmail'])->setName('repairs.send_email');
+    $app->get('/repairs/{id:[0-9]+}/pdf', [RepairController::class, 'generatePdf'])->setName('repairs.pdf');
 
     // Export
     $app->get('/export/excel', [ExportController::class, 'excel'])->setName('export.excel');
