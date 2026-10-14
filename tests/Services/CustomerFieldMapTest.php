@@ -22,6 +22,15 @@ class CustomerFieldMapTest extends TestCase
         $this->assertSame('seller_city', $map['city']);
     }
 
+    public function testRepairMapsNamePhoneEmail(): void
+    {
+        $this->assertSame([
+            'name' => 'customer_name',
+            'phone' => 'customer_phone',
+            'email' => 'customer_email',
+        ], CustomerFieldMap::for(Document::TYPE_REPAIR));
+    }
+
     public function testReceiptHasNoPhone(): void
     {
         $map = CustomerFieldMap::for(Document::TYPE_RECEIPT);

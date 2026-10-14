@@ -1,0 +1,19 @@
+{% extends 'emails/base.html.twig' %}
+{% block title %}Ihr Gerät ist abholbereit{% endblock %}
+{% block content %}
+<p style="margin:0 0 16px;">Guten Tag</p>
+<p style="margin:0 0 16px;">Gute Nachrichten: Ihr Gerät <strong>{{ device_name }}</strong> ({{ doc_number }}) ist repariert und <strong>abholbereit</strong>.</p>
+{% if price_chf %}
+<p style="margin:0 0 16px;">Voraussichtlicher Betrag: <strong>CHF {{ price_chf }}</strong> (inkl. MWST).</p>
+{% endif %}
+<p style="margin:0 0 16px;">Sie können es in unserer Filiale abholen:</p>
+<p style="margin:0 0 20px;padding:12px 16px;background-color:#ecfdf5;border-radius:6px;">
+    <strong>{{ branch.name }}</strong><br>
+    {{ branch.street }}, {{ branch.zip }} {{ branch.city }}
+    {% if branch.phone %}<br>Telefon {{ branch.phone }}{% endif %}
+</p>
+<p style="margin:0 0 24px;">
+    <a href="{{ status_url }}" style="display:inline-block;background-color:#059669;color:#ffffff;text-decoration:none;font-weight:bold;padding:12px 24px;border-radius:6px;">Reparaturstatus ansehen</a>
+</p>
+<p style="margin:0;">Freundliche Grüsse<br>{{ branch.name }}</p>
+{% endblock %}

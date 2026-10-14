@@ -25,12 +25,20 @@ use App\Services\CsrfTokenManager;
 use App\Services\PdfService;
 use App\Services\FileUploadService;
 use App\Repositories\InvoiceRepository;
+use App\Repositories\RepairRepository;
+use App\Repositories\RepairEventRepository;
 use App\Services\InvoiceCalculator;
 use App\Services\InvoiceInputValidator;
 use App\Services\InvoiceNumberGenerator;
 use App\Services\InvoicePdfService;
 use App\Services\InvoiceService;
 use App\Services\QrBillFactory;
+use App\Services\MailService;
+use App\Services\AppUrl;
+use App\Services\RepairMailer;
+use App\Services\RepairInputValidator;
+use App\Services\RepairService;
+use App\Services\RepairStatusTokenGenerator;
 use App\Controllers\UserController;
 use App\Controllers\EstimateController;
 use App\Controllers\ReceiptController;
@@ -39,6 +47,8 @@ use App\Controllers\InvoiceController;
 use App\Controllers\InsuranceController;
 use App\Controllers\DashboardController;
 use App\Controllers\ExportController;
+use App\Controllers\RepairController;
+use App\Controllers\RepairStatusController;
 
 return [
     // Twig Template Engine
@@ -81,6 +91,15 @@ return [
                 'invoices.store' => '/invoices',
                 'invoices.show' => '/invoices/' . ($params['id'] ?? '{id}'),
                 'invoices.pdf' => '/invoices/' . ($params['id'] ?? '{id}') . '/pdf',
+                'repairs.index' => '/repairs',
+                'repairs.create' => '/repairs/create',
+                'repairs.store' => '/repairs',
+                'repairs.show' => '/repairs/' . ($params['id'] ?? '{id}'),
+                'repairs.edit' => '/repairs/' . ($params['id'] ?? '{id}') . '/edit',
+                'repairs.update' => '/repairs/' . ($params['id'] ?? '{id}'),
+                'repairs.status' => '/repairs/' . ($params['id'] ?? '{id}') . '/status',
+                'repairs.send_email' => '/repairs/' . ($params['id'] ?? '{id}') . '/send-email',
+                'repairs.pdf' => '/repairs/' . ($params['id'] ?? '{id}') . '/pdf',
                 'insurance.create' => '/insurance/create',
                 'insurance.show' => '/insurance/' . ($params['id'] ?? '{id}'),
                 'insurance.pdf' => '/insurance/' . ($params['id'] ?? '{id}') . '/pdf',
@@ -139,6 +158,54 @@ return [
         return new AuthService($userRepository, $logger);
     },
 
+    // Mail Service (zentraler E-Mail-Versand)
+    MailService::class => function (LoggerInterface $logger) {
+        return MailService::fromEnv($_ENV, $logger);
+    },
+
+    // Basis-URL der Anwendung
+    AppUrl::class => function () {
+        $base = trim((string) ($_ENV['APP_URL'] ?? ''));
+        return new AppUrl($base !== '' ? $base : 'https://crm.mediahuus.ch');
+    },
+
+    // Reparatur-E-Mails
+    RepairMailer::class => function (
+        MailService $mail,
+        Environment $twig,
+        PdfService $pdf,
+        AppUrl $url,
+        RepairEventRepository $events,
+        LoggerInterface $logger
+    ) {
+        return new RepairMailer($mail, $twig, $pdf, $url, $events, $logger);
+    },
+
+    RepairInputValidator::class => function () {
+        return new RepairInputValidator();
+    },
+
+    RepairService::class => function (
+        Connection $connection,
+        DocumentRepository $documents,
+        RepairRepository $repairs,
+        RepairEventRepository $events,
+        BranchRepository $branches,
+        CustomerResolver $customerResolver,
+        RepairMailer $mailer
+    ) {
+        return new RepairService(
+            $connection,
+            $documents,
+            $repairs,
+            $events,
+            $branches,
+            $customerResolver,
+            $mailer,
+            new RepairStatusTokenGenerator()
+        );
+    },
+
     // PDF Service
     PdfService::class => function (LoggerInterface $logger) {
         return new PdfService($logger);
@@ -162,6 +229,15 @@ return [
     // Estimate Repository
     EstimateRepository::class => function (Connection $connection) {
         return new EstimateRepository($connection);
+    },
+
+    // Repair Repositories
+    RepairRepository::class => function (Connection $connection) {
+        return new RepairRepository($connection);
+    },
+
+    RepairEventRepository::class => function (Connection $connection) {
+        return new RepairEventRepository($connection);
     },
 
     // Branch Repository
@@ -251,6 +327,48 @@ return [
         return new EstimateController($twig, $documentRepository, $estimateRepository, $branchRepository, $pdfService, $logger, $connection, $customerResolver, $customerFormPrefill);
     },
 
+    // Repair Controller
+    RepairController::class => function (
+        Environment $twig,
+        RepairService $repairService,
+        RepairInputValidator $validator,
+        RepairRepository $repairs,
+        RepairEventRepository $events,
+        DocumentRepository $documents,
+        BranchRepository $branches,
+        UserRepository $users,
+        PdfService $pdfService,
+        AppUrl $appUrl,
+        CustomerFormPrefill $customerFormPrefill,
+        LoggerInterface $logger
+    ) {
+        return new RepairController(
+            $twig,
+            $repairService,
+            $validator,
+            $repairs,
+            $events,
+            $documents,
+            $branches,
+            $users,
+            $pdfService,
+            $appUrl,
+            $customerFormPrefill,
+            $logger
+        );
+    },
+
+    // Öffentliche Statusseite
+    RepairStatusController::class => function (
+        Environment $twig,
+        RepairRepository $repairs,
+        RepairEventRepository $events,
+        DocumentRepository $documents,
+        BranchRepository $branches
+    ) {
+        return new RepairStatusController($twig, $repairs, $events, $documents, $branches, new \App\Services\RepairStatusPage());
+    },
+
     // Receipt Controller
     ReceiptController::class => function (Environment $twig, DocumentRepository $documentRepository, ReceiptRepository $receiptRepository, ReceiptItemRepository $receiptItemRepository, BranchRepository $branchRepository, PdfService $pdfService, LoggerInterface $logger, Connection $connection, CustomerResolver $customerResolver, CustomerFormPrefill $customerFormPrefill) {
         return new ReceiptController($twig, $documentRepository, $receiptRepository, $receiptItemRepository, $branchRepository, $pdfService, $logger, $connection, $customerResolver, $customerFormPrefill);
@@ -283,12 +401,12 @@ return [
     },
 
     // Dashboard Controller
-    DashboardController::class => function (Environment $twig, DocumentRepository $documentRepository, BranchRepository $branchRepository, EstimateRepository $estimateRepository, PurchaseRepository $purchaseRepository, ReceiptRepository $receiptRepository, InsuranceAssessmentRepository $insuranceRepository, InvoiceRepository $invoiceRepository) {
-        return new DashboardController($twig, $documentRepository, $branchRepository, $estimateRepository, $purchaseRepository, $receiptRepository, $insuranceRepository, $invoiceRepository);
+    DashboardController::class => function (Environment $twig, DocumentRepository $documentRepository, BranchRepository $branchRepository, EstimateRepository $estimateRepository, PurchaseRepository $purchaseRepository, ReceiptRepository $receiptRepository, InsuranceAssessmentRepository $insuranceRepository, InvoiceRepository $invoiceRepository, RepairRepository $repairRepository) {
+        return new DashboardController($twig, $documentRepository, $branchRepository, $estimateRepository, $purchaseRepository, $receiptRepository, $insuranceRepository, $invoiceRepository, $repairRepository);
     },
 
     // Export Controller
-    ExportController::class => function (DocumentRepository $documentRepository, BranchRepository $branchRepository, EstimateRepository $estimateRepository, PurchaseRepository $purchaseRepository, ReceiptRepository $receiptRepository, InsuranceAssessmentRepository $insuranceRepository, InvoiceRepository $invoiceRepository, UserRepository $userRepository, LoggerInterface $logger) {
-        return new ExportController($documentRepository, $branchRepository, $estimateRepository, $purchaseRepository, $receiptRepository, $insuranceRepository, $invoiceRepository, $userRepository, $logger);
+    ExportController::class => function (DocumentRepository $documentRepository, BranchRepository $branchRepository, EstimateRepository $estimateRepository, PurchaseRepository $purchaseRepository, ReceiptRepository $receiptRepository, InsuranceAssessmentRepository $insuranceRepository, InvoiceRepository $invoiceRepository, RepairRepository $repairRepository, UserRepository $userRepository, LoggerInterface $logger) {
+        return new ExportController($documentRepository, $branchRepository, $estimateRepository, $purchaseRepository, $receiptRepository, $insuranceRepository, $invoiceRepository, $repairRepository, $userRepository, $logger);
     },
 ];

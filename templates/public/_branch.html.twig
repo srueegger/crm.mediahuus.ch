@@ -1,0 +1,7 @@
+<div class="bg-white rounded-lg shadow p-4 sm:p-6 mt-4">
+    <h2 class="text-sm font-semibold text-gray-500 uppercase tracking-wide mb-2">Ihre Filiale</h2>
+    <p class="font-medium">{{ branch.name }}</p>
+    <p class="text-gray-700">{{ branch.street }}, {{ branch.zip }} {{ branch.city }}</p>
+    {% if branch.phone %}<p class="mt-1"><a href="tel:{{ branch.phone|replace({' ': ''}) }}" class="text-emerald-600 hover:text-emerald-700">{{ branch.phone }}</a></p>{% endif %}
+    {% if branch.email %}<p><a href="mailto:{{ branch.email }}" class="text-emerald-600 hover:text-emerald-700">{{ branch.email }}</a></p>{% endif %}
+</div>

@@ -11,6 +11,7 @@ use App\Repositories\PurchaseRepository;
 use App\Repositories\ReceiptRepository;
 use App\Repositories\InsuranceAssessmentRepository;
 use App\Repositories\InvoiceRepository;
+use App\Repositories\RepairRepository;
 use App\Repositories\UserRepository;
 use App\Services\DamageTypeService;
 use PhpOffice\PhpSpreadsheet\Spreadsheet;
@@ -37,6 +38,7 @@ class ExportController
         private ReceiptRepository $receiptRepository,
         private InsuranceAssessmentRepository $insuranceRepository,
         private InvoiceRepository $invoiceRepository,
+        private RepairRepository $repairRepository,
         private UserRepository $userRepository,
         private LoggerInterface $logger
     ) {
@@ -71,6 +73,7 @@ class ExportController
         $receipts = $this->indexByDocumentId($this->receiptRepository->findAll());
         $insurances = $this->indexByDocumentId($this->insuranceRepository->findAll());
         $invoices = $this->indexByDocumentId($this->invoiceRepository->findAll());
+        $repairs = $this->indexByDocumentId($this->repairRepository->findAll());
         $users = [];
         foreach ($this->userRepository->findAll(true) as $user) {
             $users[$user->getId()] = $user->getName();
@@ -83,6 +86,7 @@ class ExportController
             Document::TYPE_ESTIMATE => [],
             Document::TYPE_INSURANCE => [],
             Document::TYPE_INVOICE => [],
+            Document::TYPE_REPAIR => [],
         ];
         foreach ($documents as $doc) {
             $byType[$doc->getDocType()][] = $doc;
@@ -91,8 +95,9 @@ class ExportController
         $spreadsheet = new Spreadsheet();
         $spreadsheet->removeSheetByIndex(0); // Default-Sheet entfernen
 
-        $this->buildOverviewSheet($spreadsheet, $documents, $branches, $estimates, $purchases, $receipts, $insurances, $invoices);
+        $this->buildOverviewSheet($spreadsheet, $documents, $branches, $estimates, $purchases, $receipts, $insurances, $invoices, $repairs);
         $this->buildInvoicesSheet($spreadsheet, $byType[Document::TYPE_INVOICE], $branches, $invoices, $users);
+        $this->buildRepairsSheet($spreadsheet, $byType[Document::TYPE_REPAIR], $branches, $repairs);
         $this->buildReceiptsSheet($spreadsheet, $byType[Document::TYPE_RECEIPT], $branches, $receipts);
         $this->buildPurchasesSheet($spreadsheet, $byType[Document::TYPE_PURCHASE], $branches, $purchases);
         $this->buildEstimatesSheet($spreadsheet, $byType[Document::TYPE_ESTIMATE], $branches, $estimates);
@@ -131,7 +136,8 @@ class ExportController
         array $purchases,
         array $receipts,
         array $insurances,
-        array $invoices
+        array $invoices,
+        array $repairs
     ): void {
         $sheet = $spreadsheet->createSheet();
         $sheet->setTitle('Übersicht');
@@ -141,7 +147,7 @@ class ExportController
 
         $row = 2;
         foreach ($documents as $doc) {
-            $amount = $this->primaryAmount($doc, $estimates, $purchases, $receipts, $insurances, $invoices);
+            $amount = $this->primaryAmount($doc, $estimates, $purchases, $receipts, $insurances, $invoices, $repairs);
             $sheet->setCellValue("A{$row}", $doc->getDocNumber());
             $sheet->setCellValue("B{$row}", $doc->getTypeLabel());
             $sheet->setCellValue("C{$row}", $doc->getCreatedAt()->format('d.m.Y H:i'));
@@ -185,6 +191,47 @@ class ExportController
                 }
             }
             $sheet->setCellValue("J{$row}", $users[$doc->getUserId()] ?? '');
+            $row++;
+        }
+
+        $this->finalizeSheet($sheet, count($headers));
+    }
+
+    private function buildRepairsSheet(Spreadsheet $spreadsheet, array $documents, array $branches, array $repairs): void
+    {
+        $sheet = $spreadsheet->createSheet();
+        $sheet->setTitle('Reparaturen');
+
+        // Bewusst ohne Entsperrcode
+        $headers = [
+            'Nummer', 'Datum', 'Filiale', 'Kunden-Nr.', 'Kunde', 'Telefon', 'E-Mail',
+            'Gerät', 'IMEI/Seriennr.', 'Schadenstyp', 'Status', 'Fertig bis', 'Preis',
+        ];
+        $this->writeHeader($sheet, $headers);
+
+        $row = 2;
+        foreach ($documents as $doc) {
+            $repair = $repairs[$doc->getId()] ?? null;
+
+            $sheet->setCellValue("A{$row}", $doc->getDocNumber());
+            $sheet->setCellValue("B{$row}", $doc->getCreatedAt()->format('d.m.Y H:i'));
+            $sheet->setCellValue("C{$row}", $this->branchName($branches, $doc->getBranchId()));
+            $sheet->setCellValue("D{$row}", $doc->getCustomerId());
+            $sheet->setCellValue("E{$row}", $doc->getCustomerName());
+            $sheet->setCellValue("F{$row}", $doc->getCustomerPhone() ?? '');
+            $sheet->setCellValue("G{$row}", $doc->getCustomerEmail() ?? '');
+            if ($repair !== null) {
+                $sheet->setCellValue("H{$row}", $repair->getDeviceName());
+                $sheet->setCellValueExplicit("I{$row}", $repair->getImeiSerial() ?? '', DataType::TYPE_STRING);
+                $damageType = $repair->getDamageType();
+                $sheet->setCellValue("J{$row}", $damageType !== null && $damageType !== '' ? DamageTypeService::getDamageTypeLabel($damageType) : '');
+                $sheet->setCellValue("K{$row}", $repair->statusLabel());
+                $sheet->setCellValue("L{$row}", $repair->getDueDate()?->format('d.m.Y') ?? '');
+                if ($repair->getPriceChf() !== null) {
+                    $sheet->setCellValue("M{$row}", (float) $repair->getPriceChf());
+                    $sheet->getStyle("M{$row}")->getNumberFormat()->setFormatCode(self::MONEY_FORMAT);
+                }
+            }
             $row++;
         }
 
@@ -404,7 +451,8 @@ class ExportController
         array $purchases,
         array $receipts,
         array $insurances,
-        array $invoices
+        array $invoices,
+        array $repairs = []
     ): ?float {
         return match ($doc->getDocType()) {
             Document::TYPE_ESTIMATE => isset($estimates[$doc->getId()]) ? $estimates[$doc->getId()]->getPriceChf() : null,
@@ -412,6 +460,7 @@ class ExportController
             Document::TYPE_RECEIPT => isset($receipts[$doc->getId()]) ? $receipts[$doc->getId()]->getTotalAmountChf() : null,
             Document::TYPE_INSURANCE => isset($insurances[$doc->getId()]) ? $insurances[$doc->getId()]->getRepairCostChf() : null,
             Document::TYPE_INVOICE => isset($invoices[$doc->getId()]) ? (float) $invoices[$doc->getId()]->getTotalGrossChf() : null,
+            Document::TYPE_REPAIR => isset($repairs[$doc->getId()]) && $repairs[$doc->getId()]->getPriceChf() !== null ? (float) $repairs[$doc->getId()]->getPriceChf() : null,
             default => null,
         };
     }

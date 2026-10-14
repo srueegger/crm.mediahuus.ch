@@ -37,6 +37,7 @@
 
         <div class="mb-6 flex flex-wrap gap-2">
             <a href="{{ url_for('estimates.create') }}?customer_id={{ customer.id }}" class="mediahuus-button-secondary">Neuer Kostenvoranschlag</a>
+            <a href="{{ url_for('repairs.create') }}?customer_id={{ customer.id }}" class="mediahuus-button-secondary">Neue Reparatur</a>
             <a href="{{ url_for('receipts.create') }}?customer_id={{ customer.id }}" class="mediahuus-button-secondary">Neue Quittung</a>
             <a href="{{ url_for('invoices.create') }}?customer_id={{ customer.id }}" class="mediahuus-button-secondary">Neue Rechnung</a>
             <a href="{{ url_for('purchases.create') }}?customer_id={{ customer.id }}" class="mediahuus-button-secondary">Neuer Ankauf</a>

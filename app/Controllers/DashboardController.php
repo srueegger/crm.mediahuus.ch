@@ -3,6 +3,7 @@ declare(strict_types=1);
 
 namespace App\Controllers;
 
+use App\Models\Repair;
 use App\Models\User;
 use App\Repositories\DocumentRepository;
 use App\Repositories\BranchRepository;
@@ -11,6 +12,7 @@ use App\Repositories\PurchaseRepository;
 use App\Repositories\ReceiptRepository;
 use App\Repositories\InsuranceAssessmentRepository;
 use App\Repositories\InvoiceRepository;
+use App\Repositories\RepairRepository;
 use App\Services\TwigCacheConfig;
 use Twig\Environment;
 use Psr\Http\Message\ResponseInterface as Response;
@@ -25,6 +27,7 @@ class DashboardController extends BaseController
     private ReceiptRepository $receiptRepository;
     private InsuranceAssessmentRepository $insuranceRepository;
     private InvoiceRepository $invoiceRepository;
+    private RepairRepository $repairRepository;
 
     public function __construct(
         Environment $twig,
@@ -34,7 +37,8 @@ class DashboardController extends BaseController
         PurchaseRepository $purchaseRepository,
         ReceiptRepository $receiptRepository,
         InsuranceAssessmentRepository $insuranceRepository,
-        InvoiceRepository $invoiceRepository
+        InvoiceRepository $invoiceRepository,
+        RepairRepository $repairRepository
     ) {
         parent::__construct($twig);
         $this->documentRepository = $documentRepository;
@@ -44,6 +48,7 @@ class DashboardController extends BaseController
         $this->receiptRepository = $receiptRepository;
         $this->insuranceRepository = $insuranceRepository;
         $this->invoiceRepository = $invoiceRepository;
+        $this->repairRepository = $repairRepository;
     }
 
     public function index(Request $request, Response $response): Response
@@ -112,6 +117,15 @@ class DashboardController extends BaseController
                     $invoice = $this->invoiceRepository->findByDocumentId($document->getId());
                     $itemData['invoice'] = $invoice ? $invoice->toArray() : null;
                     break;
+                case 'repair':
+                    $repair = $this->repairRepository->findByDocumentId($document->getId());
+                    $repairData = $repair ? $repair->toArray() : null;
+                    if ($repairData !== null) {
+                        // Entsperrcode gehört nicht ins Dashboard
+                        unset($repairData['unlock_code']);
+                    }
+                    $itemData['repair'] = $repairData;
+                    break;
             }
 
             $allDocuments[] = $itemData;
@@ -124,6 +138,8 @@ class DashboardController extends BaseController
             'filter_type' => $filterType,
             'filter_branch' => $filterBranch,
             'total_count' => count($allDocuments),
+            'repairs_open' => $this->repairRepository->countOpen(),
+            'repairs_ready' => $this->repairRepository->countByStatus(Repair::STATUS_READY),
         ]);
     }
 

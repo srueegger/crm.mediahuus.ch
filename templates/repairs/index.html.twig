@@ -1,0 +1,113 @@
+{% extends "base.html.twig" %}
+
+{% block title %}Reparaturen - {{ parent() }}{% endblock %}
+
+{% block content %}
+<div class="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
+    <div class="px-4 py-6 sm:px-0">
+        <div class="mb-8 flex flex-wrap gap-4 justify-between items-center">
+            <div>
+                <h2 class="text-2xl font-bold text-gray-900 mb-2">Reparaturen</h2>
+                <p class="text-gray-600">{{ total }} {{ status ? statusLabels[status] : (scope == 'all' ? 'insgesamt' : 'offen') }}</p>
+            </div>
+            <a href="{{ url_for('repairs.create') }}" class="mediahuus-button-primary">Neue Reparatur</a>
+        </div>
+
+        {% if error %}
+            <div class="mb-6 bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded">
+                {% if error == 'notfound' %}Reparatur nicht gefunden.
+                {% elseif error == 'create' %}Die Reparatur konnte nicht gespeichert werden. Bitte erneut versuchen.
+                {% elseif error == 'pdf_generation' %}Das PDF konnte nicht erstellt werden.
+                {% else %}Es ist ein Fehler aufgetreten.{% endif %}
+            </div>
+        {% endif %}
+
+        <form method="get" action="{{ url_for('repairs.index') }}" class="mb-6 grid grid-cols-1 md:grid-cols-4 gap-3 items-end">
+            <div>
+                <label for="scope" class="mediahuus-label">Anzeige</label>
+                <select name="scope" id="scope" class="mediahuus-select">
+                    <option value="open" {% if scope == 'open' %}selected{% endif %}>Nur offene</option>
+                    <option value="all" {% if scope == 'all' %}selected{% endif %}>Alle</option>
+                </select>
+            </div>
+            <div>
+                <label for="status" class="mediahuus-label">Status</label>
+                <select name="status" id="status" class="mediahuus-select">
+                    <option value="">Alle Status</option>
+                    {% for value, label in statusLabels %}
+                        <option value="{{ value }}" {% if status == value %}selected{% endif %}>{{ label }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div>
+                <label for="branch_id" class="mediahuus-label">Filiale</label>
+                <select name="branch_id" id="branch_id" class="mediahuus-select">
+                    <option value="">Alle Filialen</option>
+                    {% for branch in branches %}
+                        <option value="{{ branch.id }}" {% if branchId == branch.id %}selected{% endif %}>{{ branch.name }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="flex gap-3">
+                <button type="submit" class="mediahuus-button-primary">Filtern</button>
+                <a href="{{ url_for('repairs.index') }}" class="mediahuus-button-secondary">Zurücksetzen</a>
+            </div>
+        </form>
+
+        <div class="bg-white shadow overflow-hidden sm:rounded-md">
+            {% if rows|length > 0 %}
+                <div class="overflow-x-auto">
+                    <table class="min-w-full divide-y divide-gray-200">
+                        <thead class="bg-gray-50">
+                            <tr>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Nummer</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Kunde</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Gerät</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Fertig bis</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Filiale</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Angelegt am</th>
+                            </tr>
+                        </thead>
+                        <tbody class="bg-white divide-y divide-gray-200">
+                            {% for row in rows %}
+                                {% set overdue = row.repair.is_overdue %}
+                                <tr class="hover:bg-emerald-50 {{ overdue ? 'bg-red-50 text-red-600' : '' }}">
+                                    <td class="px-6 py-4 text-sm font-medium whitespace-nowrap">
+                                        <a href="{{ url_for('repairs.show', {id: row.document.id}) }}" class="{{ overdue ? 'text-red-600 hover:text-red-700' : 'text-emerald-600 hover:text-emerald-700' }}">{{ row.document.doc_number }}</a>
+                                    </td>
+                                    <td class="px-6 py-4 text-sm {{ overdue ? 'text-red-600' : 'text-gray-900' }}">{{ row.document.customer_name }}</td>
+                                    <td class="px-6 py-4 text-sm {{ overdue ? 'text-red-600' : 'text-gray-500' }}">{{ row.repair.device_name }}</td>
+                                    <td class="px-6 py-4 text-sm whitespace-nowrap">
+                                        {% include 'repairs/_status_badge.html.twig' with { status: row.repair.status, label: row.repair.status_label, overdue: overdue } only %}
+                                    </td>
+                                    <td class="px-6 py-4 text-sm whitespace-nowrap {{ overdue ? 'text-red-600 font-semibold' : 'text-gray-500' }}">{{ row.repair.due_date ? row.repair.due_date|date('d.m.Y') : '–' }}</td>
+                                    <td class="px-6 py-4 text-sm {{ overdue ? 'text-red-600' : 'text-gray-500' }}">{{ row.branch_name }}</td>
+                                    <td class="px-6 py-4 text-sm whitespace-nowrap {{ overdue ? 'text-red-600' : 'text-gray-500' }}">{{ row.document.created_at|date('d.m.Y') }}</td>
+                                </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                {% if pages > 1 %}
+                    <div class="px-6 py-4 border-t border-gray-200 flex items-center justify-between text-sm text-gray-600">
+                        <span>Seite {{ page }} von {{ pages }}</span>
+                        <div class="flex gap-2">
+                            {% if page > 1 %}
+                                <a href="{{ url_for('repairs.index') }}?{{ query|merge({page: page - 1})|url_encode }}" class="mediahuus-button-secondary">Zurück</a>
+                            {% endif %}
+                            {% if page < pages %}
+                                <a href="{{ url_for('repairs.index') }}?{{ query|merge({page: page + 1})|url_encode }}" class="mediahuus-button-secondary">Weiter</a>
+                            {% endif %}
+                        </div>
+                    </div>
+                {% endif %}
+            {% else %}
+                <div class="text-center py-12">
+                    <h3 class="text-sm font-medium text-gray-900">Keine Reparaturen gefunden</h3>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}

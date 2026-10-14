@@ -1,0 +1,23 @@
+{% autoescape false -%}
+Guten Tag
+
+Wir haben Ihr Gerät {{ device_name }} zur Reparatur entgegengenommen. Ihre Reparaturnummer lautet {{ doc_number }}.
+
+Den aktuellen Stand Ihrer Reparatur können Sie jederzeit online einsehen:
+{{ status_url }}
+
+Die Auftragsbestätigung finden Sie im Anhang. Sobald Ihr Gerät abholbereit ist, melden wir uns erneut.
+
+Freundliche Grüsse
+{{ branch.name }}
+{{ branch.street }}, {{ branch.zip }} {{ branch.city }}
+{%- if branch.phone %}
+
+Telefon {{ branch.phone }}
+{%- endif %}
+{%- if branch.email %}
+
+{{ branch.email }}
+{%- endif %}
+
+{% endautoescape %}

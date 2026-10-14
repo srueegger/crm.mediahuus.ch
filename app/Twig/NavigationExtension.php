@@ -17,6 +17,7 @@ class NavigationExtension extends AbstractExtension
             'action' => 'Erstellen',
             'items' => [
                 ['key' => 'estimates', 'label' => 'Kostenvoranschlag', 'url' => '/estimates/create', 'prefix' => '/estimates', 'icon' => 'estimate'],
+                ['key' => 'repairs', 'label' => 'Reparatur', 'url' => '/repairs/create', 'prefix' => '/repairs/create', 'icon' => 'repair'],
                 ['key' => 'receipts', 'label' => 'Quittung', 'url' => '/receipts/create', 'prefix' => '/receipts', 'icon' => 'receipt'],
                 ['key' => 'invoices', 'label' => 'Rechnung', 'url' => '/invoices/create', 'prefix' => '/invoices', 'icon' => 'invoice'],
                 ['key' => 'purchases', 'label' => 'Ankauf', 'url' => '/purchases/create', 'prefix' => '/purchases', 'icon' => 'purchase'],
@@ -27,6 +28,7 @@ class NavigationExtension extends AbstractExtension
             'label' => 'Verwalten',
             'action' => 'Verwalten',
             'items' => [
+                ['key' => 'repairs_open', 'label' => 'Offene Reparaturen', 'url' => '/repairs', 'prefix' => '/repairs', 'icon' => 'repair'],
                 ['key' => 'customers', 'label' => 'Kunden', 'url' => '/customers', 'prefix' => '/customers', 'icon' => 'customers'],
                 ['key' => 'users', 'label' => 'Benutzer', 'url' => '/users', 'prefix' => '/users', 'icon' => 'users'],
             ],
@@ -58,7 +60,32 @@ class NavigationExtension extends AbstractExtension
             return $this->path === '/';
         }
 
+        $best = $this->bestPrefix();
+
+        return $best === null ? $this->matches($prefix) : $prefix === $best;
+    }
+
+    private function matches(string $prefix): bool
+    {
         return $this->path === $prefix || str_starts_with($this->path, $prefix . '/');
+    }
+
+    /**
+     * Längster passender Prefix aller Menüpunkte, damit nur ein Eintrag aktiv ist.
+     */
+    private function bestPrefix(): ?string
+    {
+        $best = null;
+        foreach (self::GROUPS as $group) {
+            foreach ($group['items'] as $item) {
+                $prefix = $item['prefix'];
+                if ($this->matches($prefix) && ($best === null || strlen($prefix) > strlen($best))) {
+                    $best = $prefix;
+                }
+            }
+        }
+
+        return $best;
     }
 
     /**

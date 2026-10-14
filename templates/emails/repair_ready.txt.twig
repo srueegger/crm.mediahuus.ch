@@ -1,0 +1,22 @@
+{% autoescape false -%}
+Guten Tag
+
+Gute Nachrichten: Ihr Gerät {{ device_name }} ({{ doc_number }}) ist repariert und abholbereit.
+{%- if price_chf %}
+
+Voraussichtlicher Betrag: CHF {{ price_chf }} (inkl. MWST).
+{%- endif %}
+
+Sie können es in unserer Filiale abholen:
+{{ branch.name }}
+{{ branch.street }}, {{ branch.zip }} {{ branch.city }}
+{%- if branch.phone %}
+
+Telefon {{ branch.phone }}
+{%- endif %}
+
+Reparaturstatus: {{ status_url }}
+
+Freundliche Grüsse
+{{ branch.name }}
+{% endautoescape %}
